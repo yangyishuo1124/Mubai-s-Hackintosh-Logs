@@ -20,7 +20,7 @@ Successfully boots macOS into the graphical desktop / Recovery environment using
 | **Keyboard** | ASUS Built-in Keyboard (`\_SB.PC00.PS2K`) | **Working** (`VoodooPS2Keyboard.kext`) |
 | **Touchpad** | ASUS Precision Touchpad (`\_SB.PC00.I2C0.TPD0`) | **Working in polling mode** (`VoodooI2C` + `VoodooI2CHID`; interrupt trial failed) |
 | **USB Controllers** | Intel Panther Lake xHCI & Type-C Subsystems | **Working** (`SSDT-EC-USBX-LAPTOP.aml`) |
-| **Audio** | Realtek ALC235 on Intel SST Bus (`8086:E328`, Class `040100`) | **USB DAC / Type-C Audio / Bluetooth** (Intel SST DSP has no macOS AppleHDA stack) |
+| **Audio** | Realtek ALC235 on Intel SST Bus (`8086:E328`, Class `040100`) | **Experimental: SimpleHDA 1.0.1 + AppleALC, layout 3; pending boot test** |
 | **Wireless / BT** | Realtek RTL8852BE Wi-Fi 6 (`10EC:B852`) & Realtek BT (`0BDA:B85B`) | **Wi-Fi auto-join works; GUI network switching and Bluetooth unresolved** (AirPort_RTW89 0.6.0, RealtekBluetoothFirmware 1.0.2, BlueToolFixup 2.7.2) |
 
 ---
@@ -33,7 +33,7 @@ The internal ESP was backed up locally before this update. The checked-in `EFI/O
 - Bluetooth: added RealtekBluetoothFirmware 1.0.2 and BlueToolFixup 2.7.2 for USB ID `0BDA:B85B`. Firmware upload and controller operation require macOS log verification.
 - Battery: `SSDT-BATT-FIX-UNIT0.aml` corrected the displayed percentage in the first macOS test.
 - Touchpad: the GPIO interrupt trial failed. `-vi2c-force-polling` has been restored in the active EFI.
-- Audio: unchanged. Intel SST `8086:E328` and Realtek ALC235 remain undetected in macOS; Tahoe also lacks the old AppleHDA stack.
+- Audio: SimpleHDA 1.0.1 RELEASE added after AppleALC (now enabled), with initial `alcid=3`. This restores the Tahoe AppleHDA stack for testing; E328 controller and ALC235 codec enumeration remain unverified.
 
 See [`HARDWARE_TEST_2026-11-13.md`](HARDWARE_TEST_2026-11-13.md) for test history and [`HARDWARE_FOLLOWUP_2026-11-13.md`](HARDWARE_FOLLOWUP_2026-11-13.md) for the next diagnostics.
 
@@ -67,8 +67,8 @@ See [`HARDWARE_TEST_2026-11-13.md`](HARDWARE_TEST_2026-11-13.md) for test histor
   - **Workaround to view hardware specs**: Hold the **Option (`Alt`)** key and click the Apple logo () -> **"System Information..."** (`系统信息.app`). This legacy AppKit utility renders immediately without Metal and accurately details the full CPU, RAM, NVMe, PCI, and USB device trees.
 - **Internal Audio (Intel Smart Sound Technology)**:
   - Panther Lake routes the Realtek ALC235 codec through an **Intel Smart Sound Technology (Intel SST) DSP controller** (`PCI\VEN_8086&DEV_E328`, PCI Class `040100`).
-  - macOS's `AppleHDAController` strictly binds to legacy High Definition Audio (PCI Class `040300`). Apple never implemented an Intel SST DSP firmware loader or SoundWire stack.
-  - **Recommended Solution**: Plug in any class-compliant USB-C / USB audio dongle or DAC (e.g. Apple's official USB-C to 3.5mm adapter, ~$9). macOS includes native `AppleUSBAudio` drivers that work out of the box with zero configuration and volume control. Bluetooth headphones also work once Bluetooth is loaded.
+  - ALC235 is an AppleALC-supported codec, but access through this E328 controller is not yet established. Its SST PCI class alone does not prove that legacy HDA access is impossible; SoundWire routing has not been established on this machine.
+  - [SimpleHDA](https://github.com/laobamac/SimpleHDA) restores the AppleHDA stack on Tahoe. The active EFI now tests version 1.0.1 RELEASE with AppleALC and layout 3. This is not an SST DSP driver, and successful controller matching, codec discovery and audible playback still require testing. USB audio remains a separate fallback; Bluetooth is also still under investigation.
 - **Native I²C Multitouch Gestures**:
   - The GPIO interrupt trial did not work on this hardware. The active EFI uses forced polling again.
 - **Internal Battery Indicator**:

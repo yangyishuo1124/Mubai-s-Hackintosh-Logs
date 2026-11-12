@@ -1,0 +1,12 @@
+{
+  "Licenses/Lilu-LICENSE.txt": "74c3ca48189b796b0d262866e67de8efba77a71516667ce68dc3a8f13c2a3c57",
+  "Licenses/xnu-APPLE_LICENSE": "e5881019d8766c1e88a5fe1dbca4ba40c78011d41fcb18f6e9f50df60182685b",
+  "NOTICE.md": "5d9f147f605f88e200bda19706bb8c459bd62669eb74d9ccb1a5066e6f1751d5",
+  "OpenCore-Kernel-Add.plist": "6206d1d738a92777b8e1eafead35a59e09df6198f4dab7c2a02b73dfcab04e9a",
+  "README.en.md": "7ce9b8eea971f68f0c76b8551e989141e9e26c85814702b942f84dceb44c25cd",
+  "README.md": "47978469cbd6f466d6557691c14fa280cdecce165e4213005b257b12fd491277",
+  "SimpleHDA-HAL-1.0.1.pkg": "0c178a51c7fb1dc723e5891fd4a055b95cb0f76de97deb90cd6d456b75681c24",
+  "SimpleHDA.kext/Contents/Info.plist": "6f505ef294f5c30a41f58f661d8e77831404418fa563cd41e1f264f75278a46d",
+  "SimpleHDA.kext/Contents/MacOS/SimpleHDA": "5a1beec91f121a018072ac085c51543d5eaea85347e6417cd2e37d254d9383c1",
+  "Tools/uninstall_hal.zsh": "ca3ab7914993adf9952d5bd2485759bda7ea38d9868144a2eaafdb298e3c3e66"
+}

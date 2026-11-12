@@ -10,6 +10,9 @@ sw_vers > "$out/system.txt" 2>&1
 uname -a >> "$out/system.txt" 2>&1
 sysctl hw.ncpu hw.activecpu hw.physicalcpu hw.logicalcpu hw.physicalcpu_max hw.logicalcpu_max > "$out/cpu-counts.txt" 2>&1
 ioreg -r -c AppleACPICPU -l -w0 > "$out/cpu-ioreg.txt" 2>&1
+ioreg -r -c IOAudioDevice -l -w0 > "$out/audio-devices.txt" 2>&1
+ioreg -r -c IOHDACodecDevice -l -w0 > "$out/audio-codecs.txt" 2>&1
+ioreg -r -n HDAS -l -w0 > "$out/audio-controller.txt" 2>&1
 networksetup -listallhardwareports > "$out/network-ports.txt" 2>&1
 networksetup -listallnetworkservices > "$out/network-services.txt" 2>&1
 networksetup -getairportnetwork en0 > "$out/current-wifi.txt" 2>&1
@@ -54,6 +57,7 @@ fi
 /usr/bin/log show --last 30m --style compact --predicate 'eventMessage CONTAINS[c] "rtw89" OR eventMessage CONTAINS[c] "DHCP" OR eventMessage CONTAINS[c] "bootp" OR eventMessage CONTAINS[c] "WiFi"' > "$out/wifi-log.txt" 2>&1
 
 archive="$here/reports/s5650aa-${stamp}.zip"
+/usr/bin/log show --last boot --info --style compact --predicate 'process == "coreaudiod" OR eventMessage CONTAINS[c] "SimpleHDA" OR eventMessage CONTAINS[c] "AppleHDA" OR eventMessage CONTAINS[c] "AppleALC"' > "$out/audio-log.txt" 2>&1
 /usr/bin/ditto -c -k "$out" "$archive"
 sync
 echo "Saved diagnostics to: $archive"
