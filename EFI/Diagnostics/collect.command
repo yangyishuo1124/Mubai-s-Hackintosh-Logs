@@ -8,6 +8,8 @@ mkdir -p "$here/reports"
 
 sw_vers > "$out/system.txt" 2>&1
 uname -a >> "$out/system.txt" 2>&1
+sysctl hw.ncpu hw.activecpu hw.physicalcpu hw.logicalcpu hw.physicalcpu_max hw.logicalcpu_max > "$out/cpu-counts.txt" 2>&1
+ioreg -r -c AppleACPICPU -l -w0 > "$out/cpu-ioreg.txt" 2>&1
 networksetup -listallhardwareports > "$out/network-ports.txt" 2>&1
 networksetup -listallnetworkservices > "$out/network-services.txt" 2>&1
 networksetup -getairportnetwork en0 > "$out/current-wifi.txt" 2>&1

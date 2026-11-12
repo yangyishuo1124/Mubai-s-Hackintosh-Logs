@@ -61,3 +61,9 @@ The third report shows Realtek firmware `rtl8852bu` uploaded and the firmware se
 The collector now records the complete IOService topology and nonzero busy counters, samples the Bluetooth daemon for three seconds, and captures its launchd state. It does not restart services or change boot configuration. The next report should distinguish a global device-initialization wait from a later Bluetooth transport failure. Battery correction and working touchpad polling are retained.
 
 The latest ZIP passed its integrity check after refreshing the Windows EFI mount. The subsequent filesystem check reported no errors; this read failure alone is not evidence of new FAT corruption.
+
+## Fourth report: wait confirmed by process sample
+
+The Bluetooth daemon's three-second sample is entirely in `IOKitWaitQuiet -> io_service_wait_quiet -> mach_msg2_trap`. Both IOService snapshots show CP01 through CP15 / AppleACPICPU continuously busy for approximately 297 seconds, while CP00 is idle. These CPU services account for the nonzero busy branches captured in the report. This establishes an initialization-state blocker; it does not establish defective CPU hardware, missing usable cores, or a performance problem. The user reports normal CPU operation.
+
+The active MADT contains 16 enabled Local APIC entries. The current generic SSDT-PLUG-ALT declares 64 Processor objects. This discrepancy warrants checking, but is not by itself proof that the SSDT causes the wait. No CPU topology, MADT, power-management setting or boot argument was changed. The collector now also records macOS online CPU counts and detailed AppleACPICPU properties to avoid inferring core availability from busy counters alone. Raw process samples and device trees remain local.
