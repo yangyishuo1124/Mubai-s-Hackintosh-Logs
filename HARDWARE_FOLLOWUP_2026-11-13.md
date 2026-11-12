@@ -45,3 +45,11 @@ The FAT32 report directory was corrupt after the first macOS write. A raw image 
 ```sh
 sudo diskutil unmount /Volumes/SYSTEM
 ```
+
+## Second report: Wi-Fi and Bluetooth narrowed down
+
+The macOS 26.0 report captured after a failed graphical Wi-Fi join shows that the currently working saved WPA2 network completes its four-way handshake and gets a DHCP lease. A graphical join to another WPA2 network associates, receives the access point's first EAPOL message and sends an acknowledged reply, but never receives message 3. The access point deauthenticates with reason 15; the driver reports native join error `-2015`. This failure occurs before DHCP. The user clarified that the now-working 5 GHz network originally showed the same GUI failure and only acquired an IP after a command-line join saved its password and a reboot. The evidence therefore points to a first-join/saved-credential difference, not a 2.4 GHz-specific fault. The exact macOS-to-driver key handoff remains unproven.
+
+The USB IORegistry contains the Realtek `0BDA:B85B` device as `Bluetooth USB Host Controller` with `FirmwareLoaded = Yes` and class 0xE0. Both RealtekBluetoothFirmware 1.0.2 and BlueToolFixup 2.7.2 are loaded. `system_profiler SPBluetoothDataType` hung and no `IOBluetoothHostController` was published. Firmware upload is therefore not the remaining blocker; `bluetoothd`/controller initialization is. The previous log predicate looked only for messages containing the word `bluetoothd`, which omitted messages emitted by the process itself. The collector now selects `process == "bluetoothd"`, captures kernel messages and skips the hanging System Profiler Bluetooth query.
+
+No private Wi-Fi names, passwords, MAC addresses or raw reports are committed to this repository.
