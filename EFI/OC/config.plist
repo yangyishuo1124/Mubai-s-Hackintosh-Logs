@@ -658,7 +658,7 @@
 				<key>Comment</key>
 				<string>Shared VoodooInput</string>
 				<key>Enabled</key>
-				<false/>
+				<true/>
 				<key>ExecutablePath</key>
 				<string>Contents/MacOS/VoodooInput</string>
 				<key>MaxKernel</key>
@@ -1187,7 +1187,7 @@
 				AAAAAAAAAAAAAAAAAAA=
 				</data>
 				<key>boot-args</key>
-				<string>-v keepsyms=1 debug=0x100 io=0x6 msgbuf=1048576 -no_compat_check -rtw89nowpa3 revpatch=cpuname revcpu=1</string>
+				<string>-v keepsyms=1 debug=0x100 io=0x6 msgbuf=1048576 -no_compat_check -rtw89nowpa3 revpatch=cpuname revcpu=1 -amfipassbeta</string>
 				<key>csr-active-config</key>
 				<data>
 				AwgAAA==
