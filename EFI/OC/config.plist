@@ -640,7 +640,7 @@
 				<key>Comment</key>
 				<string>PS/2 Mouse (Recovery Pointing Device requirement)</string>
 				<key>Enabled</key>
-				<true/>
+				<false/>
 				<key>ExecutablePath</key>
 				<string>Contents/MacOS/VoodooPS2Mouse</string>
 				<key>MaxKernel</key>
@@ -676,7 +676,7 @@
 				<key>Comment</key>
 				<string>I2C GPIO controller</string>
 				<key>Enabled</key>
-				<false/>
+				<true/>
 				<key>ExecutablePath</key>
 				<string>Contents/MacOS/VoodooGPIO</string>
 				<key>MaxKernel</key>
@@ -694,7 +694,7 @@
 				<key>Comment</key>
 				<string>I2C services</string>
 				<key>Enabled</key>
-				<false/>
+				<true/>
 				<key>ExecutablePath</key>
 				<string>Contents/MacOS/VoodooI2CServices</string>
 				<key>MaxKernel</key>
@@ -712,7 +712,7 @@
 				<key>Comment</key>
 				<string>I2C bus driver for TZY4E41 touchpad</string>
 				<key>Enabled</key>
-				<false/>
+				<true/>
 				<key>ExecutablePath</key>
 				<string>Contents/MacOS/VoodooI2C</string>
 				<key>MaxKernel</key>
@@ -730,7 +730,7 @@
 				<key>Comment</key>
 				<string>I2C HID touchpad driver</string>
 				<key>Enabled</key>
-				<false/>
+				<true/>
 				<key>ExecutablePath</key>
 				<string>Contents/MacOS/VoodooI2CHID</string>
 				<key>MaxKernel</key>
@@ -1187,7 +1187,7 @@
 				AAAAAAAAAAAAAAAAAAA=
 				</data>
 				<key>boot-args</key>
-				<string>-v keepsyms=1 debug=0x100 io=0x6 msgbuf=1048576 -no_compat_check -rtw89nowpa3 revpatch=cpuname revcpu=1 -amfipassbeta</string>
+				<string>-v keepsyms=1 debug=0x100 io=0x6 msgbuf=1048576 -no_compat_check -rtw89nowpa3 revpatch=cpuname revcpu=1 -amfipassbeta amfi=0x80</string>
 				<key>csr-active-config</key>
 				<data>
 				AwgAAA==
