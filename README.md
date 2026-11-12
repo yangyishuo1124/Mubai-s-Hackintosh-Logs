@@ -21,7 +21,7 @@ Successfully boots macOS into the graphical desktop / Recovery environment using
 | **Touchpad** | ASUS Precision Touchpad (`\_SB.PC00.I2C0.TPD0`) | **Working** (`VoodooPS2Mouse.kext` via BIOS PS/2 emulation) |
 | **USB Controllers** | Intel Panther Lake xHCI & Type-C Subsystems | **Working** (`SSDT-EC-USBX-LAPTOP.aml`) |
 | **Audio** | Realtek ALC235 on Intel SST Bus (`8086:E328`, Class `040100`) | **USB DAC / Type-C Audio / Bluetooth** (Intel SST DSP has no macOS AppleHDA stack) |
-| **Wireless / BT** | Realtek RTL8852BE Wi-Fi 6 (`10EC:B852`) & Realtek BT (`0BDA:B85B`) | Under testing (`AirPort_RTW89.kext`) |
+| **Wireless / BT** | Realtek RTL8852BE Wi-Fi 6 (`10EC:B852`) & Realtek BT (`0BDA:B85B`) | **Testing / Enabled** (`AirPort_RTW89.kext` + Skywalk stack) |
 
 ---
 

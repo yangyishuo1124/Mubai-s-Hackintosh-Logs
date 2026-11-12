@@ -748,7 +748,7 @@
 				<key>Comment</key>
 				<string>OCLP legacy Skywalk for AirPort_RTW89</string>
 				<key>Enabled</key>
-				<false/>
+				<true/>
 				<key>ExecutablePath</key>
 				<string>Contents/MacOS/IOSkywalkFamily</string>
 				<key>MaxKernel</key>
@@ -766,7 +766,7 @@
 				<key>Comment</key>
 				<string>OCLP legacy 802.11 for AirPort_RTW89</string>
 				<key>Enabled</key>
-				<false/>
+				<true/>
 				<key>ExecutablePath</key>
 				<string>Contents/MacOS/IO80211FamilyLegacy</string>
 				<key>MaxKernel</key>
@@ -784,7 +784,7 @@
 				<key>Comment</key>
 				<string>AMFI bypass for legacy Wi-Fi and WTLIntelGfx</string>
 				<key>Enabled</key>
-				<false/>
+				<true/>
 				<key>ExecutablePath</key>
 				<string>Contents/MacOS/AMFIPass</string>
 				<key>MaxKernel</key>
@@ -802,7 +802,7 @@
 				<key>Comment</key>
 				<string>Realtek RTL8852BE (10EC:B852) native Wi-Fi 6 driver</string>
 				<key>Enabled</key>
-				<false/>
+				<true/>
 				<key>ExecutablePath</key>
 				<string>Contents/MacOS/AirPort_RTW89</string>
 				<key>MaxKernel</key>
@@ -820,7 +820,7 @@
 				<key>Comment</key>
 				<string>AirPort_RTW89 frontend plugin</string>
 				<key>Enabled</key>
-				<false/>
+				<true/>
 				<key>ExecutablePath</key>
 				<string>Contents/MacOS/AirPortRTW89Front</string>
 				<key>MaxKernel</key>
