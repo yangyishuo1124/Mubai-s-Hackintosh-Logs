@@ -20,8 +20,8 @@ Successfully boots macOS into the graphical desktop / Recovery environment using
 | **Keyboard** | ASUS Built-in Keyboard (`\_SB.PC00.PS2K`) | **Working** (`VoodooPS2Keyboard.kext`) |
 | **Touchpad** | ASUS Precision Touchpad (`\_SB.PC00.I2C0.TPD0`) | **Working** (`VoodooPS2Mouse.kext` via BIOS PS/2 emulation) |
 | **USB Controllers** | Intel Panther Lake xHCI & Type-C Subsystems | **Working** (`SSDT-EC-USBX-LAPTOP.aml`) |
-| **Audio** | Realtek ALC256 / Intel Smart Sound | Work in progress |
-| **Wireless / BT** | Intel Wi-Fi / Realtek Wi-Fi | Work in progress |
+| **Audio** | Realtek ALC235 on Intel SST Bus (`8086:E328`, Class `040100`) | **USB DAC / Type-C Audio / Bluetooth** (Intel SST DSP has no macOS AppleHDA stack) |
+| **Wireless / BT** | Realtek RTL8852BE Wi-Fi 6 (`10EC:B852`) & Realtek BT (`0BDA:B85B`) | Under testing (`AirPort_RTW89.kext`) |
 
 ---
 
@@ -45,15 +45,20 @@ Successfully boots macOS into the graphical desktop / Recovery environment using
 
 ---
 
-## What Does Not Work (Yet)
+## What Does Not Work (Yet) & Technical Notes
 
-- **Hardware GPU Acceleration (Metal)**:
-  - The desktop renders using CPU software rasterization (Basic Framebuffer).
-  - Awaiting future developments in community drivers (such as XeGfx / WTLIntelGfx).
+- **Hardware GPU Acceleration (Metal) & "About This Mac"**:
+  - The desktop currently renders using CPU software rasterization (Basic Framebuffer / GOP VESA) as Intel Xe2 Battlemage/Celestial graphics lacks a native Apple Metal driver.
+  - In modern macOS (Ventura, Sonoma, Sequoia), **"About This Mac"** (System Settings -> About) relies heavily on SwiftUI and Metal. Without Metal, this window can display as a blank/white frame.
+  - **Workaround to view hardware specs**: Hold the **Option (`Alt`)** key and click the Apple logo () -> **"System Information..."** (`系统信息.app`). This legacy AppKit utility renders immediately without Metal and accurately details the full CPU, RAM, NVMe, PCI, and USB device trees.
+- **Internal Audio (Intel Smart Sound Technology)**:
+  - Panther Lake routes the Realtek ALC235 codec through an **Intel Smart Sound Technology (Intel SST) DSP controller** (`PCI\VEN_8086&DEV_E328`, PCI Class `040100`).
+  - macOS's `AppleHDAController` strictly binds to legacy High Definition Audio (PCI Class `040300`). Apple never implemented an Intel SST DSP firmware loader or SoundWire stack.
+  - **Recommended Solution**: Plug in any class-compliant USB-C / USB audio dongle or DAC (e.g. Apple's official USB-C to 3.5mm adapter, ~$9). macOS includes native `AppleUSBAudio` drivers that work out of the box with zero configuration and volume control. Bluetooth headphones also work once Bluetooth is loaded.
 - **Native I²C Multitouch Gestures**:
-  - `VoodooI2C` currently causes bus deadlocks with Panther Lake I2C controllers. Basic tracking and clicking work via PS/2 emulation.
-- **Wi-Fi / Bluetooth**:
-  - Wi-Fi 7 (Intel BE200/BE211) or newer Realtek chipsets require experimental kext research.
+  - `VoodooI2C` currently causes bus deadlocks with Panther Lake I2C controllers. Basic tracking and clicking work via PS/2 emulation (`VoodooPS2Mouse`).
+- **Internal Battery Indicator**:
+  - `SMCBatteryManager` causes an ACPI `AE_BAD_PARAMETER` EmbeddedControl loop due to modern 16-bit battery EC fields. It is kept disabled until custom battery patches are implemented.
 
 ---
 
