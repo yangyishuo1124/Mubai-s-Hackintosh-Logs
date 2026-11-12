@@ -131,6 +131,7 @@
 			<key>IONameMatch</key>
 			<array>
 				<string>INTC1055</string>
+				<string>INTC10BB</string>
 			</array>
 			<key>IOProviderClass</key>
 			<string>IOService</string>
