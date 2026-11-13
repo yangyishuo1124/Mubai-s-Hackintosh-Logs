@@ -10,9 +10,9 @@
 
 Patch 0206 backports Linux's mapping-aware PC BO clear and elapsed-time polling behavior onto v13. It uses the existing 6.14 ktime_ms_delta API with requested 10–20µs sleeps instead of importing the newer poll_timeout_us macro. V13 error returns and all internal stage-4 checkpoints remain; PC, forcewake and IRQs are not bypassed.
 
-边界：普通系统内存下 xe_map_memset 仍走普通清零；原上游问题主要涉及独显 I/O 内存，不能宣称这是 B0A0 根因。真实时间判断只在读取/睡眠返回后起作用，不能保证解除整机卡死或自动重启。构建、主机测试及 EFI 部署结果将在完成后补记；目前不宣称硬件成功。
+边界：普通系统内存下 xe_map_memset 仍走普通清零；原上游问题主要涉及独显 I/O 内存，不能宣称这是 B0A0 根因。真实时间判断只在读取/睡眠返回后起作用，不能保证解除整机卡死或自动重启。[构建 43499591370](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43499591370) 已通过：16 项原有测试、GuC 错误传播测试、新增 PC 等待 7 类场景、架构/签名/链接检查与固件验证。已备份并替换硬盘 EFI 的开机及诊断驱动，二者读回 SHA-256 均为 `01e021769a73306a2c3453404bacaedab6ce13522e270e937704006285205135`，OpenCore 配置校验无错误。备份为本地 `backups/before-xe-pc-map-wait-20261114-042110`。硬件结果待重启后运行原 gpu-probe.command 确认；未宣称卡死或加速已解决。
 
-Limits: sysmem still follows normal memset; the original upstream issue primarily concerns dGPU I/O memory, not a proven B0A0 root cause. Elapsed-time checks require memory reads/sleeps to return and do not guarantee recovery or automatic reboot. Build, host-test and EFI deployment results will be recorded after completion; hardware success is unverified.
+Limits: sysmem still follows normal memset; the original upstream issue primarily concerns dGPU I/O memory, not a proven B0A0 root cause. Elapsed-time checks require memory reads/sleeps to return and do not guarantee recovery or automatic reboot. Build 43499591370 passes the 16 existing tests, GuC error tests, seven PC wait scenarios, architecture/signature/link checks and firmware validation. Boot and diagnostic drivers were backed up, replaced and read back with the same SHA-256 above; OpenCore validation passes. Local backup: backups/before-xe-pc-map-wait-20261114-042110. Reboot and the existing gpu-probe.command are still needed for hardware validation. Neither a resolved freeze nor acceleration is claimed.
 
 
 2026-11-14 上游 issue / 提交对照：[中文与英文调查记录](GPU_UPSTREAM_RESEARCH_2026-11-14.md)。本轮仅更新调查结论，EFI 未修改。
