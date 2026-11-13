@@ -4,6 +4,20 @@
 
 ## 当前结论 / Current conclusion
 
+### 实机验证：元数据阻断生效 / Hardware validation: metadata guard works
+
+22:31 探测、22:34 完整采集结束。实际加载策略为 `ptl-metadata-only-v1`，`XeGfxGOPCPUAccessBlocked=Yes`。阶段结果为 stage 1 = 1、stage 2 = -102 (`EOPNOTSUPP`)，完成阶段保持 1；IORegistry 的 XeGfxStage=2 仅代表尝试过。完整采集成功，panic 目录仅包含此前 22:01 的文件。
+
+The 22:31 probe completed collection at 22:34 with the loaded metadata-only policy and CPU-access guard confirmed. Stage 1 returns 1; stage 2 returns -102 (`EOPNOTSUPP`), leaving the completed stage at 1. The registry stage 2 property records an attempt. The panic directory contains only the earlier 22:01 report.
+
+元数据：4000 页、全部为 DM 页；候选物理起点 `0x7c800000`，跨度 `0xfa0000`（16,384,000 字节）；PCI DSM 为 0，MMIO DSM 为 `0x7c800000`，首个 PTE 为 `0x800003`。候选范围包含上次 MCE 报错地址。由此支持 CPU 显存访问为首要故障路径，但并未证明候选地址可供 CPU 使用，也未解决访问限制/缓存属性；不应通过改为 BAR2 读取或写 pcode 寄存器盲试。
+
+Metadata contains 4000 pages, all DM, with candidate start `0x7c800000` and span `0xfa0000` (16,384,000 bytes). PCI DSM is zero; MMIO DSM is `0x7c800000`; the first PTE is `0x800003`. This candidate region includes the previous machine-check addresses, strengthening the CPU-access fault-path hypothesis. It does not prove CPU accessibility or resolve access/cache rules. Blind BAR2 reads or pcode writes are not justified by these results.
+
+当前不需要重复同一测试。后续应研究保留固件 GOP 页表及 stolen 分配范围、无需 CPU 像素读取的完整性校验，再单独处理 stage 4 DSM 保留补丁；现有阻断不应移除以绕过阶段失败。
+
+No repeat of this test is needed. Further work should establish firmware GOP/GGTT and stolen-allocation preservation, integrity checks without CPU pixel reads, and a separate review of stage-4 DSM reservation. Removing this guard simply to bypass the failed stage is not a valid fix.
+
 ### B0A0 显存访问阻断修订 / CPU-access containment revision
 
 部署完成：新驱动完整构建、链接/KPI/签名/架构检查及原有 16 项测试、新增阻断分支测试全部通过。[构建记录](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43440462656)。已备份并替换硬盘 EFI 开机副本、签名诊断副本和探测脚本，读回一致，ocvalidate 通过，开机配置未变。新二进制 SHA-256：`3ad564ca02e5d91324f7392b897b709f4e0e75fab66218e4c05b24f868f5461b`。实机效果待重启验证。

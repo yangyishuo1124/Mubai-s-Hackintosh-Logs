@@ -32,7 +32,8 @@ stage="$(sysctl -n debug.xegfx_stage)"
 [[ "$stage" == <0-2> ]] || { print '已有其他阶段运行，本脚本停止 / Unexpected existing stage; stopping'; exit 1; }
 sysctl debug.xegfx_stage=2
 sysctl debug.xegfx_stage
-sysctl -b debug.xegfx_results
+print '阶段结果数组（索引对应阶段号） / Signed results indexed by stage:'
+sysctl -b debug.xegfx_results | od -An -v -t d4
 sysctl -b debug.xegfx_log
 print 'B0A0 预期停止于显存访问阻断，stage 2 未完成；不代表 Metal 已可用。'
 print 'B0A0 is expected to stop at the CPU-access guard; stage 2 remains incomplete.'
