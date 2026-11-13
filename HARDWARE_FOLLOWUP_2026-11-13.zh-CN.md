@@ -2,6 +2,14 @@
 
 [English](HARDWARE_FOLLOWUP_2026-11-13.md) · [中英双语首页](README.md)
 
+## GPIO 本地 ACPI 桥接修复已部署
+
+新报告确认五个 GPIO 节点已进入启动并成功读取 `_DSD`，随后驱动用绝对路径求值 `TPDI` 返回 `0xe00002c2`（参数错误），因此提前退出。这定位到新增驱动的一处失败调用；不据此推断固件资源错误。
+
+新增并启用 `SSDT-PTL-GPIO.aml`，在各 GPIO 节点提供本地 `PTIR` / `PTGR` 方法，分别由 AML 读取根级 `TPDI`、调用固件 `G_IN`。驱动改用无参数的本地方法求值，并保留有界固件属性、路由和描述符以验证后续阶段。驱动与此 SSDT 必须配套使用。
+
+构建及校验通过，已备份并写入硬盘、读回一致，ocvalidate 通过。保留轮询，待实机验证。详见 [GPIO 记录](TOUCHPAD_GPIO.md)。
+
 ## 新 GPIO 匹配/追踪版已部署，保留轮询
 
 用户要求继续修复。已对齐 provider 匹配方式，补充 probe/start 和 GPIO 节点阶段属性，macOS 构建及检查通过，已写入硬盘并读回验证。保留轮询以先确认控制器启动；中断未修复，待实测。详见 [GPIO 记录](TOUCHPAD_GPIO.md)。

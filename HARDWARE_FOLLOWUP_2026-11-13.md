@@ -2,6 +2,14 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## Local GPIO ACPI bridge deployed
+
+The new report confirms all five GPIO nodes enter startup and read `_DSD`, then the driver's absolute-path evaluation of `TPDI` returns `0xe00002c2` (bad argument), causing an early exit. This identifies a failing call in the added driver; it does not establish a firmware-resource defect.
+
+Added and enabled `SSDT-PTL-GPIO.aml`, providing local `PTIR` / `PTGR` methods under each GPIO node. AML reads root-level `TPDI` and evaluates firmware `G_IN`; the driver calls these local methods without parameters. Bounded firmware properties, route and descriptor are retained for subsequent validation. This driver requires the accompanying SSDT.
+
+Build and checks passed; backed up, deployed, read back and ocvalidate passed. Forced polling remains enabled; hardware validation is pending. See [GPIO details](TOUCHPAD_GPIO.md).
+
 ## New GPIO matching/trace build deployed with polling retained
 
 Continuing at the user request: aligned provider matching and added probe/start tracing plus stage properties on GPIO nodes. macOS build/checks pass; active EFI deployment is readback-verified. Polling remains enabled to verify controller startup first. Interrupt repair is unconfirmed. See the [GPIO record](TOUCHPAD_GPIO.md).

@@ -70,6 +70,14 @@
 				<key>Path</key>
 				<string>SSDT-BATT-FIX-UNIT0.aml</string>
 			</dict>
+			<dict>
+				<key>Comment</key>
+				<string>Panther Lake GPIO local ACPI resource bridge</string>
+				<key>Enabled</key>
+				<true/>
+				<key>Path</key>
+				<string>SSDT-PTL-GPIO.aml</string>
+			</dict>
 		</array>
 		<key>Delete</key>
 		<array>

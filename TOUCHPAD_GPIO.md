@@ -1,5 +1,23 @@
 # 触摸板 GPIO 中断调查 / Touchpad GPIO interrupt investigation
 
+## ACPI 本地桥接修复已部署 / Local ACPI bridge repair deployed
+
+新报告确认五个 GPIO 节点已进入启动并成功读取 `_DSD`，随后驱动用绝对路径求值 `TPDI` 返回 `0xe00002c2`（参数错误），因此提前退出。这定位到新增驱动的一处失败调用；不据此推断固件资源错误。
+
+The new report confirms all five GPIO nodes enter startup and read `_DSD`, then the driver's absolute-path evaluation of `TPDI` returns `0xe00002c2` (bad argument), causing an early exit. This identifies a failing call in the added driver; it does not establish a firmware-resource defect.
+
+新增并启用 `SSDT-PTL-GPIO.aml`，在各 GPIO 节点提供本地 `PTIR` / `PTGR` 方法，分别由 AML 读取根级 `TPDI`、调用固件 `G_IN`。驱动改用无参数的本地方法求值，并保留有界固件属性、路由和描述符以验证后续阶段。驱动与此 SSDT 必须配套使用。
+
+Added and enabled `SSDT-PTL-GPIO.aml`, providing local `PTIR` / `PTGR` methods under each GPIO node. AML reads root-level `TPDI` and evaluates firmware `G_IN`; the driver calls these local methods without parameters. Bounded firmware properties, route and descriptor are retained for subsequent validation. This driver requires the accompanying SSDT.
+
+[macOS build and static checks / macOS 构建及静态检查](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43421831586) passed. AML compiles with zero errors/warnings; active EFI readback matches the repository and ocvalidate passes. **Forced polling remains enabled. Controller startup and GPIO interrupts are not yet hardware-verified.**
+
+构建及静态检查通过，AML 编译无错误或警告；已备份并写入硬盘，读回与仓库一致，ocvalidate 通过。**继续保留轮询，控制器启动及 GPIO 中断尚待实机验证。**
+
+Driver SHA-256: `82b1fba6ef8d9c8aa89c19cc1748a052b4046fbb7697368d893387e114c2a45d`
+
+下一次启动后运行现有 collect.command，先确认 PTLTPDIResult / PTLGINResult 与控制器启动，再决定切换中断。 / After the next boot, use the existing collector to check evaluation results and controller startup before switching to interrupts.
+
 ## 匹配调整与启动追踪版已部署 / Matching adjustment and startup trace deployed
 
 继续适配：将新类的 IOProviderClass 对齐原有及上游 GPIO personalities 使用的 `IOService`；这是一项待实测的匹配调整，未证明是此前失败的根因。类内部仍严格要求 IOACPIPlatformDevice，并验证 Panther Lake 固件属性与触摸板资源来源。
