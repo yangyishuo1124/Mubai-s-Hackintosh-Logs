@@ -4,6 +4,17 @@
 
 ## 当前结论 / Current conclusion
 
+### v14：PC 映射访问与真实时间超时 / PC map access and elapsed-time timeout
+
+在 v13 基础上增加 0206：按 [Linux 21cf47d](https://github.com/torvalds/linux/commit/21cf47d89fba353b2d5915ba4718040c4cb955d3) 将 PC BO 的普通 memset 换为 xe_map_memset；参照 [Linux b0ac4ef](https://github.com/torvalds/linux/commit/b0ac4ef074ace20714a3bf96d23ae2ba61cc4439) 改用实际 ktime 差值判断等待超时，避免按请求的最短睡眠时间累计。6.14 适配沿用已有 ktime_ms_delta 接口和 10–20µs 请求间隔，不引入较新 poll_timeout_us 宏。保留 v13 错误返回与全部 stage 4 检查点，不跳过 PC、forcewake 或中断。
+
+Patch 0206 backports Linux's mapping-aware PC BO clear and elapsed-time polling behavior onto v13. It uses the existing 6.14 ktime_ms_delta API with requested 10–20µs sleeps instead of importing the newer poll_timeout_us macro. V13 error returns and all internal stage-4 checkpoints remain; PC, forcewake and IRQs are not bypassed.
+
+边界：普通系统内存下 xe_map_memset 仍走普通清零；原上游问题主要涉及独显 I/O 内存，不能宣称这是 B0A0 根因。真实时间判断只在读取/睡眠返回后起作用，不能保证解除整机卡死或自动重启。构建、主机测试及 EFI 部署结果将在完成后补记；目前不宣称硬件成功。
+
+Limits: sysmem still follows normal memset; the original upstream issue primarily concerns dGPU I/O memory, not a proven B0A0 root cause. Elapsed-time checks require memory reads/sleeps to return and do not guarantee recovery or automatic reboot. Build, host-test and EFI deployment results will be recorded after completion; hardware success is unverified.
+
+
 2026-11-14 上游 issue / 提交对照：[中文与英文调查记录](GPU_UPSTREAM_RESEARCH_2026-11-14.md)。本轮仅更新调查结论，EFI 未修改。
 
 Upstream issues and commits reviewed: [bilingual research notes](GPU_UPSTREAM_RESEARCH_2026-11-14.md). Documentation only; EFI unchanged this round.

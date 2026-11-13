@@ -1,0 +1,51 @@
+Purpose: honor the PC BO mapping type and bound state waits by elapsed time.
+Sources: Linux 21cf47d89fba353b2d5915ba4718040c4cb955d3 (MIT),
+  b0ac4ef074ace20714a3bf96d23ae2ba61cc4439 (MIT).
+Adaptation: keep the 6.14 interfaces, use its existing ktime_ms_delta API
+  instead of importing the later poll_timeout_us macro. Preserve v13 errors
+  and all internal stage-4 checkpoints. No forcewake/IRQ/platform bypass.
+Limitation: ordinary sysmem memset follows the same path as before; an
+  unreturning memory access/sleep cannot be bounded by this polling loop.
+
+--- a/xe_guc_pc.c
++++ b/xe_guc_pc.c
+@@ -123,23 +123,18 @@
+ 			     enum slpc_global_state state,
+ 			     int timeout_ms)
+ {
+-	int timeout_us = 1000 * timeout_ms;
+-	int slept, wait = 10;
++	ktime_t started = ktime_get();
+ 
+ 	xe_device_assert_mem_access(pc_to_xe(pc));
+ 
+-	for (slept = 0; slept < timeout_us;) {
++	/* Count elapsed time, not the requested lower bound of usleep_range(). */
++	for (;;) {
+ 		if (slpc_shared_data_read(pc, header.global_state) == state)
+ 			return 0;
+-
+-		usleep_range(wait, wait << 1);
+-		slept += wait;
+-		wait <<= 1;
+-		if (slept + wait > timeout_us)
+-			wait = timeout_us - slept;
+-	}
+-
+-	return -ETIMEDOUT;
++		if (ktime_ms_delta(ktime_get(), started) >= timeout_ms)
++			return -ETIMEDOUT;
++		usleep_range(10, 20);
++	}
+ }
+ 
+ static int pc_action_reset(struct xe_guc_pc *pc)
+@@ -1046,7 +1041,7 @@
+ 	}
+ 
+ 	xg_init_checkpoint(46002, "PC shared memset begin");
+-	memset(pc->bo->vmap.vaddr, 0, size);
++	xe_map_memset(xe, &pc->bo->vmap, 0, 0, size);
+ 	xg_init_checkpoint(46003, "PC shared memset returned");
+ 	xg_init_checkpoint(46004, "PC shared header begin");
+ 	slpc_shared_data_write(pc, header.size, size);
