@@ -1,6 +1,6 @@
 --- a/VoodooGPIO/VoodooGPIOIntel.cpp
 +++ b/VoodooGPIO/VoodooGPIOIntel.cpp
-@@ -1029,3 +1029,185 @@
+@@ -1029,3 +1029,188 @@
          }
      }
  }
@@ -63,6 +63,7 @@
 +            return false;
 +        }
 +        provider->setProperty("PTLProbeStage", "DSD evaluated; preparing platform");
++        if (OSDynamicCast(OSArray, dsd)) provider->setProperty("PTLFirmwareDSD", dsd);
 +        bool valid = prepare(acpi, dsd);
 +        dsd->release();
 +        if (!valid) {
@@ -95,12 +96,14 @@
 +        OSArray *pins = OSDynamicCast(OSArray, routes);
 +        OSNumber *route = pins && pins->getCount() ? OSDynamicCast(OSNumber, pins->getObject(0)) : nullptr;
 +        if (!route) { IOLog("VoodooGPIOPantherLake::TPDI is not a pin package\n"); routes->release(); return false; }
++        acpi->setProperty("PTLTouchpadRoute", route->unsigned32BitValue(), 32);
 +        routes->release();
 +        OSObject *resource = nullptr;
 +        IOReturn result = acpi->evaluateObject("PTGR", &resource);
 +        acpi->setProperty("PTLGINResult", (UInt32)result, 32);
 +        IOLog("VoodooGPIOPantherLake::PTGR result 0x%x\n", result);
 +        OSData *data = OSDynamicCast(OSData, resource);
++        if (data && data->getLength() <= 512) acpi->setProperty("PTLTouchpadResource", data);
 +        bool selected = false;
 +        if (result == kIOReturnSuccess && data && data->getLength() == 37) {
 +            const UInt8 *bytes = static_cast<const UInt8 *>(data->getBytesNoCopy());
