@@ -1,6 +1,6 @@
 # ASUS Vivobook S16 S5650AA · Panther Lake Hackintosh
 
-核显实验更新 / GPU experiment update: stage 4 实测卡死，持久追踪最后为 s4 p1035（LinuxKPI SYSINIT 附近）；探测已改为只采集，不重复初始化。stage 3 已通过，GuC/GT 未验证，Metal 未启用。 / Stage 4 hung; last persistent trace is s4 p1035 near LinuxKPI SYSINIT. Wrapper now collects only. Stage 3 passes; GuC/GT remains unverified and Metal unavailable. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
+核显实验更新 / GPU experiment update: stage 4 卡死尚未修复；已部署同步 SYSINIT/线程初始化检查点定位版，准备一次复现以缩小卡点，stage 5+ 仍阻断，Metal 未启用。 / Stage-4 hang remains unresolved. Deployed synchronous SYSINIT/current-thread checkpoints for a single localization attempt; stages 5+ remain blocked, with no Metal acceleration. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
 
 **简体中文 / English** · 更新 / Updated: **2026-11-13**
 

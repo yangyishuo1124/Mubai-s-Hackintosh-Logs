@@ -4,6 +4,24 @@
 
 ## 当前结论 / Current conclusion
 
+### 重启后证据与同步追踪版 / Reboot evidence and synchronous trace revision
+
+[完整构建通过 / Full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43457167633)：编译、链接、KPI、架构、签名、固件嵌入及全部原有测试通过。检查点标签已确认在链接后二进制中存在。已备份并部署 EFI 开机/诊断驱动、资源与脚本，读回一致，ocvalidate 通过，配置不变。驱动 SHA-256：`7e063ed791d26206d9505441f4e536de35bb782fe63cc801dfbfc0d6f7e2094e`。新版的持久检查点实机效果尚待验证；可在下一次启动后运行一次 stage 4 探测，卡死后从 Windows 只读读取 NVRAM，不反复重跑。
+
+Compilation/link/KPI/architecture/signature, embedded firmware and all existing tests pass; checkpoint labels are present in the linked binary. Boot/diagnostic bundles, resources and wrapper are backed up and deployed to EFI with matching readback and clean ocvalidate. Configuration is unchanged. Hardware checkpoint behavior remains unverified. The next boot can perform one stage-4 localization attempt; after a hang, read NVRAM from Windows without repeatedly retriggering.
+
+重启后完整采集无新增 panic；当前 stage/progress/running 均为 0，没有重新执行 stage 4。仍以先前 Windows 从 NVRAM 读出的 `s4 p1035` 为定位依据。没有新 panic 不表示先前没有卡死，也不提供额外的故障指令证据。
+
+The post-reboot collection contains no new panic; stage/progress/running are zero and stage 4 was not retriggered. The prior Windows-recovered trace remains the primary evidence. Absence of a new panic neither disproves the hang nor identifies a faulting instruction.
+
+新增 `patches/instrument_sysinit.py`：每个 SYSINIT 调用前后同步保存检查点，编号为进入 `10000 + pass*1000 + index*2`、返回为进入值+1。linux_current 内部编号 20001–20008，依次为入口、current zone 创建前/后、mm zone 创建前/后、线程析构事件注册前/后及 current 分配函数安装后。不跳过原初始化，也不修改分配器、锁或事件处理逻辑。
+
+The new instrumentation synchronously persists SYSINIT entry/return checkpoints and eight internal linux_current steps. It preserves every initializer and does not alter allocator, lock or event-handler semantics. Entry codes are 10000 + pass*1000 + index*2; return codes are entry+1. Internal codes 20001–20008 cover entry, both zone creations, destructor registration and allocator installation.
+
+新加载策略为 `ptl-stage4-trace-v5`，脚本只接受该版本。NVRAM 同步发生在释放日志 spin lock 之后；同步追踪本身会改变时间行为，若出现新卡点也需考虑追踪写入路径，不能把最后保存的标签直接当成精确故障指令。stage 5+ 边界和禁止像素访问保持，下一次依然是 stage 4 定位实验，尚未修复卡死。
+
+The wrapper requires the new trace policy. NVRAM synchronization occurs after releasing the log spin lock. Synchronous tracing changes timing and can itself affect execution, so a final persisted label is not proof of the exact failing instruction. Stage 5+ remains blocked and CPU pixel access remains disabled. This is a stage-4 localization experiment, not a hang fix.
+
 ### stage 4 卡死：持久追踪 s4 p1035 / Stage-4 hang: persistent trace
 
 用户实测运行即系统卡死。EFI 探测记录停在 stage 请求处，无完整新采集。Windows 只读读取 Apple NVRAM 的 `xegfx-step` 成功，最后保存 `s4 p1035`；另两个追踪键不存在。根据该构建 Mach-O 的 `__xg_set` 表及 SYSINIT 的 subsystem/order 排序，1035 对应 pass 0、索引 35 的 `_linux_current_sys_init`（`linux_current_init`）。其结构已按所用 FreeBSD 的 sysinit 布局核对；这是兼容层线程初始化，非 GPU driver pass 1。
