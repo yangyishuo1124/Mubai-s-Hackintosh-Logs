@@ -6,9 +6,13 @@
 
 ### 独立内核线程看门狗 / Dedicated kernel-thread watchdog
 
-v11 不修改 GPU 寄存器或初始化调用，保留无 NVRAM 对照。新增独立 kernel_thread_start 监视线程，stage 4 启动前等待就绪（最多约 1 秒）；创建失败/未就绪则停止初始化。监视线程每 100ms 检查，60 秒未结束则 panic 报告内存 progress、中断/handler 计数和自旋统计。它不依赖 thread_call 工作池，也不在 watchdog 中获取日志锁或同步 NVRAM；仍依赖内核调度，不能保证从全局中断/硬件停顿中恢复。监视不是实际 GPU 修复，完整构建和实机效果待确认。
+[完整构建通过 / Full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43485047808)。已备份并部署开机/诊断驱动、资源和配套脚本，核对链接后版本及 watchdog 字符串，读回一致，ocvalidate 通过，config.plist 不变。二进制 SHA-256：`8d9986ee6473c32337f7612c84a4ad3d2543f7941c2187311627ec022bf41591`。下一次只运行一次 stage 4，若停住等待约 90 秒观察是否出现 panic/重启；实机监视效果与卡死修复均未确认。
 
-V11 preserves original GPU calls/register behavior and the no-NVRAM comparison. A dedicated kernel_thread_start monitor must signal readiness before stage 4 starts (approximately 1s bound); failure stops initialization. It checks every 100ms and panics after 60s with in-memory progress, IRQ/handler counts and spin statistics. It avoids the thread_call worker pool, log lock and NVRAM sync in its watchdog path. It still needs kernel scheduling and cannot guarantee recovery from global interrupt/hardware stalls. This is diagnostic infrastructure, not a GPU fix; build/hardware results pending.
+The full build and checks pass. Boot/diagnostic bundles, resources and wrapper are backed up and deployed, with linked policy/watchdog markers, matching readback, clean ocvalidate and unchanged config.plist. One stage-4 attempt after reboot is needed; if stalled, allow about 90s to observe a panic/reboot. Hardware monitor behavior and a hang fix remain unverified.
+
+v11 不修改 GPU 寄存器或初始化调用，保留无 NVRAM 对照。新增独立 kernel_thread_start 监视线程，stage 4 启动前等待就绪（最多约 1 秒）；创建失败/未就绪则停止初始化。监视线程每 100ms 检查，60 秒未结束则 panic 报告内存 progress、中断/handler 计数和自旋统计。它不依赖 thread_call 工作池，也不在 watchdog 中获取日志锁或同步 NVRAM；仍依赖内核调度，不能保证从全局中断/硬件停顿中恢复。监视不是实际 GPU 修复，完整构建通过，实机效果待确认。
+
+V11 preserves original GPU calls/register behavior and the no-NVRAM comparison. A dedicated kernel_thread_start monitor must signal readiness before stage 4 starts (approximately 1s bound); failure stops initialization. It checks every 100ms and panics after 60s with in-memory progress, IRQ/handler counts and spin statistics. It avoids the thread_call worker pool, log lock and NVRAM sync in its watchdog path. It still needs kernel scheduling and cannot guarantee recovery from global interrupt/hardware stalls. This is diagnostic infrastructure, not a GPU fix; build passed; hardware results pending.
 
 ### 无 NVRAM 对照实机结果 / No-NVRAM hardware comparison result
 

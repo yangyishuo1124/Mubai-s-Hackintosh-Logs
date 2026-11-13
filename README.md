@@ -1,6 +1,6 @@
 # ASUS Vivobook S16 S5650AA · Panther Lake Hackintosh
 
-核显实验更新 / GPU experiment update: 无 NVRAM 对照仍未完成 stage 4；后台仅保存启动附近 progress=22，无法定位具体卡点。NVRAM 写入不能解释全部失败，卡死仍未修复，无 Metal。 / The no-NVRAM comparison still does not complete stage 4; background logging only captures startup progress=22 and does not localize the stall. NVRAM writes do not explain the entire failure. Hang unresolved; no Metal. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
+核显实验更新 / GPU experiment update: 已部署独立内核线程 watchdog 版（v11），不依赖 thread_call 工作池，不写 NVRAM；完整构建、读回及配置校验通过。待实机验证监视效果，GPU 卡死未修复，无 Metal。 / V11 with a dedicated kernel-thread watchdog is built, deployed and validated, independent of the thread_call worker pool and without NVRAM tracing. Hardware monitor behavior pending; GPU hang unresolved; no Metal. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
 
 **简体中文 / English** · 更新 / Updated: **2026-11-14**
 
