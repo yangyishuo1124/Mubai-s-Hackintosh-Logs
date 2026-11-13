@@ -31,7 +31,25 @@ fi
 stage="$(sysctl -n debug.xegfx_stage)"
 [[ "$stage" == <0-4> ]] || { print '已有其他阶段运行，本脚本停止 / Unexpected existing stage; stopping'; exit 1; }
 # Keep firmware display ownership; save stage trace if GT initialization fails.
-sysctl debug.xegfx_env='compat.linuxkpi.xe_probe_display=0 xegfx.nvram_trace=1'
+# Controlled comparison: no NVRAM persistence in the initializer or timer.
+# Keep checkpoints in memory; an independent process records progress to EFI.
+sysctl debug.xegfx_trace=0
+sysctl debug.xegfx_env='compat.linuxkpi.xe_probe_display=0'
+sysctl debug.xegfx_wdog=60
+progress_out="${out%.txt}-progress.txt"
+print '本次关闭 NVRAM 追踪；后台保存进度，60 秒 watchdog 保留。'
+print 'NVRAM trace disabled; background progress logging and 60s watchdog retained.'
+print "Progress file: $progress_out"
+(
+    for (( sample=0; sample<90; sample++ )); do
+        value="$(sysctl -n debug.xegfx_progress 2>&1)" || break
+        print -r -- "$(date '+%Y-%m-%d %H:%M:%S') progress=$value" >> "$progress_out"
+        sync
+        sleep 1
+    done
+) &
+monitor_pid=$!
+trap 'kill "$monitor_pid" 2>/dev/null || true' EXIT
 sysctl debug.xegfx_stage=4
 sysctl debug.xegfx_stage
 print '阶段结果数组（索引对应阶段号） / Signed results indexed by stage:'
