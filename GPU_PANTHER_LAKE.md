@@ -4,6 +4,17 @@
 
 ## 当前结论 / Current conclusion
 
+### v15：只绕过 PC start 的对照 / PC-start-only control
+
+新增默认关闭的 `compat.linuxkpi.xe_probe_skip_pc_start=1`。只在 `xe_uc_init_hw` 的 PC start 调用点绕过该调用并记录 48000；此前 GuC 上传、通信、默认 LRC、post-load 及之后 HuC/GSC 和剩余初始化保留。未改 `skip_guc_pc` 平台标志，不走它的 C6/max-frequency 替代分支。原 stage 5+ 阻断保留。该模式下的 stage 4 返回只代表诊断路径返回，不能报告正常 stage 4 通过或功耗/Metal 可用。
+
+Adds an opt-in PC-start-only bypass at the xe_uc_init_hw call site, marked by checkpoint 48000. All preceding GuC upload/communication/LRC/post-load and subsequent HuC/GSC/remaining initialization stay intact. The platform skip_guc_pc flag and its C6/max-frequency fallback are untouched. Stages 5+ remain blocked. Any stage-4 return in this mode is diagnostic only, not normal stage-4, power-management or Metal success.
+
+若正常返回，说明绕过 PC start 改变了结果，重点转向该路径及其时序；仍可能是竞争条件，不能单次认定 PC 是唯一根因。若卡死，不能直接排除 PC 相关的此前 BO 初始化，也不能确定中断是根因。构建/部署和硬件结果分别记录。
+
+A return would show that bypassing PC start changes this run, motivating investigation of that path and timing, not proof of a sole root cause. Another freeze would not rule out earlier PC BO initialization or prove an IRQ fault. Build/deployment and hardware outcomes are recorded separately.
+
+
 ### v14 实测仍卡死 / V14 hardware freeze persists
 
 用户反馈仍卡死。本地读取 EFI 的 `gpu-probe-20261114-122443.txt`：资源校验及 v14 策略检查通过，追踪关闭，阶段请求没有完整返回；进度文件只含初始 `progress=0`。没有产生新的内部 stage 4 检查点证据，不能据此把故障重新定位到 stage 0 或否定历史 stage 1–3 通过及 GuC/PC 路径记录。v14 的两处正确性修正没有消除卡死，不能视为已找到根因。

@@ -1,0 +1,34 @@
+Purpose: opt-in diagnostic bypass of PC start only. Not a normal stage4 pass.
+
+--- a/xe_uc.c
++++ b/xe_uc.c
+@@ -21,6 +21,20 @@
+ 
+ extern void xg_init_checkpoint(int, const char *);
+ 
++extern int getenv_int(const char *, int *);
++
++/* Diagnostic only: leave all other uC init calls and error returns intact. */
++static int xegfx_pc_start_for_probe(struct xe_guc_pc *pc)
++{
++	int skip = 0;
++
++	if (getenv_int("compat.linuxkpi.xe_probe_skip_pc_start", &skip) && skip == 1) {
++		xg_init_checkpoint(48000, "DIAGNOSTIC PC start bypassed; not a normal stage4 pass");
++		return 0;
++	}
++	return xe_guc_pc_start(pc);
++}
++
+ static struct xe_gt *
+ uc_to_gt(struct xe_uc *uc)
+ {
+@@ -219,7 +233,7 @@
+ 		return ret;
+ 
+ 	xg_init_checkpoint(44010, "xe_guc_pc_start begin");
+-	ret = xe_guc_pc_start(&uc->guc.pc);
++	ret = xegfx_pc_start_for_probe(&uc->guc.pc);
+ 	xg_init_checkpoint(44011, "xe_guc_pc_start returned");
+ 	if (ret)
+ 		return ret;
