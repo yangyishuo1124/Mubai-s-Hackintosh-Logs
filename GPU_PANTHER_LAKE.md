@@ -4,6 +4,10 @@
 
 ## 当前结论 / Current conclusion
 
+V15 仍卡死；重新对照 PR 1，发现 B0A0 的历史 GMD 值按固定驱动解析为 graphics 30.01/A0、media 30.00/B0，需按 GT 核对规避规则，尚未定位根因。[中英对照记录](GPU_PR1_AUDIT_2026-11-14.md)。
+
+V15 still freezes. PR 1 audit identifies the captured B0A0 IP/revision distinction; no root cause or deployable fix established. See the bilingual audit above.
+
 ### v15：只绕过 PC start 的对照 / PC-start-only control
 
 构建 43502931677 已通过：16 项原有测试、GuC 错误传播、PC 等待和开关测试，以及架构、签名、链接和固件验证。硬盘 EFI 的开机驱动、诊断驱动及脚本已备份、替换并读回校验一致，OpenCore 校验通过。SHA-256：`238ff1f7be6a1e6ecede6af962115a3371c4034b104242dca48642a37a18a097`。本地备份：`backups/before-xe-pc-bypass-20261114-044227`。硬件结果待测试。
