@@ -1,0 +1,11 @@
+--- a/kext/Info.plist
++++ b/kext/Info.plist
+@@ -29,7 +29,7 @@
+ 			<key>IOProviderClass</key>
+ 			<string>IOResources</string>
+ 			<key>IOResourceMatch</key>
+-			<string>XeGfxArm</string>
++			<string>IOKit</string>
+ 		</dict>
+ 	</dict>
+ 	<key>OSBundleLibraries</key>
