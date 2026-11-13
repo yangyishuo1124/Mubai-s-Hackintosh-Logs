@@ -1,6 +1,6 @@
 # ASUS Vivobook S16 S5650AA · Panther Lake Hackintosh
 
-核显实验更新 / GPU experiment update: 最新检查点到达 PC forcewake 返回（46001）。已部署关闭 NVRAM 追踪的对照脚本，后台将进度写入 EFI；驱动和开机配置不变，脚本校验/读回通过，实机对照待运行。卡死未确认修复，无 Metal。 / Latest trace reaches PC forcewake return (46001). Deployed a no-NVRAM comparison wrapper with background EFI progress logging; binary and boot configuration unchanged. Syntax/readback pass; hardware comparison pending. Hang fix unconfirmed; no Metal. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
+核显实验更新 / GPU experiment update: 无 NVRAM 对照仍未完成 stage 4；后台仅保存启动附近 progress=22，无法定位具体卡点。NVRAM 写入不能解释全部失败，卡死仍未修复，无 Metal。 / The no-NVRAM comparison still does not complete stage 4; background logging only captures startup progress=22 and does not localize the stall. NVRAM writes do not explain the entire failure. Hang unresolved; no Metal. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
 
 **简体中文 / English** · 更新 / Updated: **2026-11-14**
 

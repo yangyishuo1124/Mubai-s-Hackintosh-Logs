@@ -4,6 +4,16 @@
 
 ## 当前结论 / Current conclusion
 
+### 无 NVRAM 对照实机结果 / No-NVRAM hardware comparison result
+
+最新日志 `gpu-probe-20261114-094258.txt` 明确显示 trace=0、env 无 NVRAM 标志、watchdog=60。stage 请求未返回，没有新完整诊断包。配套 progress 文件只有一行 `09:42:58 progress=22`，是启动附近采样，不能当作卡死位置；背景采样没有提供后续步骤证据。
+
+The latest probe explicitly records trace=0, no NVRAM environment flag and watchdog=60. The stage request did not return and no new completed diagnostic archive appeared. Its progress file contains only `09:42:58 progress=22`, a startup sample rather than an established failure site. Background sampling provides no later-step evidence.
+
+关闭 NVRAM 仍未完成初始化，因此并发/同步 NVRAM 写入不能解释全部失败；现有数据仍不能区分内核全局阻塞、IRQ/调度或具体 GPU 操作。不得用旧 NVRAM 当作本轮卡点。待确认 watchdog 等待时间及重启方式，再选择独立于正常调度的诊断方式；本轮不盲改寄存器或继续加同步写入。
+
+Disabling NVRAM did not complete initialization, so NVRAM concurrency/synchronous writes do not explain the entire failure. These records do not distinguish global kernel blocking, IRQ/scheduling issues or a particular GPU operation. Old NVRAM must not be attributed to this attempt. Watchdog wait duration and reboot method need confirmation before choosing diagnostics independent of normal scheduling; no speculative register change or extra synchronous persistence is introduced.
+
 ### 无 NVRAM 写入对照 / No-NVRAM comparison
 
 [脚本校验通过 / Wrapper verification passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43474465119)。此任务包含 zsh 语法检查及旧基线产物的既有测试，不是重新构建或验证新的驱动二进制；本轮二进制未变。
