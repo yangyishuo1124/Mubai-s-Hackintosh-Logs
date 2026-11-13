@@ -1,7 +1,7 @@
 name: Verify existing Panther Lake Xe build
 on:
   push:
-    paths: ['.github/workflows/xe-verify.yml']
+    paths: ['.github/workflows/xe-verify.yml', 'EFI/Diagnostics/gpu-probe.command']
   workflow_dispatch:
 permissions:
   contents: read

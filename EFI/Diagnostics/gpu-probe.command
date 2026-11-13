@@ -14,7 +14,16 @@ print 'Stage 2 probe only; no GPU engine or Metal initialization.'
 cd "$base/GPU"
 shasum -a 256 -c SHA256.txt
 if ! sysctl -n debug.xegfx_stage >/dev/null 2>&1; then
-    kmutil load -p "$base/GPU/XeGfx.kext" || {
+    # FAT EFI ownership is 99:99; kmutil requires a root-owned local bundle.
+    runtime="$(mktemp -d /private/var/tmp/s5650aa-xe-probe.XXXXXXXX)"
+    ditto --noqtn "$base/GPU/XeGfx.kext" "$runtime/XeGfx.kext"
+    chown -R root:wheel "$runtime"
+    find "$runtime" -type d -exec chmod 755 {} +
+    find "$runtime" -type f -exec chmod 644 {} +
+    chmod 755 "$runtime/XeGfx.kext/Contents/MacOS/XeGfx"
+    (cd "$runtime" && shasum -a 256 -c "$base/GPU/SHA256.txt")
+    print "本次本地加载目录 / Local load directory: $runtime"
+    kmutil load -p "$runtime/XeGfx.kext" || {
         print '驱动加载失败，停止。 / Driver load failed; stopping.'
         zsh "$base/collect.command"
         exit 1

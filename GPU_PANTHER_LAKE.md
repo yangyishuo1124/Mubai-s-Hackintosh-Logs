@@ -4,6 +4,10 @@
 
 ## 当前结论 / Current conclusion
 
+首次实机尝试：驱动全部文件散列通过，但 kmutil 在加载前拒绝 EFI FAT 上的 99:99 所有权（要求 0:0）。未注册 debug.xegfx_stage，没有执行硬件探测；不能据此判定 B0A0 不兼容。已修正脚本：先复制到 /private/var/tmp 下的独立本地目录，设置 root:wheel 和受限写权限，再次验证散列后从本地加载。未安装至 /Library/Extensions，未更改开机配置；本地临时副本保留用于诊断。新版加载效果尚待实机验证。
+
+First hardware attempt: every bundle hash passed, but kmutil rejected the EFI FAT ownership (99:99 instead of 0:0) before loading. No debug.xegfx_stage was registered and no hardware probe ran; this does not establish B0A0 incompatibility. The wrapper now copies to a unique /private/var/tmp directory, sets root:wheel and restricted write permissions, rechecks hashes, then loads the local copy. No /Library/Extensions installation or boot configuration change; the temporary local copy is retained for diagnosis. Loading this revised wrapper remains hardware-unverified.
+
 本机仍使用 GOP 基础显示，无已验证 Metal 加速。调查发现 InSnh-Gd 的 WTLIntelGfx 分支已超出最初的移植计划：包含 xe 构建选择、Panther Lake 补丁、B0A0 PCI 匹配和分阶段硬件探测代码。不能据此宣称已支持本机；最新集成记录只验证 C 对象，尚未完成新版 C++ 链接或 PTL 实机测试。
 
 This machine still uses GOP with no verified Metal acceleration. The InSnh-Gd WTLIntelGfx fork now contains more than its original port plan: xe build selection, Panther Lake patches, a B0A0 PCI entry and staged hardware probing. This is not proof of support: its latest integration record covers C objects, not a new complete C++ link or PTL hardware validation.
