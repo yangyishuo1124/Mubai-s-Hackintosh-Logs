@@ -1,8 +1,8 @@
 # ASUS Vivobook S16 S5650AA · Panther Lake Hackintosh
 
-核显实验更新 / GPU experiment update: 实机 NVRAM 已到达分配器末尾检查点 30005；新增后续 device/GT/forcewake/GGTT 调用追踪，完整构建及部署待确认。卡死未修复，Metal 未启用。 / Hardware trace reached allocator-tail checkpoint 30005. Added downstream device/GT/forcewake/GGTT checkpoints; build and deployment pending. Hang unresolved; no Metal acceleration. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
+核显实验更新 / GPU experiment update: 实机 NVRAM 已到达分配器末尾检查点 30005；已部署后续 device/GT/forcewake/GGTT 调用追踪版，完整构建、读回和配置校验通过，待实机定位。卡死未修复，Metal 未启用。 / Hardware trace reached allocator-tail checkpoint 30005. Downstream device/GT/forcewake/GGTT tracing is deployed with successful full build, readback and configuration checks; hardware localization pending. Hang unresolved; no Metal acceleration. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
 
-**简体中文 / English** · 更新 / Updated: **2026-11-13**
+**简体中文 / English** · 更新 / Updated: **2026-11-14**
 
 这是我的 ASUS Vivobook S16 S5650AA 黑苹果适配记录与 OpenCore EFI。macOS Tahoe 26.0 已能进入桌面，显示使用 UEFI GOP 基础帧缓冲，尚无硬件图形加速。
 
@@ -44,9 +44,9 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. macOS Tah
 
 ## 核显驱动调查 / GPU driver investigation
 
-包含 B0A0 的实验性裸机 xe 驱动已完整构建并通过复核；EFI 开机加载和 stage 1 已实测成功；stage 2 返回 -22，DSMBASE MMIO 修订版探测触发黑屏重启，已停止重复探测并增强崩溃采集，尚无加速。当前桌面仍为 GOP。源码、验证阶段和限制见 [Panther Lake 核显记录](GPU_PANTHER_LAKE.md)。
+B0A0 实验驱动由 EFI 开机加载；禁止 CPU 像素读取后，stage 1–3 已实测通过，stage 2/3 验证的是 GOP 元数据，未验证像素。stage 4 仍卡死，最新持久检查点到达 stolen 分配器末尾，正在细分后续 GT 初始化。stage 5+ 已阻断，当前桌面仍为 GOP，无 Metal 加速。见 [Panther Lake 核显记录](GPU_PANTHER_LAKE.md)。
 
-The experimental bare-metal xe fork containing B0A0 now builds and passes verification. EFI boot loading and stage 1 are confirmed. Stage 2 returned -22; the DSMBASE MMIO probe caused a black-screen reboot, so repeat probing is disabled while crash evidence is collected; no acceleration yet. The desktop still uses GOP. See the [Panther Lake GPU record](GPU_PANTHER_LAKE.md) for sources, stages and limits.
+The B0A0 experimental driver loads at EFI boot. Stages 1–3 passed hardware testing after CPU pixel reads were blocked; stages 2/3 validate GOP metadata, not pixels. Stage 4 still hangs, with the latest persistent trace reaching the stolen-allocator tail; downstream GT initialization is under investigation. Stages 5+ remain blocked. The desktop uses GOP with no Metal acceleration. See the [Panther Lake GPU record](GPU_PANTHER_LAKE.md).
 
 ## 下次 Wi-Fi 测试 / Next Wi-Fi test
 

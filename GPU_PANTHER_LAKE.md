@@ -6,6 +6,10 @@
 
 ### 分配器末尾检查点已到达；继续定位 GT / Allocator tail reached; tracing GT
 
+[新版完整构建通过 / New full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43464244177)：16 项原测试、分配器路径测试、GOP 元数据/阶段边界检查及固件/签名/架构检查通过。已备份并部署开机与诊断驱动、资源和脚本，读回一致，ocvalidate 无问题，config.plist 保持不变。链接后二进制包含新策略及 GT/GGTT 标签。SHA-256：`10e0151c184b88f7fb1bcb078f7445ed6c0f2dde20ae8d78325adec342a355f4`。下一次重启后可运行一次 stage 4 定位；若卡死，回 Windows 读取 NVRAM，不反复执行。部署完成不代表硬件初始化成功。
+
+The new full build passes all 16 existing host tests, allocator control-flow tests, GOP metadata/stage-policy checks and firmware/signature/architecture validation. Boot/diagnostic bundles, resources and wrapper are backed up and deployed to the internal EFI with matching readback and clean ocvalidate; config.plist is unchanged. The linked binary contains the new policy and GT/GGTT labels. After reboot, run one stage-4 attempt and recover NVRAM in Windows if it hangs. Deployment is verified; hardware initialization is not yet verified.
+
 本次卡死后，Windows 只读恢复 NVRAM：`s4 p30005 checkpoint 30005 stolen init returned`。该检查点在 stolen manager 初始化末尾，位于 VRAM manager、清理注册和可选 WC 映射之后。本次证据不支持此前怀疑的分配器内部卡住；不过标签在同步 NVRAM 写入完成前形成，所以尚不能证明该检查点调用已经返回。最新 EFI 探测仍停在 stage 请求，没有新的完整诊断包。
 
 Read-only NVRAM recovery after this hang gives `s4 p30005 checkpoint 30005 stolen init returned`. This is the tail of stolen-manager initialization, after the VRAM manager, cleanup registration and optional WC mapping. An allocator-internal stall is not supported by this attempt. The label is formed before synchronous persistence finishes, so the checkpoint call itself is not proven to have returned. The latest EFI probe stops at the stage request, with no new completed diagnostic archive.
@@ -14,9 +18,9 @@ Read-only NVRAM recovery after this hang gives `s4 p30005 checkpoint 30005 stole
 
 The new patch brackets device-probe calls (40000–40013), GT initialization (41000–41017), GT-domain forcewake/GGTT/IRQ/MCR/early-engine setup (42000–42013), and all-domain forcewake/register/clock/engine/uC/migration initialization (43000–43013). Even codes enter a call; the following odd code records its return. Multiple GTs reuse codes. All original calls/error paths remain. Persistence can change timing or itself stall; the final label is not an exact faulting instruction.
 
-策略更新为 `ptl-stage4-gt-v7`。CPU 像素访问禁止及 stage 5+ 阻断仍保留，尚未修复卡死、尚无 Metal。补丁已在固定 Linux 源码上实际应用，并核对移除新增检查点后原代码 token 一致；完整构建与实机效果待确认。
+策略更新为 `ptl-stage4-gt-v7`。CPU 像素访问禁止及 stage 5+ 阻断仍保留，尚未修复卡死、尚无 Metal。补丁已在固定 Linux 源码上实际应用，并核对移除新增检查点后原代码 token 一致；完整构建通过，实机效果待确认。
 
-Policy is `ptl-stage4-gt-v7`. CPU pixel access and stages 5+ remain blocked; the hang and Metal support remain unresolved. Local patch application against the pinned Linux source passes, and stripping the added checkpoints leaves original code tokens unchanged. Full build and hardware results are pending.
+Policy is `ptl-stage4-gt-v7`. CPU pixel access and stages 5+ remain blocked; the hang and Metal support remain unresolved. Local patch application against the pinned Linux source passes, and stripping the added checkpoints leaves original code tokens unchanged. [Full build 43464244177 passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43464244177); hardware results are pending.
 
 ### 显存分配器内部定位版 / Allocator localization revision
 
