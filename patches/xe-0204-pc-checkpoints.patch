@@ -1,0 +1,92 @@
+--- a/xe_guc_pc.c
++++ b/xe_guc_pc.c
+@@ -31,6 +31,8 @@
+ #include "xe_sriov.h"
+ #include "xe_wa.h"
+ 
++extern void xg_init_checkpoint(int, const char *);
++
+ #define MCHBAR_MIRROR_BASE_SNB	0x140000
+ 
+ #define RP_STATE_CAP		XE_REG(MCHBAR_MIRROR_BASE_SNB + 0x5998)
+@@ -151,7 +153,9 @@
+ 	};
+ 	int ret;
+ 
++	xg_init_checkpoint(47000, "PC reset CT send begin");
+ 	ret = xe_guc_ct_send(ct, action, ARRAY_SIZE(action), 0, 0);
++	xg_init_checkpoint(47001, "PC reset CT send returned");
+ 	if (ret)
+ 		xe_gt_err(pc_to_gt(pc), "GuC PC reset failed: %pe\n",
+ 			  ERR_PTR(ret));
+@@ -1022,7 +1026,9 @@
+ 
+ 	xe_gt_assert(gt, xe_device_uc_enabled(xe));
+ 
++	xg_init_checkpoint(46000, "PC forcewake begin");
+ 	fw_ref = xe_force_wake_get(gt_to_fw(gt), XE_FW_GT);
++	xg_init_checkpoint(46001, "PC forcewake returned");
+ 	if (!xe_force_wake_ref_has_domain(fw_ref, XE_FW_GT)) {
+ 		xe_force_wake_put(gt_to_fw(gt), fw_ref);
+ 		return -ETIMEDOUT;
+@@ -1039,20 +1045,28 @@
+ 		goto out;
+ 	}
+ 
++	xg_init_checkpoint(46002, "PC shared memset begin");
+ 	memset(pc->bo->vmap.vaddr, 0, size);
++	xg_init_checkpoint(46003, "PC shared memset returned");
++	xg_init_checkpoint(46004, "PC shared header begin");
+ 	slpc_shared_data_write(pc, header.size, size);
++	xg_init_checkpoint(46005, "PC shared header returned");
+ 
+ 	earlier = ktime_get();
++	xg_init_checkpoint(46006, "PC reset begin");
+ 	ret = pc_action_reset(pc);
+-	if (ret)
+-		goto out;
+-
++	xg_init_checkpoint(46007, "PC reset returned");
++	if (ret)
++		goto out;
++
++	xg_init_checkpoint(46020, "PC state wait begin");
+ 	if (wait_for_pc_state(pc, SLPC_GLOBAL_STATE_RUNNING,
+ 			      SLPC_RESET_TIMEOUT_MS)) {
+ 		xe_gt_warn(gt, "GuC PC start taking longer than normal [freq = %dMHz (req = %dMHz), perf_limit_reasons = 0x%08X]\n",
+ 			   xe_guc_pc_get_act_freq(pc), get_cur_freq(gt),
+ 			   xe_gt_throttle_get_limit_reasons(gt));
+ 
++		xg_init_checkpoint(46021, "PC extended state wait begin");
+ 		if (wait_for_pc_state(pc, SLPC_GLOBAL_STATE_RUNNING,
+ 				      SLPC_RESET_EXTENDED_TIMEOUT_MS)) {
+ 			xe_gt_err(gt, "GuC PC Start failed: Dynamic GT frequency control and GT sleep states are now disabled.\n");
+@@ -1063,11 +1077,15 @@
+ 			   ktime_ms_delta(ktime_get(), earlier));
+ 	}
+ 
++	xg_init_checkpoint(46008, "PC frequencies begin");
+ 	ret = pc_init_freqs(pc);
+-	if (ret)
+-		goto out;
+-
++	xg_init_checkpoint(46009, "PC frequencies returned");
++	if (ret)
++		goto out;
++
++	xg_init_checkpoint(46010, "PC frequency cap begin");
+ 	ret = pc_set_mert_freq_cap(pc);
++	xg_init_checkpoint(46011, "PC frequency cap returned");
+ 	if (ret)
+ 		goto out;
+ 
+@@ -1077,7 +1095,9 @@
+ 		goto out;
+ 	}
+ 
++	xg_init_checkpoint(46012, "PC firmware control begin");
+ 	ret = pc_action_setup_gucrc(pc, GUCRC_FIRMWARE_CONTROL);
++	xg_init_checkpoint(46013, "PC firmware control returned");
+ 
+ out:
+ 	xe_force_wake_put(gt_to_fw(gt), fw_ref);

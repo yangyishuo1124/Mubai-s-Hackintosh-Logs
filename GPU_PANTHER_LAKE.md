@@ -4,6 +4,16 @@
 
 ## 当前结论 / Current conclusion
 
+### 新实机定位：GuC 功耗控制 / New hardware localization: GuC power control
+
+最新只读 NVRAM：`s4 p44010 checkpoint 44010 xe_guc_pc_start begin`，EFI 驱动 SHA 与 v8 一致，探测记录为 20261114-090414。这次已越过 uC 内 HuC/GuC 上传、通信、默认 LRC 和 post-load 初始化调用，但函数返回不等于所有硬件状态已证实。候选范围为 GuC PC 启动或入口检查点同步保存，不直接判定固件不兼容。
+
+Read-only NVRAM gives `s4 p44010 checkpoint 44010 xe_guc_pc_start begin`; EFI matches v8 and the new probe is 20261114-090414. HuC/GuC upload, communication, default-LRC and post-load calls returned this run; returns alone do not prove every hardware state. Candidates are GuC PC startup or synchronous persistence at its entry, not established firmware incompatibility.
+
+0204 补丁保留原流程，46000–46013 成对标记 forcewake、共享内存清零/头部、PC reset、频率初始化/上限及固件控制；46020/46021 标记普通/延长状态等待入口；47000/47001 标记 reset CT 发送前/后。策略 `ptl-stage4-pc-v9`，stage 5+ 仍阻断。构建/部署待确认，卡死尚未修复。
+
+Patch 0204 preserves control flow and brackets forcewake, shared-memory clearing/header, PC reset, frequency setup/cap and firmware control (46000–46013). Codes 46020/46021 enter normal/extended state waits; 47000/47001 bracket reset CT send. Policy is `ptl-stage4-pc-v9`; stages 5+ stay blocked. Build/deployment pending; hang unresolved.
+
 ### 新实机定位：uC 硬件初始化 / New hardware localization: uC hardware initialization
 
 [完整构建通过 / Full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43467363285)。已备份并替换硬盘 EFI 的开机和诊断驱动及脚本，读回一致、ocvalidate 通过，开机配置不变。新版 SHA-256：`4d4827f7774f5718149951767eb7e504773c68168c50e6a0a8d9800d16829f33`。待重启后实机定位，不代表卡死已修复。
