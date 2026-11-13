@@ -1,8 +1,14 @@
 # Panther Lake B0A0 核显适配 / GPU bring-up
 
-2026-11-13 · ASUS S5650AA · Intel `8086:B0A0` · macOS 26.0 `25A354`
+2026-11-14 · ASUS S5650AA · Intel `8086:B0A0` · macOS 26.0 `25A354`
 
 ## 当前结论 / Current conclusion
+
+### v16：DPCPU 原始锁保护 / Raw DPCPU lock protection
+
+发现 `xg_dpcpu_block` 原始锁缺少持锁期间的中断保护，存在持锁者被抢占、禁止抢占的等待者持续空转的风险。V16 补齐保存/关闭/恢复中断，并把并发分配的失败副本释放移到锁外。保留 v15 的 PC start bypass，仅隔离锁修改；还没有实机证据证明这是卡死根因。[修改和验证记录 / Change and validation](GPU_DPCPU_LOCK_2026-11-14.md)。
+
+The DPCPU registry raw lock lacked interrupt protection against owner preemption. V16 adds save/disable/restore around ownership and disposes of a losing allocation outside the raw lock. V15's PC-start bypass remains to isolate this change. This is not yet a hardware-confirmed freeze diagnosis; see the linked validation record.
 
 V15 仍卡死；重新对照 PR 1，发现 B0A0 的历史 GMD 值按固定驱动解析为 graphics 30.01/A0、media 30.00/B0，需按 GT 核对规避规则，尚未定位根因。[中英对照记录](GPU_PR1_AUDIT_2026-11-14.md)。
 

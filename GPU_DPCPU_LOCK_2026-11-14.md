@@ -16,9 +16,22 @@ V16 saves/disables interrupts before both raw-lock sections and restores the pri
 
 The test compiles the actual source functions with deterministic dependency substitutes. It covers allocation, cache hits, an already-disabled caller, competing publication during allocation and distinct templates. It verifies interrupt state at acquisition/release and checks that allocation/free do not hold the raw lock. The baseline must fail and the patched version must pass. These are source-level tests, not a reproduction or resolution of the machine freeze.
 
-构建、安装与实机结果将在验证后补充；本文件最初提交不表示 EFI 已替换。
+## 构建与部署 / Build and deployment
 
-Build, installation and hardware outcomes will be recorded after verification. The initial document commit does not mean the EFI has been replaced.
+[CI 43508155230](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43508155230) 成功：旧版 DPCPU 触发预期断言，修正版执行通过；原有 16 项测试、GuC 错误传播、PC 等待与 bypass 选择器、x86_64 架构、签名、固定固件及许可证检查通过。构建代码提交 `07f01d9`，产物 `14076783216`。
+
+CI succeeds: the baseline is rejected at the expected IRQ assertion; the patched actual function passes. All 16 existing tests, GuC error propagation, PC wait/selector tests, architecture/signature and firmware/licence checks pass. Build source: `07f01d9`; artifact: `14076783216`.
+
+已备份现用文件并写入内部 SYSTEM EFI 的开机和诊断驱动，包装脚本要求 `ptl-dpcpu-irq-v16`。独立回读两份二进制、完整 SHA256 清单、包装脚本和开机 personality 一致。OpenCore 1.0.8 `ocvalidate` 无问题；EFI 盘符已移除。开机配置未修改。
+
+The boot and diagnostic drivers on the internal SYSTEM EFI have been backed up and replaced. The wrapper requires policy `ptl-dpcpu-irq-v16`. Independent readback verifies both binaries, the complete manifest, wrapper and boot personality. OpenCore 1.0.8 validation passes; the temporary EFI drive letter is removed. Boot configuration is unchanged.
+
+- Binary SHA256: `ed21eb7e021f40590b785650d3409b92c59c7cb7e3b341d8c0a0a4ea0b016aec`
+- Local backup: `backups/before-xe-dpcpu-irq-20261114-051746`
+
+尚未重启验证，不能报告卡死已解决。下一次进入 macOS 后运行原 `gpu-probe.command`，仍只请求一次 stage 4，NVRAM 追踪关闭，保留 PC start bypass。若仍卡死，需要继续区分此锁风险与实际故障，不能把源码测试通过当作硬件通过。
+
+Hardware reboot testing is pending. Run the existing `gpu-probe.command` after booting macOS; it still requests stage 4 once, with NVRAM tracing off and the PC-start bypass retained. Source-level tests do not establish hardware success or prove the lock was the freeze cause.
 
 ## 来源 / Sources
 
