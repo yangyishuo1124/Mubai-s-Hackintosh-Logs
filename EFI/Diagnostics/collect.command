@@ -14,6 +14,14 @@ ioreg -r -c IOAudioDevice -l -w0 > "$out/audio-devices.txt" 2>&1
 ioreg -r -c IOHDACodecDevice -l -w0 > "$out/audio-codecs.txt" 2>&1
 ioreg -r -n HDAS -l -w0 > "$out/audio-controller.txt" 2>&1
 ioreg -r -n HDEF -l -w0 > "$out/audio-controller-hdef.txt" 2>&1
+system_profiler SPDisplaysDataType > "$out/graphics-displays.txt" 2>&1
+for gpu_node in IGPU GFX0; do
+    ioreg -r -n "$gpu_node" -l -w0 > "$out/graphics-${gpu_node}.txt" 2>&1
+done
+ioreg -r -c XeGfxResident -l -w0 > "$out/graphics-xe-resident.txt" 2>&1
+ioreg -r -c XeGfxProbe -l -w0 > "$out/graphics-xe-probe.txt" 2>&1
+sysctl debug.xegfx_stage debug.xegfx_results > "$out/graphics-xe-status.txt" 2>&1
+sysctl -b debug.xegfx_log > "$out/graphics-xe-log.txt" 2>&1
 networksetup -listallhardwareports > "$out/network-ports.txt" 2>&1
 networksetup -listallnetworkservices > "$out/network-services.txt" 2>&1
 networksetup -getairportnetwork en0 > "$out/current-wifi.txt" 2>&1

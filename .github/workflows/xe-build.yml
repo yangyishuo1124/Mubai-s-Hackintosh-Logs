@@ -37,6 +37,12 @@ jobs:
           test -r /System/Library/KernelCollections/BootKernelExtensions.kc
           cd build/WTLIntelGfx
           XEGFX_KMD=xe bash build/build_xegfx.sh 2>&1 | tee "$GITHUB_WORKSPACE/build/xe-build.log"
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('harness/test_xe_stages.py'); s=p.read_text()
+          assert s.count('#define bzero(p,n)') == 1
+          p.write_text(s.replace('#define bzero(p,n)', '#ifdef bzero\n#undef bzero\n#endif\n#define bzero(p,n)'))
+          PY
           python3 harness/test_xe_stages.py 2>&1 | tee "$GITHUB_WORKSPACE/build/xe-tests.log"
           lipo out/XeGfx.kext/Contents/MacOS/XeGfx -verify_arch x86_64
           codesign --verify --verbose out/XeGfx.kext

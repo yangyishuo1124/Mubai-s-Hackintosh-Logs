@@ -40,6 +40,12 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. macOS Tah
 - **Wi-Fi**：[AirPort_RTW89 0.6.0 Beta](https://github.com/FranciumOS-org/Airport_RTW89)。GUI 失败停在 WPA2 M2 后，未收到 M3，原因码 15 / 错误 `-2015`，发生于 DHCP 之前。频段原因未成立。
   **Wi-Fi:** GUI failures stop after WPA2 M2 with no M3, followed by reason 15 / error `-2015`, before DHCP. A frequency-band cause has not been established.
 
+## 核显驱动调查 / GPU driver investigation
+
+包含 B0A0 的实验性裸机 xe 驱动已完整构建并通过复核；仅部署手动 stage 2 探测包，尚无实机探测或加速结果。当前桌面仍为 GOP。源码、验证阶段和限制见 [Panther Lake 核显记录](GPU_PANTHER_LAKE.md)。
+
+The experimental bare-metal xe fork containing B0A0 now builds and passes verification. Only a manual stage 2 probe package is deployed; hardware probing and acceleration are unverified. The desktop still uses GOP. See the [Panther Lake GPU record](GPU_PANTHER_LAKE.md) for sources, stages and limits.
+
 ## 下次 Wi-Fi 测试 / Next Wi-Fi test
 
 **最新结果：**已完成同轮同接入点对照，GUI 两次 M2 超时，驱动密码直连随后完成握手、取得 IP 且公网 ping 3/3 成功。直接连接目前可作绕过方案；GUI 尚未修复。先前五秒掉线在这次未重现，但不能单凭一次结果证明其原因。
