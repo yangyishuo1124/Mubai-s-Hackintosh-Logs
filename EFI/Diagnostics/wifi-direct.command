@@ -8,7 +8,11 @@ fi
 printf 'Wi-Fi network name: '
 IFS= read -r network
 [[ -n "$network" ]] || exit 1
+echo 'In Wi-Fi settings, temporarily turn OFF Auto-Join for the OLD saved network.'
+echo 'Do not forget/delete it. You can restore Auto-Join after the test.'
 echo 'Close the Wi-Fi menu and System Settings during this test.'
+printf 'Press Return when ready: '
+IFS= read -r ready
 echo 'Disconnecting the current network before the direct join test.'
 "$here/rtw89ctl" rejoin off || true
 if ! "$here/rtw89ctl" leave; then
@@ -16,7 +20,13 @@ if ! "$here/rtw89ctl" leave; then
     /bin/zsh "$here/collect.command"
     exit 1
 fi
-sleep 1
+sleep 3
+before_join="$("$here/rtw89ctl" status)"
+if printf '%s\n' "$before_join" | grep -Eq '^link[[:space:]]+(connected|joining)'; then
+    echo 'macOS reconnected before the test. Disable Auto-Join for the old network and retry.'
+    /bin/zsh "$here/collect.command"
+    exit 1
+fi
 # rtw89ctl prompts for the password itself; do not store it in this script.
 "$here/rtw89ctl" join "$network"
 join_result=$?

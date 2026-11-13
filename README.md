@@ -46,9 +46,9 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. macOS Tah
 
 The helper now leaves the existing link first to avoid the previous `-16` (EBUSY). This comparison bypasses the GUI; it is not a confirmed repair.
 
-用 `diskutil list` 找到约 467 MB、名为 SYSTEM 的 EFI 分区，替换 `diskXs1`。关闭 Wi-Fi 菜单和设置窗口后运行：
+先在 Wi-Fi 设置中临时关闭**旧的已保存网络**的“自动加入”，不必忘记网络，测试后可恢复。用 `diskutil list` 找到约 467 MB、名为 SYSTEM 的 EFI 分区，替换 `diskXs1`。按脚本提示操作，并关闭 Wi-Fi 菜单和设置窗口：
 
-Use `diskutil list` to identify the approximately 467 MB SYSTEM EFI partition and replace `diskXs1`. Close the Wi-Fi menu and System Settings, then run:
+Temporarily disable **Auto-Join for the old saved network** in Wi-Fi settings; do not forget it, and restore Auto-Join after testing if desired. Use `diskutil list` to identify the approximately 467 MB SYSTEM EFI partition and replace `diskXs1`. Follow the script prompts and close the Wi-Fi menu and System Settings:
 
 ```sh
 sudo diskutil mount diskXs1

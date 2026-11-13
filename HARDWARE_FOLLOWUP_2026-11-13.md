@@ -2,6 +2,12 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## Latest direct-join retest: macOS autojoin races the helper
+
+The next report shows macOS automatically rejoining the old saved network and completing WPA2 approximately five seconds before the direct join command returns -16 (EBUSY). A DHCP lease, gateway ping and public-IP ping are successful on that old network. This does not test the target network's password handshake, and is not a new authentication failure. Driver `rejoin off` controls the driver's own retries; it does not disable macOS saved-network autojoin.
+
+The helper now asks the user to temporarily disable Auto-Join for the old saved network, without deleting its credentials, and checks that the link remains disconnected after leave. If macOS reconnects, it stops and collects evidence instead of proceeding with an invalid comparison. This is a test correction, not a GUI Wi-Fi repair. Restore Auto-Join after testing if desired. Only the diagnostic helper changed; the working audio/Bluetooth and boot configuration were retained. The ZIP passed integrity validation; no raw reports were committed.
+
 > Entries below are chronological. Earlier unresolved states are superseded by later retests: Bluetooth recovered and audio devices enumerate; speaker/jack/microphone checks and the GUI Wi-Fi fix remain pending.
 
 ## Observed
