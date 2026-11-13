@@ -25,6 +25,8 @@ jobs:
           zsh -n EFI/Diagnostics/collect.command
           mkdir source
           curl -fL --retry 3 https://codeload.github.com/InSnh-Gd/WTLIntelGfx/tar.gz/5ffc79fb9e53eb820899edd644b83681bea3aa39 | tar -xz --strip-components=1 -C source
+          cp patches/xe-0200-gop-mmio-reservation.patch source/xkpi/xe/patches/0200-m1-gop-reservations.patch
+          python3 patches/adapt_xe_mmio_reservation_tests.py source/harness/test_xe_stages.py
           python3 - <<'PY'
           from pathlib import Path
           import urllib.request, subprocess
