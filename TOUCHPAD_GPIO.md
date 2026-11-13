@@ -1,5 +1,23 @@
 # 触摸板 GPIO 中断调查 / Touchpad GPIO interrupt investigation
 
+## 匹配调整与启动追踪版已部署 / Matching adjustment and startup trace deployed
+
+继续适配：将新类的 IOProviderClass 对齐原有及上游 GPIO personalities 使用的 `IOService`；这是一项待实测的匹配调整，未证明是此前失败的根因。类内部仍严格要求 IOACPIPlatformDevice，并验证 Panther Lake 固件属性与触摸板资源来源。
+
+Continuing implementation: the new class uses `IOService` as IOProviderClass, matching the existing/upstream GPIO personalities. This adjustment remains unverified on hardware and is not established as the previous failure's cause. The implementation still requires an IOACPIPlatformDevice internally and validates the Panther Lake firmware schema and touchpad resource source.
+
+新增 probe/start 入口日志，并把 `PTLProbeStage`、`PTLDSDResult`、`PTLTPDIResult`、`PTLGINResult` 和 `PTLTouchpadSelected` 写到提供者 GPIO 节点。这样即使驱动对象启动失败，已有 GPI0–GPI5 采集仍能保留阶段及返回码。属性仅为内存中的诊断信息，不写 ACPI 固件或磁盘密码。
+
+Added probe/start logs and provider-node properties `PTLProbeStage`, `PTLDSDResult`, `PTLTPDIResult`, `PTLGINResult`, and `PTLTouchpadSelected`. The existing GPI0–GPI5 collector can therefore retain stages and return codes even when driver startup fails. These are in-memory diagnostic properties, not firmware writes or password storage.
+
+[构建和静态检查成功 / Build and checks passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43420006899)。已备份并替换硬盘 GPIO 驱动，读回与仓库一致，ocvalidate 通过。**保留强制轮询参数**，先验证新控制器能否启动，避免重复造成触摸板无响应。此次不是原驱动回退；当前使用新编译的匹配/追踪版本。尚未启动实测，GPIO 中断仍未修复。
+
+The new driver is backed up and deployed in the active EFI, with repository/readback agreement and ocvalidate passing. **Forced polling remains enabled** while testing controller startup, to avoid repeating the no-input condition. This is the newly compiled matching/trace version, not the original rollback driver. Hardware boot remains untested and GPIO interrupts remain unresolved.
+
+Binary SHA-256: `f7e6c45c9c2fd1140011549d8b53d6a35a90d5ff64e0b7463b0ae935cfd593f8`
+
+下次运行原采集脚本即可读取新阶段属性；无需先关闭轮询。 / Run the existing collector after the next boot to capture these properties; do not disable polling first.
+
 ## 中断试验失败，已回退 / Interrupt trial failed; polling restored
 
 用户反馈触摸板完全无响应。新报告 ZIP 完整性通过；loaded-kext UUID 与本次构建二进制完全一致，确认加载了试验驱动。五个 GPIO ACPI 节点仍枚举，但没有成功的 Panther Lake 控制器实例或其启动日志；I2C nub 未完成注册，HID 触摸板驱动未挂载。不能据此声称中断已建立、只是流畅度问题，也无法仅凭现有日志分清匹配失败与 `_DSD` 早期返回。

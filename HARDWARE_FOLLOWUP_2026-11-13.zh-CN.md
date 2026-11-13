@@ -2,6 +2,10 @@
 
 [English](HARDWARE_FOLLOWUP_2026-11-13.md) · [中英双语首页](README.md)
 
+## 新 GPIO 匹配/追踪版已部署，保留轮询
+
+用户要求继续修复。已对齐 provider 匹配方式，补充 probe/start 和 GPIO 节点阶段属性，macOS 构建及检查通过，已写入硬盘并读回验证。保留轮询以先确认控制器启动；中断未修复，待实测。详见 [GPIO 记录](TOUCHPAD_GPIO.md)。
+
 ## GPIO 试验失败并回退
 
 用户确认触摸板无响应；报告证实试验二进制已加载，但无 GPIO 控制器实例，触摸板 HID 未挂载。已恢复原驱动和强制轮询并读回校验、通过 ocvalidate，待重启确认恢复。新增源码启动追踪，后续必须在保留轮询的条件下定位控制器。详见 [GPIO 记录](TOUCHPAD_GPIO.md)。

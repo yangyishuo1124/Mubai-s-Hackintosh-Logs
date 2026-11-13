@@ -2,6 +2,10 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## New GPIO matching/trace build deployed with polling retained
+
+Continuing at the user request: aligned provider matching and added probe/start tracing plus stage properties on GPIO nodes. macOS build/checks pass; active EFI deployment is readback-verified. Polling remains enabled to verify controller startup first. Interrupt repair is unconfirmed. See the [GPIO record](TOUCHPAD_GPIO.md).
+
 ## GPIO trial failed and rolled back
 
 The user reports no input. The intended GPIO binary loaded, but no controller instance or touchpad HID driver appears. Original driver and forced polling are restored, with readback and ocvalidate passing; recovery awaits a reboot. Startup tracing is added to source; future controller diagnosis must retain polling. See the [GPIO record](TOUCHPAD_GPIO.md).
