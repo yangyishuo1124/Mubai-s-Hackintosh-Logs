@@ -2,6 +2,10 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## GPIO trial failed and rolled back
+
+The user reports no input. The intended GPIO binary loaded, but no controller instance or touchpad HID driver appears. Original driver and forced polling are restored, with readback and ocvalidate passing; recovery awaits a reboot. Startup tracing is added to source; future controller diagnosis must retain polling. See the [GPIO record](TOUCHPAD_GPIO.md).
+
 ## GPIO platform trial compiled and deployed
 
 Added Panther Lake ACPI-property support and runtime touchpad-controller selection. GitHub macOS compilation and static checks pass. Original files are backed up; the active GPIO kext is replaced and forced polling removed. Readback and ocvalidate pass. No hardware boot test yet; this is not a confirmed repair. See the [implementation record](TOUCHPAD_GPIO.md).

@@ -1,5 +1,15 @@
 # 触摸板 GPIO 中断调查 / Touchpad GPIO interrupt investigation
 
+## 中断试验失败，已回退 / Interrupt trial failed; polling restored
+
+用户反馈触摸板完全无响应。新报告 ZIP 完整性通过；loaded-kext UUID 与本次构建二进制完全一致，确认加载了试验驱动。五个 GPIO ACPI 节点仍枚举，但没有成功的 Panther Lake 控制器实例或其启动日志；I2C nub 未完成注册，HID 触摸板驱动未挂载。不能据此声称中断已建立、只是流畅度问题，也无法仅凭现有日志分清匹配失败与 `_DSD` 早期返回。
+
+The user reports no touchpad response. The report passes ZIP integrity validation; the loaded GPIO UUID exactly matches the compiled trial, confirming the intended binary was loaded. All five ACPI GPIO nodes still enumerate, but there is no successful Panther Lake controller instance or startup log. The I2C nub does not finish registering and the touchpad HID driver is absent. Interrupt setup was not established; this is not merely a smoothness issue. Current logs do not distinguish matching from an early `_DSD` return.
+
+已保存失败版本，恢复原 GPIO 驱动、原配置与强制轮询，读回验证和 ocvalidate 通过。用户反馈的失败状态保留，不将回退后的触摸板恢复视为已经实测。源码增加启动入口、`_DSD`、`TPDI` 与 `G_IN` 返回日志供后续定位。下一诊断版必须保留轮询，先确认控制器启动再考虑中断切换；不要直接重试相同中断配置。
+
+The failed trial is preserved locally. Original GPIO driver, configuration and forced polling are restored; readback and ocvalidate pass. Recovery after the rollback still awaits a boot, and the failed result remains recorded. Source tracing now covers start entry and `_DSD`, `TPDI`, and `G_IN` returns. Any subsequent diagnostic deployment must retain polling until controller startup is established; do not repeat the same interrupt configuration.
+
 ## 已部署实验性修复 / Experimental implementation deployed
 
 已新增真正的 `VoodooGPIOPantherLake` 类，以固定上游源码 `44fc744d26b3e4971d6d8f0027d75c25e1388637` 为基准。每个实例使用独立的平台数据，从 BIOS `_DSD` 读取寄存器偏移、引脚组数量与尺寸，检查版本、步长、映射范围和 PADBAR，遇到不支持布局则拒绝启动。复用当前上游核心已有的 `is_offset` 支持；此前文档中“核心固定 GPI_IS”的描述仅适用于所读旧快照，不能套用于本次固定源码。
