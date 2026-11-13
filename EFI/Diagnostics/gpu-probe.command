@@ -5,10 +5,6 @@ set -eu
 base="${0:A:h}"
 [[ "$(id -u)" == 0 ]] || { print '请用 sudo zsh 运行 / Run with sudo zsh'; exit 1; }
 [[ "$(uname -s)" == Darwin && "$(uname -m)" == x86_64 ]] || exit 1
-print '本版 stage 4 已实机卡死；仅采集证据，不重复初始化。'
-print 'Stage 4 hung on hardware; collecting evidence only.'
-zsh "$base/collect.command"
-exit $?
 [[ -d "$base/GPU/XeGfx.kext" ]] || { print '缺少探测驱动 / Probe kext missing'; exit 1; }
 out="$base/reports/gpu-probe-$(date +%Y%m%d-%H%M%S).txt"
 mkdir -p "$base/reports"
@@ -26,7 +22,7 @@ fi
 
 # Refuse an older boot-loaded binary even if the files on EFI were replaced.
 policy="$(ioreg -r -c XeGfxResident -l)"
-if [[ "$policy" != *'"XeGfxProbePolicy" = "ptl-stage4-guc-v4"'* ]]; then
+if [[ "$policy" != *'"XeGfxProbePolicy" = "ptl-stage4-trace-v5"'* ]]; then
     print '当前加载的仍是旧版驱动，停止探测，请重启后再运行。'
     print 'Loaded driver lacks the stage-4 policy; reboot before probing.'
     zsh "$base/collect.command"
