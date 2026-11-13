@@ -1,0 +1,30 @@
+Source: Linux v6.14 xe_regs.h DSMBASE 0x1080c0; xe_ttm_stolen_mgr.c describes GSMBASE-relative DM PTEs.
+Fix the read-only GOP probe; later stage-4 stolen reservation still needs separate review.
+
+--- a/shim/src/xnu/xg_kext.cpp
++++ b/shim/src/xnu/xg_kext.cpp
+@@ -340,11 +340,23 @@
+  if (!pa)
+   return gXeBootFound = -ENOMEM;
+  volatile uint64_t *gsm = (volatile uint64_t *)(mm->getVirtualAddress() + (8ull << 20));
+- uint64_t dsm = ((uint64_t)gpu->configRead32(0xc4) << 32 | gpu->configRead32(0xc0)) & ~0xfffffull;
++ // PTL exposes DSMBASE in BAR0 MMIO; PCI 0xc0 is not authoritative here.
++ uint64_t pci_dsm = ((uint64_t)gpu->configRead32(0xc4) << 32 | gpu->configRead32(0xc0)) & ~0xfffffull;
++ uint64_t dsm = ((uint64_t)r[0x1080c4 / 4] << 32 | r[0x1080c0 / 4]) & ~0xfffffull;
++ if (gResident) {
++  gResident->setProperty("XeGfxDSMFromPCI", pci_dsm, 64);
++  gResident->setProperty("XeGfxDSMFromMMIO", dsm, 64);
++ }
++ IOLog("XeGfx: GOP DSM PCI=%#llx MMIO=%#llx\n", pci_dsm, dsm);
+  uint64_t lo = ~0ull, hi = 0;
+  for (unsigned i = 0; i < n; i++) {
+   uint64_t pte = gsm[(gXeBootSurf >> 12) + i];
+   if (!(pte & 1) || ((pte & 2) && dsm < (8ull << 20))) {
++   if (gResident) {
++    gResident->setProperty("XeGfxFailedGOPPage", i, 32);
++    gResident->setProperty("XeGfxFailedGOPPTE", pte, 64);
++   }
++   IOLog("XeGfx: GOP invalid page=%u PTE=%#llx DSM=%#llx\n", i, pte, dsm);
+    IOFree(pa, n * sizeof(*pa));
+    return gXeBootFound;
+   }
