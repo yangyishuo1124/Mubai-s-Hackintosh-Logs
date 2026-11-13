@@ -27,9 +27,13 @@ jobs:
           fetch torvalds/linux 38fec10eb60d687e30c8c6b5420d86e8149f7557 "$HOME/src/xe-src/linux"
           fetch freebsd/drm-kmod c16de0f9fa "$HOME/src/xe-src/drm-kmod"
           fetch freebsd/freebsd-src 9da2c05a748fd17757638e1a9e78215cdb8b80d0 "$HOME/src/xe-src/freebsd"
+          cp patches/xe-0200-gop-mmio-reservation.patch build/WTLIntelGfx/xkpi/xe/patches/0200-m1-gop-reservations.patch
+          python3 patches/adapt_xe_mmio_reservation_tests.py build/WTLIntelGfx/harness/test_xe_stages.py
           cp patches/xe-0159-bsd-context.patch build/WTLIntelGfx/xkpi/xe/patches/0159-guc-fence-once.patch
           (cd build/WTLIntelGfx && patch -p1 -i "$GITHUB_WORKSPACE/patches/xe-ptl-dsm-mmio.patch")
           (cd build/WTLIntelGfx && patch -p1 -i "$GITHUB_WORKSPACE/patches/xe-ptl-metadata-only.patch")
+          (cd build/WTLIntelGfx && python3 "$GITHUB_WORKSPACE/patches/test_ptl_metadata_guard.py" shim/src/xnu/xg_kext.cpp)
+          (cd build/WTLIntelGfx && patch -p1 -i "$GITHUB_WORKSPACE/patches/xe-ptl-gop-snapshot.patch")
       - name: Build and verify xe kernel driver
         shell: bash
         run: |
@@ -38,7 +42,7 @@ jobs:
           test -d "$SDKROOT/System/Library/Frameworks/Kernel.framework/Headers"
           test -r /System/Library/KernelCollections/BootKernelExtensions.kc
           cd build/WTLIntelGfx
-          python3 "$GITHUB_WORKSPACE/patches/test_ptl_metadata_guard.py" shim/src/xnu/xg_kext.cpp
+          python3 "$GITHUB_WORKSPACE/patches/test_ptl_gop_snapshot.py" shim/src/xnu/xg_kext.cpp
           XEGFX_KMD=xe bash build/build_xegfx.sh 2>&1 | tee "$GITHUB_WORKSPACE/build/xe-build.log"
           python3 - <<'PY'
           from pathlib import Path

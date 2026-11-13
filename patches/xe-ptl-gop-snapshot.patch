@@ -1,0 +1,74 @@
+--- a/shim/src/xnu/xg_kext.cpp
++++ b/shim/src/xnu/xg_kext.cpp
+@@ -313,6 +313,8 @@
+  *size = bytes;
+  return 0;
+ }
++
++#include "xg_ptl_gop_metadata.h"
+ 
+ /* Stage 2 only. Never infer physical DSM from the BAR2 CPU alias. */
+ static int
+@@ -384,6 +386,22 @@
+    gResident->setProperty("XeGfxGOPPTEHash", pte_hash, 64);
+    gResident->setProperty("XeGfxGOPCPUAccessBlocked", kOSBooleanTrue);
+   }
++  xg_ptl_gop_snapshot before = {}, after = {};
++  int metadata_rc = xg_ptl_gop_read(r, mm->getLength(), &before);
++  if (!metadata_rc) {
++   IOSleep(100);
++   metadata_rc = xg_ptl_gop_read(r, mm->getLength(), &after);
++   if (!metadata_rc) metadata_rc = xg_ptl_gop_compare(&before, &after);
++  }
++  if (gResident) {
++   gResident->setProperty("XeGfxGOPMetadataResult", (unsigned long long)(uint32_t)metadata_rc, 32);
++   gResident->setProperty("XeGfxGOPPixelVerified", kOSBooleanFalse);
++   if (metadata_rc == 1) {
++    gResident->setProperty("XeGfxGOPFrameDelta", (uint32_t)(after.frame-before.frame), 32);
++    gResident->setProperty("XeGfxGOPMetadataPTEHash", after.pte_hash, 64);
++   }
++  }
++  IOLog("XeGfx: GOP register/PTE/frame comparison=%d (pixels NOT verified)\n", metadata_rc);
+   IOFree(pa, n * sizeof(*pa));
+   IOLog("XeGfx: B0A0 metadata only; CPU framebuffer access blocked, candidate=%#llx span=%#llx pages=%u DM=%u PTEhash=%#llx\n",
+       lo, hi - lo, n, dm_pages, pte_hash);
+--- /dev/null
++++ b/shim/src/xnu/xg_ptl_gop_metadata.h
+@@ -0,0 +1,37 @@
++/* B0A0 metadata inspection only. Never maps or dereferences pixel memory. */
++struct xg_ptl_gop_snapshot {
++ uint32_t ctl, stride, size, offset, surf, pipe, frame;
++ uint64_t dsm, bytes, pte_hash;
++};
++static int
++xg_ptl_gop_read(volatile uint32_t *r, uint64_t length, xg_ptl_gop_snapshot *s)
++{
++ if (length < (16ull << 20)) return -EIO;
++ s->ctl=r[0x70180/4]; s->stride=r[0x70188/4];
++ s->size=r[0x70190/4]; s->offset=r[0x701a4/4];
++ s->surf=r[0x7019c/4]&~0xfffu; s->pipe=r[0x70008/4]&(1u<<31);
++ s->frame=r[0x70040/4];
++ s->dsm=(((uint64_t)r[0x1080c4/4]<<32)|r[0x1080c0/4])&~0xfffffull;
++ if (!s->pipe || !s->dsm) return -ENXIO;
++ int rc=xg_xe_bootfb_layout(s->ctl,s->stride,s->size,s->offset,s->surf,&s->bytes);
++ if (rc) return rc;
++ uint64_t first=s->surf>>12, pages=s->bytes>>12;
++ if (first+pages > ((length-(8ull<<20))/8)) return -EOVERFLOW;
++ volatile uint64_t *gtt=(volatile uint64_t *)(r+(8ull<<20)/4);
++ s->pte_hash=14695981039346656037ull;
++ for (uint64_t i=0;i<pages;i++) {
++  uint64_t pte=gtt[first+i];
++  if (!(pte&1)) return -EINVAL;
++  s->pte_hash=xg_fnv(s->pte_hash,pte,8);
++ }
++ return 0;
++}
++static int
++xg_ptl_gop_compare(const xg_ptl_gop_snapshot *a, const xg_ptl_gop_snapshot *b)
++{
++ if (a->ctl!=b->ctl || a->stride!=b->stride || a->size!=b->size ||
++     a->offset!=b->offset || a->surf!=b->surf || a->pipe!=b->pipe ||
++     a->dsm!=b->dsm || a->bytes!=b->bytes || a->pte_hash!=b->pte_hash)
++  return -EPROTO;
++ return ((uint32_t)(b->frame-a->frame)) ? 1 : -ETIMEDOUT;
++}
