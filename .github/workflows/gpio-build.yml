@@ -1,0 +1,42 @@
+name: Experimental Panther Lake GPIO
+on:
+  push:
+    paths:
+      - 'patches/voodoogpio-pantherlake.patch'
+      - '.github/workflows/gpio-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch pinned source and kernel SDK
+        run: |
+          mkdir -p build/src
+          git clone https://github.com/VoodooI2C/VoodooGPIO.git build/src/VoodooGPIO
+          git -C build/src/VoodooGPIO checkout 44fc744d26b3e4971d6d8f0027d75c25e1388637
+          git clone https://github.com/acidanthera/MacKernelSDK.git build/MacKernelSDK
+          git -C build/MacKernelSDK checkout 3f750085caa17ec3a7880f11c11bf4f48cd6a164
+          git -C build/src/VoodooGPIO apply --check "$GITHUB_WORKSPACE/patches/voodoogpio-pantherlake.patch"
+          git -C build/src/VoodooGPIO apply "$GITHUB_WORKSPACE/patches/voodoogpio-pantherlake.patch"
+      - name: Build x86_64 kext
+        run: |
+          set -o pipefail
+          xcodebuild -project build/src/VoodooGPIO/VoodooGPIO.xcodeproj -configuration Release -target VoodooGPIO CONFIGURATION_BUILD_DIR="$GITHUB_WORKSPACE/build/products" ARCHS=x86_64 CODE_SIGNING_ALLOWED=NO build 2>&1 | tee build/build.log
+      - name: Verify class, architecture and property list
+        run: |
+          file build/products/VoodooGPIO.kext/Contents/MacOS/VoodooGPIO
+          lipo -verify_arch x86_64 build/products/VoodooGPIO.kext/Contents/MacOS/VoodooGPIO
+          plutil -lint build/products/VoodooGPIO.kext/Contents/Info.plist
+          nm build/products/VoodooGPIO.kext/Contents/MacOS/VoodooGPIO | grep 'VoodooGPIOPantherLake.*gMetaClass'
+          shasum -a 256 build/products/VoodooGPIO.kext/Contents/MacOS/VoodooGPIO > build/products/SHA256.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: PantherLake-GPIO-experimental
+          path: |
+            build/products/
+            build/build.log

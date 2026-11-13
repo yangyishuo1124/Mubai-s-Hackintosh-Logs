@@ -1,0 +1,153 @@
+--- a/VoodooGPIO/VoodooGPIOIntel.cpp
++++ b/VoodooGPIO/VoodooGPIOIntel.cpp
+@@ -1029,3 +1029,128 @@
+         }
+     }
+ }
++
++// Experimental INTC10BB support using firmware's INTC105F property schema.
++// Platform layout follows intel pinctrl's ACPI-property based platform model.
++// This class owns its tables: one ACPI device is one community.
++class VoodooGPIOPantherLake : public VoodooGPIOIntel {
++    OSDeclareDefaultStructors(VoodooGPIOPantherLake)
++    intel_community platformCommunity;
++    intel_padgroup platformGroups[8];
++    pinctrl_pin_desc platformPins[256];
++
++    static OSObject *property(OSObject *object, const char *key, unsigned depth = 0) {
++        OSArray *array = OSDynamicCast(OSArray, object);
++        if (!array || depth > 8 || array->getCount() > 512)
++            return nullptr;
++        if (array->getCount() == 2) {
++            OSString *name = OSDynamicCast(OSString, array->getObject(0));
++            if (name && name->isEqualTo(key))
++                return array->getObject(1);
++        }
++        for (unsigned i = 0; i < array->getCount(); ++i) {
++            OSObject *found = property(array->getObject(i), key, depth + 1);
++            if (found)
++                return found;
++        }
++        return nullptr;
++    }
++
++    static bool number(OSObject *object, const char *key, unsigned &value) {
++        OSNumber *n = OSDynamicCast(OSNumber, property(object, key));
++        if (!n || n->unsigned64BitValue() > 0xffffffffULL)
++            return false;
++        value = n->unsigned32BitValue();
++        return true;
++    }
++
++public:
++    bool start(IOService *provider) override {
++        IOACPIPlatformDevice *acpi = OSDynamicCast(IOACPIPlatformDevice, provider);
++        OSObject *dsd = nullptr;
++        if (!acpi || acpi->evaluateObject("_DSD", &dsd) != kIOReturnSuccess || !dsd)
++            return false;
++        bool valid = prepare(acpi, dsd);
++        dsd->release();
++        if (!valid) {
++            IOLog("VoodooGPIOPantherLake::Unsupported or incomplete firmware layout; not starting\n");
++            return false;
++        }
++        this->pins = platformPins;
++        this->communities = &platformCommunity;
++        this->ncommunities = 1;
++        IOLog("VoodooGPIOPantherLake::Starting %s: %u pins, %u groups, IS=0x%x IE=0x%x\n",
++              provider->getName(), (unsigned)npins, (unsigned)platformCommunity.ngpps,
++              platformCommunity.is_offset, platformCommunity.ie_offset);
++        return VoodooGPIOIntel::start(provider);
++    }
++
++private:
++    bool prepare(IOACPIPlatformDevice *acpi, OSObject *dsd) {
++        bzero(&platformCommunity, sizeof(platformCommunity));
++        bzero(platformGroups, sizeof(platformGroups));
++        bzero(platformPins, sizeof(platformPins));
++        npins = 0;
++        unsigned revision, count, stride;
++        if (!number(dsd, "intc-gpio-sw-revision", revision) || revision != 0x10000 ||
++            !number(dsd, "intc-gpio-group-count", count) || !count || count > 8 ||
++            !number(dsd, "intc-gpio-group-stride", stride) || stride != 16 ||
++            !number(dsd, "intc-gpio-pad-ownership-offset", platformCommunity.padown_offset) ||
++            !number(dsd, "intc-gpio-pad-configuration-lock-offset", platformCommunity.padcfglock_offset) ||
++            !number(dsd, "intc-gpio-host-software-pad-ownership-offset", platformCommunity.hostown_offset) ||
++            !number(dsd, "intc-gpio-gpi-interrupt-status-offset", platformCommunity.is_offset) ||
++            !number(dsd, "intc-gpio-gpi-interrupt-enable-offset", platformCommunity.ie_offset))
++            return false;
++        // This implementation is deliberately restricted to the observed PTL register schema.
++        if (platformCommunity.padown_offset != 0x130 || platformCommunity.padcfglock_offset != 0x290 ||
++            platformCommunity.hostown_offset != 0x2c0 || platformCommunity.is_offset != 0x300 ||
++            platformCommunity.ie_offset != 0x310)
++            return false;
++        for (unsigned i = 0; i < count; ++i) {
++            char key[48];
++            snprintf(key, sizeof(key), "intc-gpio-group-%u-subproperties", i);
++            OSString *reference = OSDynamicCast(OSString, property(dsd, key));
++            if (!reference || reference->getLength() != 4)
++                return false;
++            const char *path = reference->getCStringNoCopy();
++            for (unsigned j = 0; j < 4; ++j)
++                if (!((path[j] >= 'A' && path[j] <= 'Z') ||
++                      (path[j] >= '0' && path[j] <= '9') || path[j] == '_'))
++                    return false;
++            OSObject *group = nullptr;
++            if (acpi->evaluateObject(path, &group) != kIOReturnSuccess || !group)
++                return false;
++            unsigned size, offset;
++            bool valid = number(group, "intc-gpio-pad-count", size) && size > 0 && size <= 32 &&
++                         npins + size <= 256 && number(group, "intc-gpio-group-offset", offset) &&
++                         offset == 0x800 + npins * 16;
++            group->release();
++            if (!valid)
++                return false;
++            platformGroups[i].reg_num = i;
++            platformGroups[i].base = (unsigned)npins;
++            platformGroups[i].size = size;
++            platformGroups[i].gpio_base = (unsigned)npins;
++            for (unsigned j = 0; j < size; ++j) {
++                platformPins[npins + j].number = (unsigned)npins + j;
++                platformPins[npins + j].name = const_cast<char *>("PTL_GPIO");
++            }
++            npins += size;
++        }
++        // Validate mapping and PADBAR before the inherited driver can write registers.
++        IOMemoryMap *mapping = acpi->mapDeviceMemoryWithIndex(0);
++        if (!mapping)
++            return false;
++        bool valid = mapping->getLength() >= 0x800 + npins * 16 &&
++                     readl(mapping->getVirtualAddress() + 0x0c) == 0x800;
++        mapping->release();
++        if (!valid)
++            return false;
++        platformCommunity.npins = npins;
++        platformCommunity.features = PINCTRL_FEATURE_DEBOUNCE | PINCTRL_FEATURE_1K_PD;
++        platformCommunity.gpps = platformGroups;
++        platformCommunity.ngpps = count;
++        return true;
++    }
++};
++OSDefineMetaClassAndStructors(VoodooGPIOPantherLake, VoodooGPIOIntel);
+--- a/VoodooGPIO/Info.plist
++++ b/VoodooGPIO/Info.plist
+@@ -154,6 +154,19 @@
+ 			<key>IOProviderClass</key>
+ 			<string>IOService</string>
+ 		</dict>
++		<key>VoodooGPIOPantherLake</key>
++		<dict>
++			<key>CFBundleIdentifier</key>
++			<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
++			<key>IOClass</key>
++			<string>VoodooGPIOPantherLake</string>
++			<key>IONameMatch</key>
++			<array>
++				<string>INTC10BB</string>
++			</array>
++			<key>IOProviderClass</key>
++			<string>IOACPIPlatformDevice</string>
++		</dict>
+ 	</dict>
+ 	<key>NSHumanReadableCopyright</key>
+ 	<string>Copyright © 2017 CoolStar. All rights reserved.</string>
