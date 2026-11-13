@@ -28,7 +28,7 @@ jobs:
           fetch freebsd/drm-kmod c16de0f9fa "$HOME/src/xe-src/drm-kmod"
           fetch freebsd/freebsd-src 9da2c05a748fd17757638e1a9e78215cdb8b80d0 "$HOME/src/xe-src/freebsd"
           cp patches/xe-0159-bsd-context.patch build/WTLIntelGfx/xkpi/xe/patches/0159-guc-fence-once.patch
-          git -C build/WTLIntelGfx apply "$GITHUB_WORKSPACE/patches/xe-ptl-dsm-mmio.patch"
+          (cd build/WTLIntelGfx && patch -p1 -i "$GITHUB_WORKSPACE/patches/xe-ptl-dsm-mmio.patch")
       - name: Build and verify xe kernel driver
         shell: bash
         run: |
