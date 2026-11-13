@@ -4,6 +4,24 @@
 
 ## 当前结论 / Current conclusion
 
+### B0A0 显存访问阻断修订 / CPU-access containment revision
+
+部署完成：新驱动完整构建、链接/KPI/签名/架构检查及原有 16 项测试、新增阻断分支测试全部通过。[构建记录](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43440462656)。已备份并替换硬盘 EFI 开机副本、签名诊断副本和探测脚本，读回一致，ocvalidate 通过，开机配置未变。新二进制 SHA-256：`3ad564ca02e5d91324f7392b897b709f4e0e75fab66218e4c05b24f868f5461b`。实机效果待重启验证。
+
+Deployed after a successful complete build, link/KPI/signature/architecture checks, all 16 existing tests and the new compiled containment test. Boot copy, signed diagnostic copy and wrapper on the internal EFI were backed up and replaced, with matching readback and clean ocvalidate. Boot configuration is unchanged. Binary SHA-256 is shown above. Hardware behavior remains unverified until reboot.
+
+下一次 macOS 启动后运行 `sudo zsh /Volumes/SYSTEM/EFI/Diagnostics/gpu-probe.command`。B0A0 预期 stage 1 通过、stage 2 返回不支持并留下元数据；脚本不应进入显存像素校验。阶段返回失败是本版的预期阻断结果，不应手动推进 stage 3 或后续阶段。
+
+After the next macOS boot, run the wrapper. Expected B0A0 behavior is successful stage 1, unsupported/incomplete stage 2 with metadata preserved, and no CPU pixel checksum. The failed stage is intentional containment; do not manually advance to stage 3 or later.
+
+新增 `patches/xe-ptl-metadata-only.patch`：保留 DSM/MMIO 和完整 GOP 页表遍历，发布候选物理范围、页数、DM 页数及 PTE 散列。在 B0A0 上释放页表临时数组后返回 `-EOPNOTSUPP`，不调用 `xg_vm_vmap_pa`，不执行像素读取，不建立 GOP baseline，stage 2 不得标为完成。此修订用于阻断已观察到的崩溃路径并采集元数据，不是 Metal 或显存访问修复。
+
+The new patch retains DSM/MMIO and GOP page-table inspection, publishing the candidate physical range, page count, DM-page count and PTE hash. On B0A0 it frees the temporary page array and returns `-EOPNOTSUPP` before `xg_vm_vmap_pa` or pixel reads, without establishing a GOP baseline or completing stage 2. This contains the observed crash path and collects metadata; it is not a Metal or framebuffer-access fix.
+
+脚本仅在实际加载的 XeGfxResident 发布 `XeGfxProbePolicy=ptl-metadata-only-v1` 时才允许触发，旧驱动不会因替换 EFI 文件而被误运行。新增测试编译并执行实际阻断分支，覆盖 DM、非 DM 页和其他设备对照；完整构建结果见后续部署记录。
+
+The wrapper requires the loaded XeGfxResident to publish the exact metadata-only policy before triggering the probe, preventing an old resident binary from running after files on EFI change. A new compiled test executes the actual containment branch for DM/non-DM pages and an alternate-device control. Full build and deployment results are recorded below when available.
+
 ### 崩溃证据更新 / Crash evidence update (22:01 collection)
 
 已采集到 macOS machine-check panic。MC10–MC15 报告地址分别落在 `0x7c800000`、`0x7c800040`、`0x7c8000c0`、`0x7c800100`、`0x7c800140`、`0x7c8001c0`；状态为 `0xbe0000000080113a` 或 `0xfe0000000080113a`。这些地址落在修订版由 DSMBASE 和首个 DM PTE 推导的 GOP 物理显存起始区域。`xg_xe_bootfb_checksum()` 每 64 字节直接读取映射像素，和报错地址间距吻合，因此 CPU 直接访问 stolen/GOP 显存是首要故障路径。报告没有指令回溯，尚不能区分地址解释、CPU 访问限制或缓存属性问题；不能据此诊断 CPU 硬件损坏。

@@ -1,5 +1,7 @@
 # ASUS Vivobook S16 S5650AA · Panther Lake Hackintosh
 
+核显实验更新 / GPU experiment update: MCE 已定位到 GOP 显存访问路径，新版已阻断 B0A0 的 CPU 像素映射/读取并保留 GGTT 元数据，已部署至 EFI，待重启验证；stage 2 未完成、Metal 未可用。 / A new deployed revision blocks B0A0 CPU framebuffer mapping/reads after the MCE and retains GGTT metadata. Hardware validation is pending; stage 2 remains incomplete and Metal is unavailable. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
+
 **简体中文 / English** · 更新 / Updated: **2026-11-13**
 
 这是我的 ASUS Vivobook S16 S5650AA 黑苹果适配记录与 OpenCore EFI。macOS Tahoe 26.0 已能进入桌面，显示使用 UEFI GOP 基础帧缓冲，尚无硬件图形加速。

@@ -35,6 +35,6 @@ sysctl debug.xegfx_stage
 sysctl -b debug.xegfx_results
 sysctl -b debug.xegfx_log
 print 'B0A0 预期停止于显存访问阻断，stage 2 未完成；不代表 Metal 已可用。'
-print 'B0A0 is expected to stop at the CPU-access guard; stage 2 remains incomplete.' 
+print 'B0A0 is expected to stop at the CPU-access guard; stage 2 remains incomplete.'
 zsh "$base/collect.command"
 print '探测结束。驱动由 EFI 配置开机加载。 / Probe finished; EFI controls boot loading.'
