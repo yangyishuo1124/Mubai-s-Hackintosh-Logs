@@ -82,4 +82,12 @@ At the user's request, the official [SimpleHDA 1.0.1 RELEASE](https://github.com
 
 The optional HAL package was not installed: the upstream project supports the ordinary IOAudio path without it. No macOS system-volume changes are made by this EFI trial. The preceding MCE matching experiment remains in place and is also awaiting a boot test.
 
+### Retest: Bluetooth recovered; audio and GUI Wi-Fi unresolved
+
+The user confirms Bluetooth works. The latest report has no nonzero IOService busy entries; bluetoothd completes IOKitWaitQuiet and starts its controller. Retain the MCE personality correction. SimpleHDA and AppleALC load, but no HDA codec or IOAudio device appears; the controller is now named HDEF. The collector now captures both HDAS and HDEF. The driver notification for AppleHDAController alone does not establish successful attachment.
+
+The next audio experiment injects only compatibility device-id `ca510000` (8086:51CA) at PciRoot(0x0)/Pci(0x1F,0x3), retaining layout 3 and the existing SimpleHDA stack. This compatibility ID has been reported in a Meteor Lake AppleALC setup (https://github.com/VedCloud/Meteor-Lake-Xe-LPG-Metal-Graphics), but its suitability for Panther Lake E328 is unverified. No PCI class override is added: the restored AppleHDAController already matches both multimedia/HDA class forms. The prior config is backed up locally under `before-audio-controller-trial-*`; restore it if this trial regresses booting.
+
+Wi-Fi still completes the handshake on saved autojoin but fails before DHCP on a fresh GUI join. The latest upstream release is still 0.6.0-BETA. `EFI/Diagnostics/wifi-direct.command` uses the supplied rtw89ctl password-prompt join path, then requests DHCP on en0. Run `sudo zsh /Volumes/SYSTEM/EFI/Diagnostics/wifi-direct.command`, enter the network name and password locally, then run the collector. This bypass is an unverified workaround, not a GUI fix. No password is embedded or saved by the wrapper. Raw reports remain local.
+
 After reboot, check Sound settings for outputs and inputs; if present, test the built-in speakers at low volume, the headphone jack and microphone separately. Then run `EFI/Diagnostics/collect.command` as before. It now captures audio device/codec/controller IORegistry and coreaudiod/AppleHDA/SimpleHDA logs. Driver loading alone is not a passing audio result. If booting regresses, restore config.plist from the local `before-simplehda-*` backup; its configuration does not enable SimpleHDA or AppleALC, even if the new kext folder remains on disk. Raw reports stay local.

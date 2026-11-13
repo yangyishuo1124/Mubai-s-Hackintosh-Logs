@@ -13,6 +13,7 @@ ioreg -r -c AppleACPICPU -l -w0 > "$out/cpu-ioreg.txt" 2>&1
 ioreg -r -c IOAudioDevice -l -w0 > "$out/audio-devices.txt" 2>&1
 ioreg -r -c IOHDACodecDevice -l -w0 > "$out/audio-codecs.txt" 2>&1
 ioreg -r -n HDAS -l -w0 > "$out/audio-controller.txt" 2>&1
+ioreg -r -n HDEF -l -w0 > "$out/audio-controller-hdef.txt" 2>&1
 networksetup -listallhardwareports > "$out/network-ports.txt" 2>&1
 networksetup -listallnetworkservices > "$out/network-services.txt" 2>&1
 networksetup -getairportnetwork en0 > "$out/current-wifi.txt" 2>&1
