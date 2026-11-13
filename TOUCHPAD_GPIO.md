@@ -1,5 +1,27 @@
 # 触摸板 GPIO 中断调查 / Touchpad GPIO interrupt investigation
 
+## 已部署实验性修复 / Experimental implementation deployed
+
+已新增真正的 `VoodooGPIOPantherLake` 类，以固定上游源码 `44fc744d26b3e4971d6d8f0027d75c25e1388637` 为基准。每个实例使用独立的平台数据，从 BIOS `_DSD` 读取寄存器偏移、引脚组数量与尺寸，检查版本、步长、映射范围和 PADBAR，遇到不支持布局则拒绝启动。复用当前上游核心已有的 `is_offset` 支持；此前文档中“核心固定 GPI_IS”的描述仅适用于所读旧快照，不能套用于本次固定源码。
+
+Added a real `VoodooGPIOPantherLake` class against pinned upstream `44fc744d26b3e4971d6d8f0027d75c25e1388637`. Platform data is per instance. Firmware `_DSD` supplies register offsets and group counts/sizes, with revision, stride, mapping bounds and PADBAR validation. Unsupported layouts refuse to start. This pinned core already supports `is_offset`; earlier notes about a fixed GPI_IS describe the previously reviewed snapshot and do not apply to this build.
+
+现有 I2C 实现只寻找首个 GPIO 服务。为避免选错，本机专用适配读取运行时 `TPDI[0]`，调用 BIOS `G_IN` 生成触摸板 GPIO 描述符，只允许其资源路径指向的 GPIO 节点发布服务；其他节点不启动。未硬编码猜测触摸板引脚，也未将 GPIO 控制器 IRQ 14 当作触摸板引脚。此策略仅针对本机固件的触摸板，不提供其他 GPIO 设备的通用支持。
+
+The existing I2C implementation selects the first GPIO service. This machine-specific implementation reads runtime `TPDI[0]`, evaluates firmware `G_IN`, and publishes only the controller named by that touchpad descriptor. Other nodes do not start. No guessed pin or substitution of controller IRQ 14 is used. This strategy targets this firmware's touchpad rather than providing general support for other GPIO devices.
+
+[macOS 构建与全部静态检查成功 / Successful macOS build and checks](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43408608536)。源码补丁、固定 SDK 版本和构建流程均在本仓库，见 `patches/voodoogpio-pantherlake.patch` 和 `.github/workflows/gpio-build.yml`。产物检查确认为 x86_64 Mach-O kext，包含新类和运行时触摸板选择逻辑。
+
+Binary SHA-256: `8d77b986df3625c854d69c93c2f8f477a509096a4aa8650109b8d250fc6d0cf1`
+
+已备份原配置和原 GPIO kext，替换硬盘 EFI 中嵌套的 VoodooGPIO，移除强制轮询参数；其他驱动和 ACPI 不变。文件读回与仓库一致，ocvalidate 通过。原驱动失效签名资源已移到备份，未保留在新驱动中。硬盘另存 `OC/config-polling-fallback.plist`；Windows 本地完整回退备份含 `Restore-Polling.ps1`。这是已编译、已部署的试验版，尚未实际启动验证，不能声称中断或流畅度已修好。
+
+Original configuration and GPIO kext are backed up. The nested GPIO driver in the active EFI is replaced and forced polling removed; other drivers and ACPI remain unchanged. Readback matches the repository and ocvalidate passes. Stale signature resources are preserved in the backup outside the new kext. The active EFI also contains `OC/config-polling-fallback.plist`; the full local Windows backup includes `Restore-Polling.ps1`. This is a compiled and deployed trial, not a hardware-validated interrupt or smoothness repair.
+
+下次启动后先检查指针、点击、滚动，再运行现有采集脚本。需要同时看到新 GPIO 控制器启动、触摸板 `Interrupt Mode = GPIO`、输入正常，才确认切换成功。编译成功不证明实际寄存器行为、休眠恢复或中断稳定性。
+
+After the next boot, check pointer motion, clicks and scrolling, then run the existing collector. Confirmation requires the new controller starting, touchpad `Interrupt Mode = GPIO`, and working input. Compilation does not prove register behavior, sleep/wake or interrupt stability.
+
 ## 最新实测：声明的驱动类不存在 / Latest test: declared class unavailable
 
 最新报告 ZIP 完整性通过。五个 GPIO ACPI 节点 GPI0、GPI1、GPI3、GPI4、GPI5 均已枚举，各有 UID 与 IRQ 14 资源。启动日志五次报 `Couldn’t alloc class VoodooGPIOTigerLakeLP`（原日志使用 ASCII 撇号）。核对当前 VoodooGPIO 1.1 二进制，未找到该类名称，而其他六个 personality 的类名均存在。由配置声明、运行时分配失败和二进制检查共同确认：现有 Tiger Lake personality 与驱动二进制不一致，尚未进入有效 GPIO 控制器初始化。这比寄存器布局差异更早阻断启动。

@@ -2,6 +2,10 @@
 
 [English](HARDWARE_FOLLOWUP_2026-11-13.md) · [中英双语首页](README.md)
 
+## GPIO 平台驱动试验版已编译并部署
+
+新增 Panther Lake ACPI 属性驱动与运行时触摸板控制器选择，GitHub macOS 构建及静态检查全部通过；已备份并替换硬盘 GPIO kext、移除强制轮询，读回一致且 ocvalidate 通过。尚未启动实测，不能称为已修复。详见 [实现与验证记录](TOUCHPAD_GPIO.md)。
+
 ## GPIO 实测：配置声明了二进制不存在的类
 
 最新报告五个 GPIO 节点均已枚举，但启动时五次无法创建 VoodooGPIOTigerLakeLP；当前 VoodooGPIO 1.1 二进制无该类，配置与二进制不一致。触摸板明确为 Polling。此问题发生在寄存器配置之前，但仅补 Tiger Lake 类仍不等于支持 Panther Lake。详见 [GPIO 调查](TOUCHPAD_GPIO.md)。本轮不改 EFI、不要求重复采集，中断尚未修复。

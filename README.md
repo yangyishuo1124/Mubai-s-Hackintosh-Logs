@@ -18,7 +18,7 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. macOS Tah
 | 主硬盘 / Primary SSD | RS1D0TSSD710 1 TB NVMe | APFS 系统可启动 / Boots APFS system |
 | 副硬盘 / Secondary SSD | Samsung PM981 256 GB | EFI 含禁用补丁，当前未启用 / Disable SSDT included but currently disabled |
 | 键盘 / Keyboard | Built-in PS/2 | VoodooPS2Keyboard 可用 / Working |
-| 触摸板 / Touchpad | TZY4E41, I²C TPD0 | 轮询可用；中断试验失败 / Polling works; interrupt trial failed |
+| 触摸板 / Touchpad | TZY4E41, I²C TPD0 | 已部署 GPIO 平台驱动试验版，待实测 / GPIO platform driver trial deployed; awaiting hardware test |
 | USB | Intel xHCI / Type-C | 已有设备可用；端口未全面验证 / Devices work; not all ports qualified |
 | 电池 / Battery | Internal battery | 电量显示已修正，用户确认正常 / Percentage corrected and user-confirmed |
 | 音频 / Audio | ALC235 + Intel SST `8086:E328` | 已识别内置音频；播放与录音待分别确认 / Built-in audio detected; playback/capture checks pending |
@@ -31,8 +31,8 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. macOS Tah
   **CPU / ACPI:** Converted x2APIC MADT to legacy Local APIC, with SSDT-PLUG-ALT, CPUID `0x0A0655`, ProvideCurrentCpuInfo and XCPM settings. macOS reports 16 online cores; the generic PLUG table declares 64 Processor objects.
 - **电池**：保留 `SSDT-BATT-FIX-UNIT0.aml`，纠正 `_BIF` / `_BIX` 电量单位。
   **Battery:** Retain the `_BIF` / `_BIX` unit correction in SSDT-BATT-FIX-UNIT0.
-- **触摸板**：保留 `-vi2c-force-polling`，中断模式测试失败后已恢复轮询。
-  **Touchpad:** Retain `-vi2c-force-polling` after the interrupt-mode trial failed.
+- **触摸板**：已部署新编译的 Panther Lake GPIO 平台驱动，移除强制轮询，待实机确认；原轮询驱动与配置已备份。详见 [GPIO 记录](TOUCHPAD_GPIO.md)。
+  **Touchpad:** A newly compiled Panther Lake GPIO platform driver is deployed with forced polling removed, pending hardware confirmation. Original polling configuration and driver are backed up. See the [GPIO record](TOUCHPAD_GPIO.md).
 - **蓝牙**：RealtekBluetoothFirmware 1.0.2 + BlueToolFixup 2.7.2。移除 MCEReporterDisabler 中额外加载真实 AppleMCEReporter 的规则后，busy 状态清零，bluetoothd 通过 IOKitWaitQuiet 并启动控制器。
   **Bluetooth:** Removing the extra real AppleMCEReporter personality cleared busy services and allowed bluetoothd to pass IOKitWaitQuiet and start its controller, with RealtekBluetoothFirmware 1.0.2 and BlueToolFixup 2.7.2.
 - **音频**：[SimpleHDA 1.0.1](https://github.com/laobamac/SimpleHDA) + AppleALC 1.9.8，`alcid=3`，控制器兼容 ID `8086:51CA`（`ca510000`）。ALC235 和 AppleHDADriver 已枚举；未改系统卷，未安装可选 HAL 包。

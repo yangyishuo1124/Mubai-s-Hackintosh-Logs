@@ -2,6 +2,10 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## GPIO platform trial compiled and deployed
+
+Added Panther Lake ACPI-property support and runtime touchpad-controller selection. GitHub macOS compilation and static checks pass. Original files are backed up; the active GPIO kext is replaced and forced polling removed. Readback and ocvalidate pass. No hardware boot test yet; this is not a confirmed repair. See the [implementation record](TOUCHPAD_GPIO.md).
+
 ## GPIO test: declared class absent from the binary
 
 All five GPIO nodes enumerate, but boot logs show five failures to allocate VoodooGPIOTigerLakeLP, whose class name is absent from the current VoodooGPIO 1.1 binary. The personality and binary are inconsistent; the touchpad explicitly remains Polling. This blocks startup before register configuration, but adding Tiger Lake support alone would not establish Panther Lake compatibility. See the [GPIO investigation](TOUCHPAD_GPIO.md). No EFI changes or repeated collection requested; interrupts remain unresolved.
