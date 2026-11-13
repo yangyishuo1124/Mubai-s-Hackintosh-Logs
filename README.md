@@ -42,9 +42,9 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. macOS Tah
 
 ## 核显驱动调查 / GPU driver investigation
 
-包含 B0A0 的实验性裸机 xe 驱动已完整构建并通过复核；已启用 EFI 开机注入，stage 2 仍由脚本触发；加载和加速待验证。当前桌面仍为 GOP。源码、验证阶段和限制见 [Panther Lake 核显记录](GPU_PANTHER_LAKE.md)。
+包含 B0A0 的实验性裸机 xe 驱动已完整构建并通过复核；EFI 开机加载和 stage 1 已实测成功；stage 2 返回 -22，已部署 DSMBASE MMIO 修订版待验证，尚无加速。当前桌面仍为 GOP。源码、验证阶段和限制见 [Panther Lake 核显记录](GPU_PANTHER_LAKE.md)。
 
-The experimental bare-metal xe fork containing B0A0 now builds and passes verification. EFI boot injection is enabled, with stage 2 script-triggered; loading and acceleration remain unverified. The desktop still uses GOP. See the [Panther Lake GPU record](GPU_PANTHER_LAKE.md) for sources, stages and limits.
+The experimental bare-metal xe fork containing B0A0 now builds and passes verification. EFI boot loading and stage 1 are confirmed. Stage 2 returned -22; a DSMBASE MMIO revision is deployed for testing, with no acceleration yet. The desktop still uses GOP. See the [Panther Lake GPU record](GPU_PANTHER_LAKE.md) for sources, stages and limits.
 
 ## 下次 Wi-Fi 测试 / Next Wi-Fi test
 

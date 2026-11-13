@@ -4,6 +4,18 @@
 
 ## 当前结论 / Current conclusion
 
+DSMBASE MMIO 修订版已完成完整编译、链接、KPI、同名符号、签名、架构及 16/16 测试检查，已备份并替换 EFI 开机副本及签名诊断副本，散列清单同步更新，读回与仓库一致、ocvalidate 通过。开机注入配置保持不变。新版实际 GOP 探测仍待验证；不将编译通过视为 -22 已解决。
+
+The DSMBASE MMIO revision passes the complete build/link, KPI, shadow, signature, architecture and all 16 host tests. Boot and signed diagnostic copies are backed up and replaced, with manifests refreshed, matching readback and ocvalidate passing. Boot-injection configuration is unchanged. Hardware GOP probing remains pending; build success does not establish that -22 is fixed.
+
+[Build / 构建](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43435179850) · Binary SHA-256: `3fa08422711ccc2075702ba6237fdd54d36fb2e3afa82e1b93334e594f4fac7d` · Source adjustment / 源码修订: `patches/xe-ptl-dsm-mmio.patch`
+
+
+开机加载实测成功：XeGfxResident 为 active 且 IOMatchedAtBoot = Yes，stage 1 自检通过。stage 2 读取到 B0A0、graphics GMD_ID 0x07804000、media GMD_ID 0x07800004、16 MiB BAR0、256 MiB BAR2 和 2560×1600 GOP，随后返回 -22；debug.xegfx_stage 保持 1，不能将表示已尝试的 XeGfxStage=2 视为通过。当前探测代码在 GOP 页遍历阶段仍使用 PCI 0xc0/c4 获取 DSM 基址，新补丁改为 MMIO DSMBASE 0x1080c0/c4，并增加失败页号/PTE 诊断。MMIO 来源依据 Linux v6.14 xe_regs.h 和 stolen manager 的定义；修复效果待实测。后续 stage 4 的 stolen 保留补丁仍需单独检查，当前不进入 stage 4。
+
+Boot injection is confirmed: XeGfxResident is active with IOMatchedAtBoot=Yes and stage 1 passes. Stage 2 reads B0A0, graphics GMD_ID 0x07804000, media 0x07800004, 16 MiB BAR0, 256 MiB BAR2 and 2560×1600 GOP, then returns -22. Completed-stage sysctl remains 1; the attempted-stage registry property 2 is not a pass. The GOP page walk still reads DSM from PCI 0xc0/c4. A new patch uses MMIO DSMBASE 0x1080c0/c4 and reports failing page/PTE, based on Linux v6.14 register definitions and stolen-manager behavior. Hardware validation is pending. Stage-4 stolen reservation still requires separate review; stage 4 is not attempted.
+
+
 按用户要求，现已启用 EFI Kernel/Add 的 XeGfx.kext（x86_64 Darwin 25），IOResourceMatch 改为 IOKit。二进制不变，开机副本移除失效签名，原签名副本及配置已备份。读回一致、ocvalidate 通过；加载尚待重启验证。stage 2 仍由脚本触发，不自动初始化 GuC/Metal。脚本仅使用开机驱动，不再手动加载或重试审批。
 
 At the user's request, XeGfx is enabled in EFI Kernel/Add for x86_64 Darwin 25, matching the IOKit resource. Binary unchanged; stale signature omitted from the boot copy, with original signed bundle and configuration backed up. Readback and ocvalidate pass; boot loading is unverified. Stage 2 remains script-triggered; no automatic GuC/Metal initialization. The wrapper now requires the boot-resident driver rather than retrying manual approval.
