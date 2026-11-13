@@ -2,6 +2,12 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## Latest report: direct-password join succeeds
+
+The newest report captures a direct driver join request followed by association and a completed WPA2 handshake, without EBUSY. The subsequent report has an IPv4 address and successful gateway/public-IP pings (3/3 each). This validates the direct-join helper and a working direct-password connection on the tested AP. The IPv4 address alone does not establish a newly issued lease; connectivity after the join is independently demonstrated by pings.
+
+Important limit: the successful direct join uses the same AP as the saved-network autojoin earlier in this boot. There is no fresh failed GUI join to that target in this report. It therefore does not prove a GUI PMK parsing bug, nor establish that direct joining fixes every previously failing target. Credential handoff/state and target selection remain hypotheses for the GUI issue. No further tests were requested and no EFI or helper files were modified in this review; only public bilingual status documentation was updated. The raw ZIP passed integrity checking and remains local.
+
 ## Upstream issue review (2026-11-13; testing paused)
 
 - [Issue #2](https://github.com/FranciumOS-org/AirPort_RTW89/issues/2): another RTL8852BE user reports correct-password WPA2 join failures on Ventura. The maintainer asks for an update and logs; the thread has no verified fix or matching M2/M3 evidence. Same card/similar symptom does not prove the same cause.

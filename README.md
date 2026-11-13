@@ -22,7 +22,7 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. macOS Tah
 | USB | Intel xHCI / Type-C | 已有设备可用；端口未全面验证 / Devices work; not all ports qualified |
 | 电池 / Battery | Internal battery | 电量显示已修正，用户确认正常 / Percentage corrected and user-confirmed |
 | 音频 / Audio | ALC235 + Intel SST `8086:E328` | 已识别内置音频；播放与录音待分别确认 / Built-in audio detected; playback/capture checks pending |
-| Wi-Fi | RTL8852BE `10EC:B852` | 已保存网络自动连接可上网；GUI 首次连接/切换仍失败 / Saved autojoin works; GUI join/switching unresolved |
+| Wi-Fi | RTL8852BE `10EC:B852` | 已保存网络自动连接及同一接入点密码直连可上网；GUI 首次连接/切换仍失败 / Saved autojoin and direct-password join to the same AP work; GUI join/switching unresolved |
 | 蓝牙 / Bluetooth | Realtek USB `0BDA:B85B` | 用户确认恢复；配件未全面测试 / User-confirmed recovery; accessory coverage incomplete |
 
 ## 已保留的改动 / Retained changes
@@ -42,9 +42,9 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. macOS Tah
 
 ## 下次 Wi-Fi 测试 / Next Wi-Fi test
 
-脚本已改为先断开旧连接，避免此前的 `-16`（EBUSY）。这只是绕过 GUI 的对照测试，尚非已确认修复。
+脚本已改为先断开旧连接，避免此前的 `-16`（EBUSY）。最新报告确认在此前自动连接可用的同一接入点上，密码直连完成握手且公网 ping 通过；尚未证明能解决其他失败目标，也不是 GUI 修复。当前暂停进一步测试，下方保留操作方法供参考。
 
-The helper now leaves the existing link first to avoid the previous `-16` (EBUSY). This comparison bypasses the GUI; it is not a confirmed repair.
+The helper now leaves the existing link first to avoid the previous `-16` (EBUSY). Direct-password joining to the same AP that already worked through autojoin now completes the handshake and public-IP pings. Other failing targets remain unverified; this is not a GUI fix. Further testing is paused; the procedure below is retained for reference.
 
 先在 Wi-Fi 设置中临时关闭**旧的已保存网络**的“自动加入”，不必忘记网络，测试后可恢复。用 `diskutil list` 找到约 467 MB、名为 SYSTEM 的 EFI 分区，替换 `diskXs1`。按脚本提示操作，并关闭 Wi-Fi 菜单和设置窗口：
 
