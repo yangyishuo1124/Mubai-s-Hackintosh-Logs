@@ -4,6 +4,20 @@
 
 ## 当前结论 / Current conclusion
 
+### 追踪并发修正 / Trace concurrency correction
+
+v9 实机最后记录变为 `s4 p44009 checkpoint 44009 xe_guc_post_load_init returned`，未留下 PC 入口或内部标记。EFI 哈希与 v9 一致，最新记录 20261114-091555。位置后退意味着目前不能把 PC 启动当作已确认的唯一故障点。
+
+The v9 attempt leaves `s4 p44009 checkpoint 44009 xe_guc_post_load_init returned`, without PC entry/internal markers. EFI matches v9; latest probe is 20261114-091555. The earlier checkpoint means PC startup is not an established unique failure location.
+
+源码审查发现定时器与初始化线程均可调用 `xg_trace_write`，且快照后的 NVRAM 写入/同步没有串行化，可能交错或用旧快照覆盖新快照。v10 用非阻塞原子门保证同一时间只有一个 writer，并停止 stage 4 定时器持久化（同步检查点继续）；正文 progress 从同一加锁快照读取。并发 writer 忙时跳过写入，避免在初始化线程等待追踪锁。修正的是追踪设计缺陷，尚不能证明它就是整机卡死原因。NVRAM 同步本身仍可能卡住，最后标签仍不是精确故障指令。
+
+Review found timer and initializer both invoke `xg_trace_write`, with unprotected NVRAM commits after snapshot capture. Interleaving can overwrite a newer snapshot with an older one. V10 adds a nonblocking atomic single-writer gate, suppresses stage-4 timer persistence (synchronous checkpoints remain), and formats progress from the same locked snapshot. A busy writer causes a skipped write rather than blocking initialization. This fixes a trace-design defect; it does not establish the cause of the system hang. NVRAM sync can still stall, so the last label is not an exact faulting instruction.
+
+策略 `ptl-stage4-trace-v10`，保留 PC 内部检查点和原 GPU 初始化，stage 5+ 阻断。完整构建/部署待确认。
+
+Policy is `ptl-stage4-trace-v10`; PC checkpoints, original GPU initialization and the stage-5+ boundary remain. Full build/deployment pending.
+
 ### 新实机定位：GuC 功耗控制 / New hardware localization: GuC power control
 
 [完整构建通过 / Full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43469610820)。已备份并部署 EFI 开机/诊断驱动、资源和脚本，读回一致、ocvalidate 通过，config.plist 不变。SHA-256：`baa1f09b3b9ccb95ed333f76ef1139a6dc448123a78dd3683ddf0b1c67ae408e`。下一次重启后只需一次 stage 4 复现，卡死后回 Windows 读取检查点，不反复运行。

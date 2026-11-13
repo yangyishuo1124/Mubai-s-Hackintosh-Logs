@@ -20,7 +20,25 @@ xg_init_checkpoint(int progress, const char *label)
 }
 
 '''
-s=s.replace(mark,helper+mark).replace('ptl-stage4-guc-v4','ptl-stage4-pc-v9');p.write_text(s)
+s=s.replace(mark,helper+mark).replace('ptl-stage4-guc-v4','ptl-stage4-trace-v10')
+# Do not allow timer and synchronous checkpoints to concurrently commit snapshots.
+s=s.replace('static bool gTraceOn;', 'static bool gTraceOn;\nstatic volatile UInt32 gTraceWriting;')
+anchor='\tbool accelNew;\n\n\tis = IOSimpleLockLockDisableInterrupt(gLogLock);'
+assert s.count(anchor)==1
+s=s.replace(anchor,'\tbool accelNew;\n\tint progress;\n\n\tif (!OSCompareAndSwap(0, 1, &gTraceWriting)) return;\n\tis = IOSimpleLockLockDisableInterrupt(gLogLock);')
+s=s.replace('\tgTraceProgress = xg_progress;', '\tgTraceProgress = progress = xg_progress;')
+s=s.replace('"s%d p%d %s", gRunning, xg_progress, line', '"s%d p%d %s", gRunning, progress, line')
+anchor='\tif ((o = IORegistryEntry::fromPath("/options", gIODTPlane)) == nullptr)\n\t\treturn;'
+assert s.count(anchor)==1
+s=s.replace(anchor, '\tif ((o = IORegistryEntry::fromPath("/options", gIODTPlane)) == nullptr) {\n\t\tOSCompareAndSwap(1, 0, &gTraceWriting);\n\t\treturn;\n\t}')
+anchor='\t\tnv->sync();\n\to->release();'
+assert s.count(anchor)==1
+s=s.replace(anchor,anchor+'\n\tOSCompareAndSwap(1, 0, &gTraceWriting);')
+anchor='\tif (!gTraceOn)\n\t\treturn;'
+assert s.count(anchor)==1
+s=s.replace(anchor,'\t/* Stage 4 uses synchronous checkpoints; its timer must not also persist. */\n\tif (!gTraceOn || gRunning == 4)\n\t\treturn;')
+p.write_text(s)
+
 p=root/'shim/src/fbsd/xg_init.c';s=p.read_text();s=s.replace('extern int xg_progress;', 'extern int xg_progress;\nvoid xg_init_checkpoint(int, const char *);')
 needle='			si->func(si->udata);';assert s.count(needle)==1
 s=s.replace(needle,'			if (!reverse) xg_init_checkpoint(10000 + pass * 1000 + i * 2, "SYSINIT enter");\n'+needle+'\n			if (!reverse) xg_init_checkpoint(10001 + pass * 1000 + i * 2, "SYSINIT returned");');p.write_text(s)
