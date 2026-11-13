@@ -2,6 +2,12 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## Read-only credential check: neither query found a matching item
+
+The user ran the new comparison helper. Its report contains `LOGIN: NOT_FOUND` and `SYSTEM: NOT_FOUND`. These results cover only the target account/kind query against the traditional login/system keychains. No password was retrieved and no password comparison occurred. They establish neither an absent saved password, correct/incorrect credentials, keychain corruption nor exclusion of credential handling. Other stores, record attributes and duplicates were not enumerated. No network, keychain, driver or boot setting was changed; GUI joining remains unresolved.
+
+Do not repeat the same check or clear network settings on this evidence. Existing logs cannot validate the actual PMK handed from the GUI path to the driver. Distinguishing system credential handoff from driver handling requires new observation at that boundary rather than assigning blame from a handshake timeout. An instrumented driver is one option, but requires building and separate hardware validation; none has been deployed.
+
 ## Credential and key-lifetime review: read-only comparison helper
 
 Reviewed local upstream `76d23fe` through `decodeHostAssoc → nativeAssociate → glue_join_request → mlme_connect`. GUI-supplied PMKs and directly derived PMKs reach the shared connection path; `glue.want.pmk` and `mlme.pmk` are synchronously copied before returning. This does not support a simple theory that clearing temporary request buffers destroys the active handshake key. Both GUI attempts and the direct attempt are logged as WPA2, without a logged AKM selection difference in this comparison. Static review does not validate incoming PMK contents, decoding offsets or concurrency.
