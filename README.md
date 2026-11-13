@@ -31,8 +31,8 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. macOS Tah
   **CPU / ACPI:** Converted x2APIC MADT to legacy Local APIC, with SSDT-PLUG-ALT, CPUID `0x0A0655`, ProvideCurrentCpuInfo and XCPM settings. macOS reports 16 online cores; the generic PLUG table declares 64 Processor objects.
 - **电池**：保留 `SSDT-BATT-FIX-UNIT0.aml`，纠正 `_BIF` / `_BIX` 电量单位。
   **Battery:** Retain the `_BIF` / `_BIX` unit correction in SSDT-BATT-FIX-UNIT0.
-- **触摸板**：已定位 TPDI 绝对路径求值参数错误，部署配套 GPIO 驱动与 SSDT-PTL-GPIO 本地桥接；按用户要求关闭强制轮询，直接试验中断，尚待实测。详见 [GPIO 记录](TOUCHPAD_GPIO.md)。
-  **Touchpad:** After identifying a bad-argument failure evaluating the absolute TPDI path, the paired GPIO driver and SSDT-PTL-GPIO local bridge are deployed. Forced polling is now disabled at the user's request for a direct interrupt trial; hardware validation remains pending. See the [GPIO record](TOUCHPAD_GPIO.md).
+- **触摸板**：已定位 TPDI 绝对路径求值参数错误，部署配套 GPIO 驱动与 SSDT-PTL-GPIO 本地桥接；直接中断试验无响应；资源桥接成功但平台初始化仍退出，已部署引脚组桥接与分阶段校验版，继续关闭强制轮询，待实测。详见 [GPIO 记录](TOUCHPAD_GPIO.md)。
+  **Touchpad:** After identifying a bad-argument failure evaluating the absolute TPDI path, the paired GPIO driver and SSDT-PTL-GPIO local bridge are deployed. The direct interrupt trial had no input: resource bridging works, but platform initialization still exits. A pad-group bridge and validation-stage build is deployed with forced polling disabled; hardware validation is pending. See the [GPIO record](TOUCHPAD_GPIO.md).
 - **蓝牙**：RealtekBluetoothFirmware 1.0.2 + BlueToolFixup 2.7.2。移除 MCEReporterDisabler 中额外加载真实 AppleMCEReporter 的规则后，busy 状态清零，bluetoothd 通过 IOKitWaitQuiet 并启动控制器。
   **Bluetooth:** Removing the extra real AppleMCEReporter personality cleared busy services and allowed bluetoothd to pass IOKitWaitQuiet and start its controller, with RealtekBluetoothFirmware 1.0.2 and BlueToolFixup 2.7.2.
 - **音频**：[SimpleHDA 1.0.1](https://github.com/laobamac/SimpleHDA) + AppleALC 1.9.8，`alcid=3`，控制器兼容 ID `8086:51CA`（`ca510000`）。ALC235 和 AppleHDADriver 已枚举；未改系统卷，未安装可选 HAL 包。

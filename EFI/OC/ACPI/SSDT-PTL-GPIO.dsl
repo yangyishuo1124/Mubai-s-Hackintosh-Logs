@@ -18,8 +18,12 @@ DefinitionBlock ("", "SSDT", 2, "MUBAI", "PTLGPIO", 0x00000001)
             Return (\_SB.G_IN (DerefOf (\TPDI [Zero]), Zero, One, 0x02, Zero, Zero))
         }
     }
+    External (\_SB.GPI1.GPPF, PkgObj)
+    External (\_SB.GPI1.GPPE, PkgObj)
     Scope (\_SB.GPI1)
     {
+        Method (PTG0, 0, Serialized) { Return (GPPF) }
+        Method (PTG1, 0, Serialized) { Return (GPPE) }
         Method (PTIR, 0, Serialized)
         {
             Return (\TPDI)

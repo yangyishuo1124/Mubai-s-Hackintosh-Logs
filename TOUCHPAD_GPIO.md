@@ -1,5 +1,17 @@
 # 触摸板 GPIO 中断调查 / Touchpad GPIO interrupt investigation
 
+## 桥接成功，继续修复平台初始化 / Resource bridge works; platform initialization repair
+
+用户确认关闭强制轮询后触摸板完全无响应。新报告中 PTLTPDIResult / PTLGINResult 均为 0，触摸板描述符选中 GPI1、引脚 46；说明 TPDI / G_IN 本地桥接成功。但仍停在平台准备阶段，未建立 GPIO 控制器或触摸板 HID。具体退出点尚未由旧阶段属性区分，不能断言引脚组读取就是已证实根因。
+
+The user confirms no touchpad response with forced polling disabled. The new report has PTLTPDIResult / PTLGINResult equal to zero and selects GPI1, pin 46, establishing that the local TPDI / G_IN bridge works. Platform preparation still exits without a GPIO controller or touchpad HID. The old stage properties do not identify the precise exit point; pad-group evaluation is not a proven root cause.
+
+继续修复：为本机 GPI1 的 GPPF / GPPE 包新增 PTG0 / PTG1 本地返回方法，驱动改用这些方法读取引脚组；补充寄存器属性校验、引脚组读取和 MMIO 映射阶段、组求值返回码、组内容、映射长度与 PADBAR 诊断。没有放宽寄存器范围或布局校验。macOS 构建与静态检查通过，AML 编译零错误/警告，已备份并写入硬盘，读回一致且 ocvalidate 通过。强制轮询继续关闭，尚待实机验证。
+
+Continuing repair: added local PTG0 / PTG1 methods returning this machine's GPI1 GPPF / GPPE packages and switched pad-group reads to these methods. Added schema/group/MMIO stages, group evaluation results and contents, mapping length and PADBAR diagnostics. Register bounds and layout validation remain enforced. macOS build/static checks and AML compilation pass; backed up and deployed with matching readback and ocvalidate passing. Forced polling remains disabled; hardware validation is pending.
+
+[Build / 构建](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43423985735) · Binary SHA-256: `ddafbd328a6c9a5d32cb0975f6ec888f06c9f02a1d59970aff296d4fd987e9ff`
+
 ## 直接中断试验已部署 / Direct interrupt trial deployed
 
 按用户要求，移除 `-vi2c-force-polling`，保留新 GPIO 驱动和本地 ACPI 桥接，直接进行中断启动试验。配置已备份、写入硬盘并读回校验，ocvalidate 通过。尚未启动实测；不能将触摸板有响应单独视为中断成功，需结合控制器启动、GPIO 模式和实际输入确认。失败后继续定位，不自动恢复轮询。

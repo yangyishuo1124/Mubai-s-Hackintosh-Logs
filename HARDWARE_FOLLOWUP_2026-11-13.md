@@ -2,6 +2,14 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## Resource bridge works; pad-group bridge deployed
+
+The user confirms no touchpad response with forced polling disabled. The new report has PTLTPDIResult / PTLGINResult equal to zero and selects GPI1, pin 46, establishing that the local TPDI / G_IN bridge works. Platform preparation still exits without a GPIO controller or touchpad HID. The old stage properties do not identify the precise exit point; pad-group evaluation is not a proven root cause.
+
+Continuing repair: added local PTG0 / PTG1 methods returning this machine's GPI1 GPPF / GPPE packages and switched pad-group reads to these methods. Added schema/group/MMIO stages, group evaluation results and contents, mapping length and PADBAR diagnostics. Register bounds and layout validation remain enforced. macOS build/static checks and AML compilation pass; backed up and deployed with matching readback and ocvalidate passing. Forced polling remains disabled; hardware validation is pending.
+
+[Build / 构建](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43423985735) · Binary SHA-256: `ddafbd328a6c9a5d32cb0975f6ec888f06c9f02a1d59970aff296d4fd987e9ff`
+
 ## Direct interrupt trial deployed
 
 At the user's request, removed `-vi2c-force-polling` while retaining the new GPIO driver and local ACPI bridge for a direct interrupt boot trial. Configuration is backed up, deployed and verified by readback; ocvalidate passes. Hardware boot remains untested. Working input alone does not prove interrupts: verify controller startup, GPIO mode and actual input together. Continue diagnosis on failure without automatically restoring forced polling.

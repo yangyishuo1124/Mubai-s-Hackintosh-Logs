@@ -2,6 +2,14 @@
 
 [English](HARDWARE_FOLLOWUP_2026-11-13.md) · [中英双语首页](README.md)
 
+## 资源桥接成功，引脚组桥接版已部署
+
+用户确认关闭强制轮询后触摸板完全无响应。新报告中 PTLTPDIResult / PTLGINResult 均为 0，触摸板描述符选中 GPI1、引脚 46；说明 TPDI / G_IN 本地桥接成功。但仍停在平台准备阶段，未建立 GPIO 控制器或触摸板 HID。具体退出点尚未由旧阶段属性区分，不能断言引脚组读取就是已证实根因。
+
+继续修复：为本机 GPI1 的 GPPF / GPPE 包新增 PTG0 / PTG1 本地返回方法，驱动改用这些方法读取引脚组；补充寄存器属性校验、引脚组读取和 MMIO 映射阶段、组求值返回码、组内容、映射长度与 PADBAR 诊断。没有放宽寄存器范围或布局校验。macOS 构建与静态检查通过，AML 编译零错误/警告，已备份并写入硬盘，读回一致且 ocvalidate 通过。强制轮询继续关闭，尚待实机验证。
+
+[Build / 构建](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43423985735) · Binary SHA-256: `ddafbd328a6c9a5d32cb0975f6ec888f06c9f02a1d59970aff296d4fd987e9ff`
+
 ## 直接中断试验已部署
 
 按用户要求，移除 `-vi2c-force-polling`，保留新 GPIO 驱动和本地 ACPI 桥接，直接进行中断启动试验。配置已备份、写入硬盘并读回校验，ocvalidate 通过。尚未启动实测；不能将触摸板有响应单独视为中断成功，需结合控制器启动、GPIO 模式和实际输入确认。失败后继续定位，不自动恢复轮询。
