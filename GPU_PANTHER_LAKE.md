@@ -6,13 +6,17 @@
 
 ### 请求入口监视修订 / Request-entry watchdog revision
 
+[完整构建通过 / Full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43489172557)。已备份并部署 EFI 开机/诊断驱动、资源及脚本；链接后版本与 request-watchdog 字符串存在，读回一致，ocvalidate 通过，config.plist 不变。SHA-256：`c71676c1410153c7ed8b4d9ea55fa2c7cb26bcbd7f8c1ad05f1bf3666b36e493`。下一次重启运行一次探测，若卡住等待约 90 秒观察 panic/自动重启，再回 Windows 读报告。监视范围修正已部署，实机效果及 GPU 卡死修复未确认。
+
+Full build/tests and validation pass. Boot/diagnostic bundles, resources and wrapper are backed up and deployed, with linked policy/request-watchdog markers, matching readback, clean ocvalidate and unchanged config.plist. One hardware attempt after reboot is needed; if stalled, allow about 90s for a panic/reboot before recovering in Windows. Coverage correction is deployed; hardware monitoring behavior and a GPU hang fix are unverified.
+
 v12 将独立线程监视从 xg_run_stage(4) 前移到 stage sysctl 的初始化请求入口，在 stage lock 获取和阶段循环之前启动，并确认线程就绪。创建失败或就绪超时则不进入初始化；已有监视请求返回 EBUSY。线程用请求 active 状态覆盖整个阶段循环（包括阶段间 gRunning=0 的间隙），请求结束解除监视。超时报告正在运行阶段、已完成阶段、progress、IRQ/handler 及 spin 统计。保留无 NVRAM 环境和 stage 5+ 边界，未改 GPU 寄存器或原阶段调用。
 
 V12 arms its dedicated thread at the stage-sysctl request entry, before stage-lock acquisition and the stage loop, with a readiness handshake. Creation/readiness failure prevents initialization; overlapping monitors return EBUSY. Request-active state covers all stages and gaps between them, then disarms on completion. Timeout reports running/completed stage, progress, IRQ/handler and spin statistics. NVRAM remains disabled and stages 5+ stay blocked; original GPU calls/register behavior are unchanged.
 
-生成源码已检查启动先于锁和阶段循环、解除监视在解锁之后。策略（实际字符串 `ptl-request-watch-v12`）。完整构建和实机效果待确认；它仍依赖普通内核调度，不是独立 NMI/硬件 watchdog，卡死尚未修复。
+生成源码已检查启动先于锁和阶段循环、解除监视在解锁之后。策略为 `ptl-request-watch-v12`。完整构建通过，实机效果待确认；它仍依赖普通内核调度，不是独立 NMI/硬件 watchdog，卡死尚未修复。
 
-Generated-source checks confirm arming before the lock/loop and disarming after unlock. Policy is `ptl-request-watch-v12`. Full build and hardware behavior are pending. This still relies on kernel scheduling, not an independent NMI/hardware watchdog; the hang remains unresolved.
+Generated-source checks confirm arming before the lock/loop and disarming after unlock. Policy is `ptl-request-watch-v12`. Full build passed; hardware behavior is pending. This still relies on kernel scheduling, not an independent NMI/hardware watchdog; the hang remains unresolved.
 
 ### v11 无自动重启：监视启动范围的盲区 / V11 no reboot: watchdog coverage gap
 

@@ -1,6 +1,6 @@
 # ASUS Vivobook S16 S5650AA · Panther Lake Hackintosh
 
-核显实验更新 / GPU experiment update: 已部署独立内核线程 watchdog 版（v11），不依赖 thread_call 工作池，不写 NVRAM；完整构建、读回及配置校验通过。待实机验证监视效果，GPU 卡死未修复，无 Metal。 / V11 with a dedicated kernel-thread watchdog is built, deployed and validated, independent of the thread_call worker pool and without NVRAM tracing. Hardware monitor behavior pending; GPU hang unresolved; no Metal. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
+核显实验更新 / GPU experiment update: v12 已把独立线程监视前移到整次初始化请求之前，覆盖初始化锁及 stage 1–4；已部署 EFI，完整构建、读回及配置校验通过。实机监视效果待确认，卡死未修复，无 Metal。 / V12 arms a dedicated monitor before the entire initialization request, covering the stage lock and stages 1–4. Built, deployed and validated on EFI; hardware monitoring pending. Hang unresolved; no Metal. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
 
 **简体中文 / English** · 更新 / Updated: **2026-11-14**
 
