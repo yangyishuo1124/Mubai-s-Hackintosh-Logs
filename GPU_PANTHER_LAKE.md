@@ -4,6 +4,24 @@
 
 ## 当前结论 / Current conclusion
 
+### 追踪版实机：已进入 xe，最后日志在 stolen 分配器前 / Trace build reaches xe
+
+用户截图中所有资源校验通过，但 stage 请求未返回。Windows 只读 NVRAM 得到 `s4 p11098`，按新编号规则是 pass 1、索引 49 的 GPU SYSINIT 入口。该键还保存了随后驱动日志：GOP GGTT 原范围为 `0xff000000 + 0xfa0000`（分配器交集 `0 + 0`）；两次读取并识别 `xe/ptl_guc_70.bin` 70.72.1；最后打印 `GOP DSM 0x7c800000: exclude prefix 0xfa0000 bytes`。
+
+The trace build still hangs. The screenshot shows successful file checks, not a completed stage. Read-only Windows NVRAM recovery yields `s4 p11098`, the GPU SYSINIT entry (pass 1, index 49), followed by xe driver logs reporting the GOP range, reading/recognizing GuC 70.72.1 twice, and finally excluding the GOP prefix from DSM allocation.
+
+这次已越过 linux_current 初始化；此前的 p1035 不能再作为当前故障位置，也不能据此声称线程初始化已修复——同步追踪可能改变了执行时序。GuC 文件读取/版本识别不代表固件已上传、运行或启用提交。GOP allocator 的 `0 + 0` 表示该高地址 GOP 与分配器可分配区间无交集，不等于原 GOP 范围为空。
+
+This attempt passed linux_current initialization; the earlier p1035 is not the current failure location. Timing changes from synchronous tracing may explain the different progress, so no thread-init fix is claimed. Firmware recognition does not prove upload, running GuC or submission. The empty GGTT allocator intersection does not mean the original GOP footprint is empty.
+
+紧接最后日志的候选路径为 `__xe_ttm_vram_mgr_init`（mutex、TTM resource manager、drm_buddy、managed cleanup 注册）以及之后 `devm_ioremap_wc` 的 stolen CPU 别名映射。仅凭最后日志不能确认卡在其中哪一步，也不能把它直接归为此前的像素读取 MCE；需在这些调用前后增加同步检查点。现有入口检查点说明 xe module callback 尚未返回。
+
+Candidate paths after the final message include VRAM-manager lock/TTM/buddy initialization and managed cleanup, then the stolen CPU alias mapping. The trace does not identify which call hangs, nor establish the previous CPU pixel-read MCE as the cause. These calls need internal entry/return checkpoints. The GPU module callback has not returned.
+
+原始追踪已本地保存；本轮保留开机驱动及配置，不替换二进制。脚本暂停重复初始化，仅采集；当前不要求再次重启收同一组数据。
+
+Raw traces remain local. Boot driver/configuration and binary are retained. The wrapper collects only until the next targeted revision; no repeat reboot/collection is requested in this round.
+
 ### 重启后证据与同步追踪版 / Reboot evidence and synchronous trace revision
 
 [完整构建通过 / Full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43457167633)：编译、链接、KPI、架构、签名、固件嵌入及全部原有测试通过。检查点标签已确认在链接后二进制中存在。已备份并部署 EFI 开机/诊断驱动、资源与脚本，读回一致，ocvalidate 通过，配置不变。驱动 SHA-256：`7e063ed791d26206d9505441f4e536de35bb782fe63cc801dfbfc0d6f7e2094e`。新版的持久检查点实机效果尚待验证；可在下一次启动后运行一次 stage 4 探测，卡死后从 Windows 只读读取 NVRAM，不反复重跑。

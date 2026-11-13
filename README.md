@@ -1,6 +1,6 @@
 # ASUS Vivobook S16 S5650AA · Panther Lake Hackintosh
 
-核显实验更新 / GPU experiment update: stage 4 卡死尚未修复；已部署同步 SYSINIT/线程初始化检查点定位版，准备一次复现以缩小卡点，stage 5+ 仍阻断，Metal 未启用。 / Stage-4 hang remains unresolved. Deployed synchronous SYSINIT/current-thread checkpoints for a single localization attempt; stages 5+ remain blocked, with no Metal acceleration. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
+核显实验更新 / GPU experiment update: 追踪版仍卡死，但已进入 xe 并识别 GuC 70.72.1，最后日志在 GOP stolen 前缀排除后；固件运行未确认。暂停重复初始化，准备进一步定位分配器/映射路径。Metal 未启用。 / Trace build still hangs after entering xe and recognizing GuC 70.72.1, with the last log after GOP stolen exclusion. GuC operation is unverified; repeat initialization is paused pending allocator/mapping localization. No Metal. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
 
 **简体中文 / English** · 更新 / Updated: **2026-11-13**
 
