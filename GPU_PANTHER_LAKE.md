@@ -6,13 +6,17 @@
 
 ### 修正 GuC/功耗控制错误传播 / Correct GuC and PC error propagation
 
+[完整构建通过 / Full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43495307922)。16 项原测试与新增真实上传函数错误路径测试通过，固件、架构及签名检查通过。已备份并部署 EFI 开机/诊断驱动和脚本，读回一致、ocvalidate 通过，开机配置不变。SHA-256：`64ed733117aa795e37fcb7098272764d633389be9286ce9de442a4fc67b634db`。下一次只运行一次探测；若正常返回，检查实际阶段错误和固件日志，不仅看命令退出码；若卡死仍等待约 90 秒再恢复。真实硬件错误是否被截获、整机卡死是否改善均待验证。
+
+Full build, all 16 original tests, the new actual-upload-function failure-path test, firmware/architecture/signature validation pass. EFI boot/diagnostic bundles and wrapper are backed up and deployed, with matching readback, clean ocvalidate and unchanged boot configuration. One hardware attempt is needed; on return inspect signed stage results and firmware logs, not just shell exit status. Capturing real hardware errors and any hard-freeze improvement remain unverified.
+
 审查固定源码发现：__xe_guc_upload 在 RSA/DMA 失败出口仍返回 0；guc_wait_ucode 为 void，失败后调用者仍可标记 RUNNING；PC 两次状态等待超时后 ret 仍可能为 0。0205 补丁令上传失败返回原错误，认证等待返回状态/超时错误且禁止误标 RUNNING，PC 等待结果存入 ret。它修正真实的假成功路径，但尚未证明就是整机冻结原因。错误退出可能改变后续清理路径，需实机确认。
 
 Pinned-source review found __xe_guc_upload returns 0 on RSA/DMA failure, void guc_wait_ucode allows its caller to mark RUNNING after failure, and PC timeout can retain ret=0. Patch 0205 propagates original upload errors, authentication errors/timeouts and PC wait results, preventing false RUNNING. This corrects actual false-success paths, not an established cause of the hard freeze. Earlier failure can exercise different cleanup paths; hardware validation is needed.
 
-新增测试编译修改后的真实上传函数，用桩模拟成功、RSA 失败、DMA 失败和认证等待超时，核对返回值、失败标记及后续调用短路；另检查 PC 等待结果存储。它不是固件实际运行或硬件通信验证。v13 保留请求入口监视、无 NVRAM 和 stage 5+ 阻断。完整构建与部署待确认。
+新增测试编译修改后的真实上传函数，用桩模拟成功、RSA 失败、DMA 失败和认证等待超时，核对返回值、失败标记及后续调用短路；另检查 PC 等待结果存储。它不是固件实际运行或硬件通信验证。v13 保留请求入口监视、无 NVRAM 和 stage 5+ 阻断。完整构建通过并已部署，实机效果待确认。
 
-The new test compiles the actual modified upload function with stubbed success/RSA/DMA/authentication outcomes, checking returns, status and short-circuiting. PC wait-result storage is checked separately. This is not real firmware/hardware validation. V13 retains request-entry monitoring, no NVRAM and the stage-5+ boundary. Full build/deployment pending.
+The new test compiles the actual modified upload function with stubbed success/RSA/DMA/authentication outcomes, checking returns, status and short-circuiting. PC wait-result storage is checked separately. This is not real firmware/hardware validation. V13 retains request-entry monitoring, no NVRAM and the stage-5+ boundary. Full build and deployment passed; hardware behavior pending.
 
 ### 移除 panic 停留参数后仍无重启 / No reboot after removing panic-stop argument
 

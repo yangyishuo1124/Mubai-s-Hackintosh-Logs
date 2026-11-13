@@ -1,6 +1,6 @@
 # ASUS Vivobook S16 S5650AA · Panther Lake Hackintosh
 
-核显实验更新 / GPU experiment update: v12 已把独立线程监视前移到整次初始化请求之前，覆盖初始化锁及 stage 1–4；已部署 EFI，完整构建、读回及配置校验通过。实机监视效果待确认，卡死未修复，无 Metal。 / V12 arms a dedicated monitor before the entire initialization request, covering the stage lock and stages 1–4. Built, deployed and validated on EFI; hardware monitoring pending. Hang unresolved; no Metal. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
+核显实验更新 / GPU experiment update: 已部署 v13，修正 GuC 上传/认证失败误报成功、功耗控制超时返回成功的路径；完整构建、16 项原测试和新增错误路径测试通过，EFI 读回及配置校验通过。实机效果待验证，卡死未确认修复，无 Metal。 / V13 fixes false-success paths in GuC upload/authentication and PC timeouts. Full build, 16 existing tests, new error-path tests and EFI validation pass. Hardware behavior pending; hard-freeze fix unconfirmed; no Metal. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
 
 **简体中文 / English** · 更新 / Updated: **2026-11-14**
 
