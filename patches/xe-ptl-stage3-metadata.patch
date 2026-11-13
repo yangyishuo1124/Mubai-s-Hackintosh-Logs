@@ -23,7 +23,7 @@
    IOLog("XeGfx: B0A0 metadata only; CPU framebuffer access blocked, candidate=%#llx span=%#llx pages=%u DM=%u PTEhash=%#llx\n",
        lo, hi - lo, n, dm_pages, pte_hash);
 -  return gXeBootFound = -EOPNOTSUPP;
-+  if (metadata_rc != 1) return gXeBootFound = metadata_rc;
++  if (metadata_rc != 1) return gXeBootFound = metadata_rc < 0 ? metadata_rc : -EIO;
 +  // Metadata baseline only: deliberately no CPU pixel mapping or pixel baseline.
 +  gPtlBootSnapshot = after;
 +  gPtlMetadataBaseline = true;

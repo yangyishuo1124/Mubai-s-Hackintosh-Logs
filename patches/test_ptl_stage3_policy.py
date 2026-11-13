@@ -24,7 +24,7 @@ int capture(int metadata_rc){
 }
 int main(){
  assert(capture(-EPROTO)==-EPROTO && !gPtlMetadataBaseline);
- assert(capture(0)==0 && !gPtlMetadataBaseline && gXeBootFound==0);
+ assert(capture(0)==-EIO && !gPtlMetadataBaseline && gXeBootFound==-EIO);
  assert(capture(1)==0 && gPtlMetadataBaseline && !gXeBaseline);
  assert(gXeBootFound==1 && gXePhysStart==0x7c800000 && gXePhysSize==0xfa0000);
  assert(gXePteSum==123 && gPtlBootSnapshot.pte_hash==123);
