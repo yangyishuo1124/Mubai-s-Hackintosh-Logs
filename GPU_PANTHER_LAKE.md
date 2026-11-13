@@ -4,6 +4,18 @@
 
 ## 当前结论 / Current conclusion
 
+### 崩溃证据更新 / Crash evidence update (22:01 collection)
+
+已采集到 macOS machine-check panic。MC10–MC15 报告地址分别落在 `0x7c800000`、`0x7c800040`、`0x7c8000c0`、`0x7c800100`、`0x7c800140`、`0x7c8001c0`；状态为 `0xbe0000000080113a` 或 `0xfe0000000080113a`。这些地址落在修订版由 DSMBASE 和首个 DM PTE 推导的 GOP 物理显存起始区域。`xg_xe_bootfb_checksum()` 每 64 字节直接读取映射像素，和报错地址间距吻合，因此 CPU 直接访问 stolen/GOP 显存是首要故障路径。报告没有指令回溯，尚不能区分地址解释、CPU 访问限制或缓存属性问题；不能据此诊断 CPU 硬件损坏。
+
+The new collection contains a macOS machine-check panic. Banks MC10–MC15 report addresses within `0x7c800000–0x7c8001c0`, with status `0xbe0000000080113a` or `0xfe0000000080113a`. This is the GOP physical-memory start derived from DSMBASE and the first DM PTE in the revised probe. `xg_xe_bootfb_checksum()` directly samples mapped pixels every 64 bytes, matching the reported address spacing. Direct CPU access to stolen/GOP memory is therefore the leading fault path. The report contains no instruction backtrace, so address interpretation, CPU access restrictions and cache attributes remain unresolved; this does not establish defective CPU hardware.
+
+本次启动 `debug.xegfx_stage=0`，未重跑 stage 2。开机驱动保留，采集脚本的阻断继续生效。本轮未替换驱动二进制。下一版需要先分离寄存器/GGTT 元数据采集与 CPU 像素访问；DM 页未确认访问规则前应拒绝映射/校验，并保留失败返回值，不能把跳过像素校验当成 GOP 保留或 stage 2 成功。暂不要求再次重启测试。原始 panic 和 NVRAM 留在本地，仅提交去标识后的结论。
+
+The current boot reports `debug.xegfx_stage=0`; stage 2 was not retriggered. Boot injection remains enabled and the collection-only gate remains in place. No driver binary was replaced in this round. The next revision must separate register/GGTT metadata inspection from CPU pixel access. Until DM-page access rules are established, mapping/checksum access must fail closed; skipping pixel validation cannot count as GOP preservation or successful stage 2. No further reboot test is requested yet. Raw panic/NVRAM data stays local; only this sanitized finding is published.
+
+Earlier entries below describe preceding experiments and their evidence at the time. / 以下为此前各轮记录，不代表当前验证状态。
+
 MMIO 修订版实测失败：用户报告运行探测即黑屏重启，最新日志仅保留文件散列检查，未完成 stage 2 或保存返回值。无法据此判断 panic、机器检查异常或具体故障指令。GOP 页表遍历、保留显存物理地址换算、映射和像素校验均仍在调查范围，不能宣称 MMIO 修订已解决 -22。已将 gpu-probe.command 临时改为采集后退出，保留 EFI 开机驱动及配置，不恢复手动加载；collect.command 新增最新内核 panic 文件、有限 NVRAM 崩溃键和近 30 分钟内核 XeGfx/panic 日志。原始崩溃报告只在本地，不上传标识信息。下一步仅运行采集，先取得上一次崩溃证据，不重复 stage 2。
 
 The MMIO revision failed on hardware: the user reports an immediate black-screen reboot on probing. The latest log ends after bundle hash checks, without a completed stage 2 or return value. It does not establish a panic type, machine-check cause or faulting instruction. GOP page traversal, stolen-memory address translation, mapping and pixel checksum reads remain under investigation; the -22 repair is not established. gpu-probe.command now collects and exits without invoking stage 2. EFI boot injection and the driver are retained. The collector adds recent kernel panic files, selected panic NVRAM keys and 30 minutes of filtered kernel XeGfx/panic logs. Raw reports and identifiers remain local. The next boot is for collecting previous-crash evidence only, without rerunning stage 2.
