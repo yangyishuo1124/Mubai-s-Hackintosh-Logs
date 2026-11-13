@@ -1,0 +1,55 @@
+name: Verify existing Panther Lake Xe build
+on:
+  push:
+    paths: ['.github/workflows/xe-verify.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  verify:
+    runs-on: macos-15-intel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: PantherLake-Xe-build-investigation
+          run-id: 43428309279
+          github-token: ${{ github.token }}
+          path: existing
+      - name: Verify linked driver and all host regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir source
+          curl -fL --retry 3 https://codeload.github.com/InSnh-Gd/WTLIntelGfx/tar.gz/5ffc79fb9e53eb820899edd644b83681bea3aa39 | tar -xz --strip-components=1 -C source
+          python3 - <<'PY'
+          from pathlib import Path
+          import urllib.request, subprocess
+          root=Path('source'); xe=root/'out/xe-src'; xe.mkdir(parents=True)
+          names=['xe_ggtt.c','xe_ttm_stolen_mgr.c','display/xe_display.c','regs/xe_gt_regs.h']
+          for name in names:
+              p=xe/name; p.parent.mkdir(parents=True,exist_ok=True)
+              p.write_bytes(urllib.request.urlopen('https://raw.githubusercontent.com/torvalds/linux/38fec10eb60d687e30c8c6b5420d86e8149f7557/drivers/gpu/drm/xe/'+name).read())
+          p=xe/'display/xe_display.c'; s=p.read_text(); assert s.count('#include "intel_acpi.h"\n')==1
+          p.write_text(s.replace('#include "intel_acpi.h"\n','#include "intel_acpi.h"\n#include <linux/acpi.h>\n'))
+          for patch in sorted((root/'xkpi/xe/patches').glob('*.patch')):
+              if any('--- a/'+name+'\n' in patch.read_text() for name in names):
+                  subprocess.run(['git','apply',*["--include="+n for n in names],str(patch.resolve())],cwd=xe,check=True)
+          p=root/'harness/test_xe_stages.py'; s=p.read_text(); assert s.count('#define bzero(p,n)')==1
+          p.write_text(s.replace('#define bzero(p,n)','#ifdef bzero\n#undef bzero\n#endif\n#define bzero(p,n)'))
+          PY
+          python3 source/harness/test_xe_stages.py 2>&1 | tee host-tests.log
+          K=existing/WTLIntelGfx/out/XeGfx.kext
+          lipo "$K/Contents/MacOS/XeGfx" -verify_arch x86_64
+          codesign --verify --verbose "$K"
+          python3 source/tools/kpi_check.py "$K" | tee kpi.log
+          shasum -a 256 "$K/Contents/MacOS/XeGfx" | tee SHA256.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: PantherLake-Xe-verification
+          path: |
+            host-tests.log
+            kpi.log
+            SHA256.txt
