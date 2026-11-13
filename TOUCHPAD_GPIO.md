@@ -1,5 +1,15 @@
 # 触摸板 GPIO 中断调查 / Touchpad GPIO interrupt investigation
 
+## 实测 GPIO 中断及输入成功 / GPIO mode and input confirmed
+
+用户确认触摸板恢复可用。最新报告明确显示 TPD0 的 Interrupt Mode = GPIO、gpioPin = 46，VoodooGPIOPantherLake 控制器已注册并处于 active，VoodooI2CHIDDevice 与 Precision Touchpad 驱动已挂载。硬盘配置仍无 -vi2c-force-polling，二进制与已部署内存资源兼容版一致。因此本次启动已确认 GPIO 中断模式和实际输入可用，并非恢复轮询。
+
+The user confirms working touchpad input. The latest report explicitly shows TPD0 Interrupt Mode = GPIO and gpioPin = 46, an active registered VoodooGPIOPantherLake controller, and attached VoodooI2CHIDDevice/Precision Touchpad drivers. The active EFI has no -vi2c-force-polling and its binary matches the deployed memory-resource compatibility build. GPIO mode and working input are therefore confirmed for this boot; polling was not restored.
+
+实测 PTLMemoryCount = 0、PTLMemoryFromCRS = Yes，成功从固件创建 64 KiB 映射，PADBAR = 0x800。此前缺少已发布的设备内存资源这一原因得到本次报告支持。暂不宣称休眠唤醒、长时间稳定性、多指手势及卡顿改善已全面验证。
+
+Runtime PTLMemoryCount = 0 and PTLMemoryFromCRS = Yes confirm the firmware-derived 64 KiB mapping, with PADBAR = 0x800. This supports missing published device-memory resources as the prior mapping blocker. Sleep/wake, long-term stability, gesture coverage and smoothness improvements remain unqualified.
+
 ## 内存资源映射兼容版已部署 / Memory resource mapping compatibility deployed
 
 最新报告 ZIP 完整性通过。PTG0/PTG1 引脚组求值返回成功，GPP_F 为 26 引脚、偏移 0x800，GPP_E 为 25 引脚、偏移 0x9A0；已通过模式和引脚组校验。PTLProbeStage 停在 mapping GPIO registers，未出现 PTLMappingLength/PADBAR，按已部署代码可确认 mapDeviceMemoryWithIndex(0) 返回空。GPIO 控制器与触摸板 HID 仍未建立。

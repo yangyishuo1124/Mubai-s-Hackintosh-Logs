@@ -2,6 +2,12 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## Touchpad GPIO interrupt mode confirmed
+
+The user confirms working touchpad input. The latest report explicitly shows TPD0 Interrupt Mode = GPIO and gpioPin = 46, an active registered VoodooGPIOPantherLake controller, and attached VoodooI2CHIDDevice/Precision Touchpad drivers. The active EFI has no -vi2c-force-polling and its binary matches the deployed memory-resource compatibility build. GPIO mode and working input are therefore confirmed for this boot; polling was not restored.
+
+Runtime PTLMemoryCount = 0 and PTLMemoryFromCRS = Yes confirm the firmware-derived 64 KiB mapping, with PADBAR = 0x800. This supports missing published device-memory resources as the prior mapping blocker. Sleep/wake, long-term stability, gesture coverage and smoothness improvements remain unqualified.
+
 ## Memory resource mapping compatibility deployed
 
 The new report passes ZIP integrity validation. PTG0/PTG1 evaluation succeeds: GPP_F has 26 pins at offset 0x800 and GPP_E has 25 at 0x9A0. Schema and pad-group validation now pass. PTLProbeStage stops at mapping GPIO registers without PTLMappingLength/PADBAR; the deployed code establishes that mapDeviceMemoryWithIndex(0) returned null. GPIO controller and touchpad HID initialization remain unresolved.

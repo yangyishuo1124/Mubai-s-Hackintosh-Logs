@@ -5,3 +5,5 @@ This patched driver requires EFI/OC/ACPI/SSDT-PTL-GPIO.aml enabled in OpenCore. 
 此补丁驱动需配套启用 SSDT-PTL-GPIO.aml，通过本地 PTIR/PTGR 桥接固件 TPDI 与 G_IN。当前已关闭强制轮询，进行中断试验，等待实机验证。
 
 The current SSDT also supplies GPI1 PTG0/PTG1 for GPPF/GPPE packages. This is machine-specific, with unsupported layouts rejected. / 当前 SSDT 另提供 GPI1 PTG0/PTG1 返回 GPPF/GPPE；仅针对本机，不支持的布局拒绝启动。
+
+Hardware result / 实测结果: GPIO mode on GPI1 pin 46 and touchpad input confirmed. Sleep/wake and long-term stability remain unverified. / 已确认 GPIO 模式和输入可用；休眠与长期稳定性待验证。
