@@ -2,6 +2,15 @@
 
 [English](HARDWARE_FOLLOWUP_2026-11-13.md) · [中英双语首页](README.md)
 
+## 上游 issue 核查（2026-11-13；暂停测试）
+
+- [Issue #2](https://github.com/FranciumOS-org/AirPort_RTW89/issues/2)：另一位 RTL8852BE 用户在 Ventura 下报告正确密码也无法连接 WPA2。维护者要求更新版本并提供日志；没有已验证修复，也没有对应的 M2/M3 证据。同卡和相似表现不能证明同一根因。
+- [Issue #4](https://github.com/FranciumOS-org/AirPort_RTW89/issues/4) 与 [PR #5](https://github.com/FranciumOS-org/AirPort_RTW89/pull/5)：Sonoma 的 856 字节关联请求未被解码，维护者称 0.5.0 已修复。该错误发生在无线关联之前；本机 Tahoe 已进入 WPA2 M2，失败阶段不同。
+- [Issue #7](https://github.com/FranciumOS-org/AirPort_RTW89/issues/7) 与未合并的 [PR #16](https://github.com/FranciumOS-org/AirPort_RTW89/pull/16)：上游确有定向扫描结果交付、旧 BSSID 缓存选择与热点重试问题。因此静态排查应同时核查目标选择和密钥处理，但现有证据不能认定这是本机原因；扫描补丁不等于已验证的 M2/M3 修复。
+- [Issue #17](https://github.com/FranciumOS-org/AirPort_RTW89/issues/17)：RTL8852CE 首次热点连接失败，USB 共享网络后可连，且列表不同步。网卡和操作路径不同，所查讨论中没有明确修复。
+
+本轮未找到“保存密码后重启自动连接可用、GUI 首次连接在 M2 后失败”的完整同症状已验证方案。PMK 传递、解析和状态仍是待证实假设；扫描缓存与目标选择是值得静态核查的另一方向。本轮不改 EFI、驱动或测试脚本，也未向上游发 issue 或评论。
+
 ## 最新直连复测：macOS 自动连接抢先占用网卡
 
 新报告显示，macOS 自动连回旧的已保存网络并完成 WPA2 握手，约五秒后直连命令返回 `-16`（EBUSY）。旧网络已取得 DHCP 地址，网关与公网 IP 的 ping 均通过。因此还没测到目标网络的密码握手，不能把这次结果算作新的认证失败。驱动的 `rejoin off` 只控制驱动自身重连，不会关闭 macOS 的已保存网络自动加入。

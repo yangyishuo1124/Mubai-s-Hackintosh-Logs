@@ -2,6 +2,15 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## Upstream issue review (2026-11-13; testing paused)
+
+- [Issue #2](https://github.com/FranciumOS-org/AirPort_RTW89/issues/2): another RTL8852BE user reports correct-password WPA2 join failures on Ventura. The maintainer asks for an update and logs; the thread has no verified fix or matching M2/M3 evidence. Same card/similar symptom does not prove the same cause.
+- [Issue #4](https://github.com/FranciumOS-org/AirPort_RTW89/issues/4) and [PR #5](https://github.com/FranciumOS-org/AirPort_RTW89/pull/5): Sonoma's 856-byte association request was not decoded. The maintainer reports a 0.5.0 fix. That failure never reached radio association, unlike this Tahoe machine, which reaches WPA2 M2.
+- [Issue #7](https://github.com/FranciumOS-org/AirPort_RTW89/issues/7) and open [PR #16](https://github.com/FranciumOS-org/AirPort_RTW89/pull/16): directed-scan delivery, stale BSSID selection and hotspot retries are genuine upstream investigation areas. They justify checking target selection alongside credential handling, but no evidence currently establishes these as this machine's cause. An open scan/selection patch is not a verified WPA2 M2/M3 fix.
+- [Issue #17](https://github.com/FranciumOS-org/AirPort_RTW89/issues/17): RTL8852CE first hotspot join failure with a USB-tethering workaround and inconsistent network lists. Different card/workflow, no established repair in the reviewed discussion.
+
+No reviewed thread establishes the exact saved-autojoin-versus-first-GUI-join failure here or provides a confirmed repair for it. PMK handoff/decoding/state remains a hypothesis, not a diagnosis; target-selection/cache behavior remains an alternative worth checking statically. No EFI, kext or test-helper changes were made for this review. No issue or comment was posted upstream.
+
 ## Latest direct-join retest: macOS autojoin races the helper
 
 The next report shows macOS automatically rejoining the old saved network and completing WPA2 approximately five seconds before the direct join command returns -16 (EBUSY). A DHCP lease, gateway ping and public-IP ping are successful on that old network. This does not test the target network's password handshake, and is not a new authentication failure. Driver `rejoin off` controls the driver's own retries; it does not disable macOS saved-network autojoin.
