@@ -1,0 +1,28 @@
+--- a/src/kext/AirPortRTW89Native.cpp
++++ b/src/kext/AirPortRTW89Native.cpp
+@@ -1646,6 +1646,8 @@
+     } else if (d->ad_key.key_len) {
+         return kIOReturnUnsupported;
+     }
++    LOG("assoc metadata: upper 0x%x, cipher %u, key bytes %u, passphrase bytes %u",
++        d->ad_auth_upper, d->ad_key.key_cipher_type, d->ad_key.key_len, (unsigned int)_ns->joinPassLen);
+     bssid = memcmp(d->ad_bssid.octet, zero, 6) ? d->ad_bssid.octet : nullptr;
+ 
+     IOLockLock(_commandLock);
+@@ -1653,6 +1655,7 @@
+     if ((isConnected(link) || isJoining(link)) && strlen(link.ssid) == d->ad_ssid_len &&
+         !memcmp(link.ssid, d->ad_ssid, d->ad_ssid_len) &&
+         (!bssid || !memcmp(bssid, link.bssid, 6) || !memcmp(bssid, link.asked_bssid, 6))) {
++        LOG("assoc shortcut: same target, link state %u; credentials not compared", (unsigned int)link.state);
+         /* the same request again while it is being carried out */
+         IOLockUnlock(_commandLock);
+         return kIOReturnSuccess;
+@@ -1747,6 +1750,8 @@
+     case APPLE80211_IOC_DISASSOCIATE:
+         if (!isSet)
+             return kIOReturnUnsupported;
++        LOG("native DISASSOCIATE: link state %u, ignored while joining %u",
++            (unsigned int)link.state, (unsigned int)isJoining(link));
+         /* sent as part of preparing a join as well: not while one is under way */
+         if (isJoining(link))
+             return kIOReturnSuccess;
