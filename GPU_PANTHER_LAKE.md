@@ -4,6 +4,16 @@
 
 ## 当前结论 / Current conclusion
 
+### 请求入口监视修订 / Request-entry watchdog revision
+
+v12 将独立线程监视从 xg_run_stage(4) 前移到 stage sysctl 的初始化请求入口，在 stage lock 获取和阶段循环之前启动，并确认线程就绪。创建失败或就绪超时则不进入初始化；已有监视请求返回 EBUSY。线程用请求 active 状态覆盖整个阶段循环（包括阶段间 gRunning=0 的间隙），请求结束解除监视。超时报告正在运行阶段、已完成阶段、progress、IRQ/handler 及 spin 统计。保留无 NVRAM 环境和 stage 5+ 边界，未改 GPU 寄存器或原阶段调用。
+
+V12 arms its dedicated thread at the stage-sysctl request entry, before stage-lock acquisition and the stage loop, with a readiness handshake. Creation/readiness failure prevents initialization; overlapping monitors return EBUSY. Request-active state covers all stages and gaps between them, then disarms on completion. Timeout reports running/completed stage, progress, IRQ/handler and spin statistics. NVRAM remains disabled and stages 5+ stay blocked; original GPU calls/register behavior are unchanged.
+
+生成源码已检查启动先于锁和阶段循环、解除监视在解锁之后。策略（实际字符串 `ptl-request-watch-v12`）。完整构建和实机效果待确认；它仍依赖普通内核调度，不是独立 NMI/硬件 watchdog，卡死尚未修复。
+
+Generated-source checks confirm arming before the lock/loop and disarming after unlock. Policy is `ptl-request-watch-v12`. Full build and hardware behavior are pending. This still relies on kernel scheduling, not an independent NMI/hardware watchdog; the hang remains unresolved.
+
 ### v11 无自动重启：监视启动范围的盲区 / V11 no reboot: watchdog coverage gap
 
 用户报告无自动重启。最新 20261114-105228 报告通过策略及文件校验，EFI 哈希匹配 v11；进度文件仅一行 progress=0，无新完整报告。审查确认 stage sysctl 先顺序执行 1–3，再到 4；v11 专用线程仅在 xg_run_stage(4) 内创建。因此不能确认专用线程已经启动，也不能由此证明全局调度停止。此前以进入 stage 4 为前提的诊断范围不完整，需将监视前移到整次初始化请求前，再区分早期初始化停顿与后续 GPU 卡死。此轮没有修改 EFI 或驱动。
