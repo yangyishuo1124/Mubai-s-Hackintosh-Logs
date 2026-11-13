@@ -4,6 +4,10 @@
 
 ## 当前结论 / Current conclusion
 
+2026-11-14 上游 issue / 提交对照：[中文与英文调查记录](GPU_UPSTREAM_RESEARCH_2026-11-14.md)。本轮仅更新调查结论，EFI 未修改。
+
+Upstream issues and commits reviewed: [bilingual research notes](GPU_UPSTREAM_RESEARCH_2026-11-14.md). Documentation only; EFI unchanged this round.
+
 ### 撤回重复阶段拆测 / Withdraw redundant stage splitting
 
 用户指出已有 stage 1–3 成功及 stage 4 内部进展证据，分段重测前面阶段不能直接推进当前故障。刚提交的分段脚本尚未部署到硬盘 EFI，现从仓库撤回，恢复 v13 原探测脚本。后续调查聚焦 stage 4 内部，尤其已观测到的 GuC post-load/PC 启动相邻路径；早期文件采样不用于推翻之前实测。GPU 卡死仍未解决，本轮无需重启。
@@ -16,9 +20,9 @@ Prior stage-1–3 success and internal stage-4 progress remain valid. The propos
 
 The new 20261114-115434 probe passes v13 file/policy checks and EFI hash matches. The request does not return; progress only samples startup 0. Error propagation has not yet yielded a visible return or firmware error; the hard freeze is unresolved. Prior stage-1–3 success and stage-4 progress remain valid evidence.
 
-本轮不改二进制。脚本分别请求阶段 1–4，每次前后保存阶段标记、签名结果及当前阶段并 sync；失败则采集并停止。阶段 3 成功后额外落盘日志与 ioreg，再请求阶段 4。每次请求间等待 1 秒，给上一监视线程退出时间。另保存实际 kern.bootargs。目标是保存本次运行的阶段边界，不是用早期采样否定此前结果。脚本验证/部署待确认。
+此前此处的分阶段脚本方案已撤回且未部署，以上方撤回说明为准。
 
-The wrapper requests stages 1–4 separately, saving/flushing before/after markers, signed results and current stage; failures collect and stop. After stage 3 succeeds, driver log/ioreg snapshots are saved before requesting stage 4. A 1s gap permits prior monitor retirement. Effective kern.bootargs is recorded. This preserves boundaries for this attempt rather than negating prior results. Binary unchanged; wrapper verification/deployment pending.
+The split-stage wrapper proposal formerly described here was withdrawn without deployment; see the withdrawal above.
 
 ### 修正 GuC/功耗控制错误传播 / Correct GuC and PC error propagation
 
