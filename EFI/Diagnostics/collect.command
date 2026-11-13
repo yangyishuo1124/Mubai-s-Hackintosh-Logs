@@ -18,6 +18,17 @@ route -n get default > "$out/default-route.txt" 2>&1
 scutil --nwi > "$out/network-state.txt" 2>&1
 system_profiler SPAirPortDataType > "$out/hardware.txt" 2>&1
 ioreg -p IOUSB -l -w0 > "$out/usb-ioreg.txt" 2>&1
+# The Bluetooth daemon can wait for an unrelated IOService to become idle.
+# Keep the complete topology, including busy counters, before sampling it.
+ioreg -p IOService -w0 > "$out/ioservice-tree.txt" 2>&1
+grep -E 'busy [1-9][0-9]*' "$out/ioservice-tree.txt" > "$out/ioservice-busy.txt" || true
+ps -axo pid,ppid,state,etime,comm > "$out/processes.txt" 2>&1
+launchctl print system/com.apple.bluetoothd > "$out/bluetooth-launchd.txt" 2>&1
+btpid="$(pgrep -x bluetoothd | head -n 1)"
+if [[ -n "$btpid" ]]; then
+    /usr/bin/sample "$btpid" 3 -file "$out/bluetooth-sample.txt" > "$out/bluetooth-sample-status.txt" 2>&1
+fi
+ioreg -p IOService -w0 > "$out/ioservice-tree-after-sample.txt" 2>&1
 ioreg -r -c IOBluetoothHostController -l -w0 > "$out/bluetooth-ioreg.txt" 2>&1
 ioreg -r -c RealtekBluetoothFirmware -l -w0 > "$out/realtek-firmware-ioreg.txt" 2>&1
 ioreg -r -c VoodooI2CHIDDevice -l -w0 > "$out/touchpad-ioreg.txt" 2>&1
@@ -37,6 +48,7 @@ if [[ -x "$here/rtw89ctl" ]]; then
 fi
 
 /usr/bin/log show --last boot --info --debug --style compact --predicate 'process == "bluetoothd" OR process == "BlueTool" OR eventMessage CONTAINS[c] "RealtekFirmware" OR eventMessage CONTAINS[c] "RealtekBluetoothFirmware"' > "$out/bluetooth-log.txt" 2>&1
+/usr/bin/log show --last boot --style compact --predicate 'eventMessage CONTAINS[c] "IOKitWaitQuiet" OR eventMessage CONTAINS[c] "busy timeout" OR eventMessage CONTAINS[c] "stall"' > "$out/device-init-log.txt" 2>&1
 /usr/bin/log show --last 30m --style compact --predicate 'eventMessage CONTAINS[c] "rtw89" OR eventMessage CONTAINS[c] "DHCP" OR eventMessage CONTAINS[c] "bootp" OR eventMessage CONTAINS[c] "WiFi"' > "$out/wifi-log.txt" 2>&1
 
 archive="$here/reports/s5650aa-${stamp}.zip"

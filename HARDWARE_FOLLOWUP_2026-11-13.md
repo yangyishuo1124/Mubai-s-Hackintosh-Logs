@@ -53,3 +53,11 @@ The macOS 26.0 report captured after a failed graphical Wi-Fi join shows that th
 The USB IORegistry contains the Realtek `0BDA:B85B` device as `Bluetooth USB Host Controller` with `FirmwareLoaded = Yes` and class 0xE0. Both RealtekBluetoothFirmware 1.0.2 and BlueToolFixup 2.7.2 are loaded. `system_profiler SPBluetoothDataType` hung and no `IOBluetoothHostController` was published. Firmware upload is therefore not the remaining blocker; `bluetoothd`/controller initialization is. The previous log predicate looked only for messages containing the word `bluetoothd`, which omitted messages emitted by the process itself. The collector now selects `process == "bluetoothd"`, captures kernel messages and skips the hanging System Profiler Bluetooth query.
 
 No private Wi-Fi names, passwords, MAC addresses or raw reports are committed to this repository.
+
+## Third report: Bluetooth initialization wait
+
+The third report shows Realtek firmware `rtl8852bu` uploaded and the firmware service idle (`busy 0`). However, `bluetoothd` logs `Waiting for IOKitWaitQuiet()` during startup with no subsequent completion message in the captured boot log. This suggests a wait before controller initialization; it does not yet prove which device is blocking it, or that the daemon remains on that call. Apple's [IOKitWaitQuiet documentation](https://developer.apple.com/documentation/iokit/1514440-iokitwaitquiet) explains that the function waits until all IOService busy states are zero. A device unrelated to Bluetooth may therefore be involved.
+
+The collector now records the complete IOService topology and nonzero busy counters, samples the Bluetooth daemon for three seconds, and captures its launchd state. It does not restart services or change boot configuration. The next report should distinguish a global device-initialization wait from a later Bluetooth transport failure. Battery correction and working touchpad polling are retained.
+
+The latest ZIP passed its integrity check after refreshing the Windows EFI mount. The subsequent filesystem check reported no errors; this read failure alone is not evidence of new FAT corruption.
