@@ -8,11 +8,11 @@ helper='''
 extern "C" void
 xg_init_checkpoint(int progress, const char *label)
 {
- xg_progress = progress;
- if (!gTraceOn) return;
+ if (!gTraceOn) { xg_progress = progress; return; }
  char line[160];
  snprintf(line, sizeof(line), "checkpoint %d %s", progress, label);
  IOInterruptState flags = IOSimpleLockLockDisableInterrupt(gLogLock);
+ xg_progress = progress;
  strlcpy(gLast, line, sizeof(gLast));
  gLastSeq++;
  IOSimpleLockUnlockEnableInterrupt(gLogLock, flags);

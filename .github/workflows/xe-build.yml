@@ -1,4 +1,5 @@
 name: Experimental Panther Lake Xe build
+# Trace v10 keeps checkpoint progress and label under one snapshot lock.
 on:
   push:
     paths:
