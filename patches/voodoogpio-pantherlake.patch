@@ -1,6 +1,6 @@
 --- a/VoodooGPIO/VoodooGPIOIntel.cpp
 +++ b/VoodooGPIO/VoodooGPIOIntel.cpp
-@@ -1029,3 +1029,194 @@
+@@ -1029,3 +1029,185 @@
          }
      }
  }
@@ -85,7 +85,7 @@
 +        // source path. Publish ONLY the controller selected by the live touchpad
 +        // firmware descriptor, never all five PTL communities.
 +        OSObject *routes = nullptr;
-+        IOReturn routesResult = acpi->evaluateObject("\\TPDI", &routes);
++        IOReturn routesResult = acpi->evaluateObject("PTIR", &routes);
 +        acpi->setProperty("PTLTPDIResult", (UInt32)routesResult, 32);
 +        if (routesResult != kIOReturnSuccess || !routes) {
 +            IOLog("VoodooGPIOPantherLake::TPDI evaluation failed 0x%x\n", routesResult);
@@ -95,20 +95,11 @@
 +        OSArray *pins = OSDynamicCast(OSArray, routes);
 +        OSNumber *route = pins && pins->getCount() ? OSDynamicCast(OSNumber, pins->getObject(0)) : nullptr;
 +        if (!route) { IOLog("VoodooGPIOPantherLake::TPDI is not a pin package\n"); routes->release(); return false; }
-+        OSObject *args[6] = {
-+            OSNumber::withNumber(route->unsigned32BitValue(), 32),
-+            OSNumber::withNumber(0ULL, 32), OSNumber::withNumber(1ULL, 32),
-+            OSNumber::withNumber(2ULL, 32), OSNumber::withNumber(0ULL, 32),
-+            OSNumber::withNumber(0ULL, 32)
-+        };
 +        routes->release();
 +        OSObject *resource = nullptr;
-+        bool allocated = true;
-+        for (unsigned i = 0; i < 6; ++i) if (!args[i]) allocated = false;
-+        IOReturn result = allocated ? acpi->evaluateObject("\\_SB.G_IN", &resource, args, 6) : kIOReturnNoMemory;
++        IOReturn result = acpi->evaluateObject("PTGR", &resource);
 +        acpi->setProperty("PTLGINResult", (UInt32)result, 32);
-+        IOLog("VoodooGPIOPantherLake::G_IN result 0x%x\n", result);
-+        for (unsigned i = 0; i < 6; ++i) if (args[i]) args[i]->release();
++        IOLog("VoodooGPIOPantherLake::PTGR result 0x%x\n", result);
 +        OSData *data = OSDynamicCast(OSData, resource);
 +        bool selected = false;
 +        if (result == kIOReturnSuccess && data && data->getLength() == 37) {
