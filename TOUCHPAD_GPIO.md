@@ -1,5 +1,11 @@
 # 触摸板 GPIO 中断调查 / Touchpad GPIO interrupt investigation
 
+## 直接中断试验已部署 / Direct interrupt trial deployed
+
+按用户要求，移除 `-vi2c-force-polling`，保留新 GPIO 驱动和本地 ACPI 桥接，直接进行中断启动试验。配置已备份、写入硬盘并读回校验，ocvalidate 通过。尚未启动实测；不能将触摸板有响应单独视为中断成功，需结合控制器启动、GPIO 模式和实际输入确认。失败后继续定位，不自动恢复轮询。
+
+At the user's request, removed `-vi2c-force-polling` while retaining the new GPIO driver and local ACPI bridge for a direct interrupt boot trial. Configuration is backed up, deployed and verified by readback; ocvalidate passes. Hardware boot remains untested. Working input alone does not prove interrupts: verify controller startup, GPIO mode and actual input together. Continue diagnosis on failure without automatically restoring forced polling.
+
 ## ACPI 本地桥接修复已部署 / Local ACPI bridge repair deployed
 
 新报告确认五个 GPIO 节点已进入启动并成功读取 `_DSD`，随后驱动用绝对路径求值 `TPDI` 返回 `0xe00002c2`（参数错误），因此提前退出。这定位到新增驱动的一处失败调用；不据此推断固件资源错误。

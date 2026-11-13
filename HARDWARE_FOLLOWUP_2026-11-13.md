@@ -2,6 +2,10 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## Direct interrupt trial deployed
+
+At the user's request, removed `-vi2c-force-polling` while retaining the new GPIO driver and local ACPI bridge for a direct interrupt boot trial. Configuration is backed up, deployed and verified by readback; ocvalidate passes. Hardware boot remains untested. Working input alone does not prove interrupts: verify controller startup, GPIO mode and actual input together. Continue diagnosis on failure without automatically restoring forced polling.
+
 ## Local GPIO ACPI bridge deployed
 
 The new report confirms all five GPIO nodes enter startup and read `_DSD`, then the driver's absolute-path evaluation of `TPDI` returns `0xe00002c2` (bad argument), causing an early exit. This identifies a failing call in the added driver; it does not establish a firmware-resource defect.
