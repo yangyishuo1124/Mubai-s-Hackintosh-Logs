@@ -1,14 +1,14 @@
 --- a/shim/src/xnu/xg_kext.cpp
 +++ b/shim/src/xnu/xg_kext.cpp
-@@ -313,6 +313,8 @@
-  *size = bytes;
-  return 0;
+@@ -315,6 +315,8 @@
  }
-+
-+#include "xg_ptl_gop_metadata.h"
  
  /* Stage 2 only. Never infer physical DSM from the BAR2 CPU alias. */
++#include "xg_ptl_gop_metadata.h"
++
  static int
+ xg_xe_capture_bootfb(IOPCIDevice *gpu, IOMemoryMap *mm)
+ {
 @@ -384,6 +386,22 @@
     gResident->setProperty("XeGfxGOPPTEHash", pte_hash, 64);
     gResident->setProperty("XeGfxGOPCPUAccessBlocked", kOSBooleanTrue);
