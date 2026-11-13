@@ -5,6 +5,10 @@ set -eu
 base="${0:A:h}"
 [[ "$(id -u)" == 0 ]] || { print '请用 sudo zsh 运行 / Run with sudo zsh'; exit 1; }
 [[ "$(uname -s)" == Darwin && "$(uname -m)" == x86_64 ]] || exit 1
+print '本版 stage 2 已触发黑屏重启；暂时只采集崩溃证据，不再次触发。'
+print 'This stage 2 build caused a black-screen reboot; collecting only.'
+zsh "$base/collect.command"
+exit $?
 [[ -d "$base/GPU/XeGfx.kext" ]] || { print '缺少探测驱动 / Probe kext missing'; exit 1; }
 out="$base/reports/gpu-probe-$(date +%Y%m%d-%H%M%S).txt"
 mkdir -p "$base/reports"
