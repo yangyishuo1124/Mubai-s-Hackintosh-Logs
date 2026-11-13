@@ -4,6 +4,17 @@
 
 ## 当前结论 / Current conclusion
 
+### v14 实测仍卡死 / V14 hardware freeze persists
+
+用户反馈仍卡死。本地读取 EFI 的 `gpu-probe-20261114-122443.txt`：资源校验及 v14 策略检查通过，追踪关闭，阶段请求没有完整返回；进度文件只含初始 `progress=0`。没有产生新的内部 stage 4 检查点证据，不能据此把故障重新定位到 stage 0 或否定历史 stage 1–3 通过及 GuC/PC 路径记录。v14 的两处正确性修正没有消除卡死，不能视为已找到根因。
+
+The user reports another freeze. The EFI probe dated 20261114-122443 passes resources and the v14 policy gate, disables tracing, and has no complete stage-request return. Its progress file contains only initial progress=0. No new internal stage-4 checkpoint was captured. This neither relocates the fault to stage 0 nor invalidates earlier stage-1–3 passes and GuC/PC observations. V14's correctness fixes did not resolve the freeze.
+
+另核查 Apple 公布的 XNU `kern_newsysctl.c`：调用 handler 前释放 geometry lock。当前进度与阶段节点均设置 CTLFLAG_LOCKED；目前没有证据支持“阶段请求必然通过 sysctl 全局锁阻止进度读取”的推断。公开 main 源码仅作结构参考，不等同于本机 25A354 的逐字节验证。仅凭进度文件早期一行，不能判定进度读取自身阻塞，也不能判定全部 CPU 已死锁。本轮不替换驱动、不安排重复重启，保留原始日志在本地。
+
+Apple's published XNU sysctl source drops the geometry lock before calling handlers; these driver nodes use CTLFLAG_LOCKED. No evidence currently supports asserting that the stage request necessarily blocks progress reads through a global sysctl lock. Public main is a structural reference, not byte-for-byte verification of this machine's 25A354 kernel. One early sample proves neither a blocked progress reader nor an all-CPU deadlock. No new driver deployment or repeated reboot test this round; raw logs remain local.
+
+
 ### v14：PC 映射访问与真实时间超时 / PC map access and elapsed-time timeout
 
 在 v13 基础上增加 0206：按 [Linux 21cf47d](https://github.com/torvalds/linux/commit/21cf47d89fba353b2d5915ba4718040c4cb955d3) 将 PC BO 的普通 memset 换为 xe_map_memset；参照 [Linux b0ac4ef](https://github.com/torvalds/linux/commit/b0ac4ef074ace20714a3bf96d23ae2ba61cc4439) 改用实际 ktime 差值判断等待超时，避免按请求的最短睡眠时间累计。6.14 适配沿用已有 ktime_ms_delta 接口和 10–20µs 请求间隔，不引入较新 poll_timeout_us 宏。保留 v13 错误返回与全部 stage 4 检查点，不跳过 PC、forcewake 或中断。
