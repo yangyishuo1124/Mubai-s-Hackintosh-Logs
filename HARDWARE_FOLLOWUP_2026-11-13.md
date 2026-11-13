@@ -2,6 +2,14 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## Credential and key-lifetime review: read-only comparison helper
+
+Reviewed local upstream `76d23fe` through `decodeHostAssoc → nativeAssociate → glue_join_request → mlme_connect`. GUI-supplied PMKs and directly derived PMKs reach the shared connection path; `glue.want.pmk` and `mlme.pmk` are synchronously copied before returning. This does not support a simple theory that clearing temporary request buffers destroys the active handshake key. Both GUI attempts and the direct attempt are logged as WPA2, without a logged AKM selection difference in this comparison. Static review does not validate incoming PMK contents, decoding offsets or concurrency.
+
+The failure window contains no log proving a failure to read the Wi-Fi password. Startup WiFiAgent readiness messages and missing Captive Portal credentials do not establish corruption of the target Wi-Fi password. Private-MAC creation succeeds at request start; an EINVAL against a null network after association failure does not establish causation either. Global network settings and keychains remain intact.
+
+Added `wifi-credential-check.command`: hidden input of the known-working password, compared in memory with one matching item from each of the login/system keychains. Only result labels are recorded. It neither connects nor writes passwords, and emits no secret bytes or hashes. Duplicate records, other stores and airportd's actual item selection remain outside its evidence. MATCH does not validate the driver's PMK; DIFFERENT is only a saved-item discrepancy, and unavailable reads are inconclusive. Usage and limitations are in the bilingual home page. Syntax and five mocked branches pass; macOS integration remains untested. Only a diagnostic file is added; boot configuration and drivers remain unchanged, and GUI joining is unresolved.
+
 ## Same-run GUI/direct comparison completed
 
 The latest report captures two GUI/native WPA2 joins to the same AP, each receiving M1 and sending acknowledged M2 replies before AP deauthentication reason 15 and native error -2015. A later direct-password request in that same boot targets the exact same BSSID and channel, completes key installation/native link up, remains connected at collection, has IPv4, and passes public-IP pings 3/3. Identifiers were compared locally and are not published. The ZIP passed its integrity check.

@@ -46,13 +46,9 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. macOS Tah
 
 **Latest result:** The same-run, same-AP comparison is complete: two GUI M2 timeouts followed by successful direct-password authentication, IPv4 and 3/3 public-IP pings. Direct joining is now an observed workaround; GUI joining is not fixed. The earlier five-second drop did not recur, which alone does not establish its cause.
 
-脚本已改为先断开旧连接，避免此前的 `-16`（EBUSY）。旧接入点密码直连曾通过公网 ping；最新测试中，此前 GUI 失败的目标也完成直连握手，但约五秒后链路断开，无 IP，未达到可用状态。掉线时间紧邻脚本强制请求 DHCP，原因待查。GUI 尚未修复，下面保留测试方法供参考，不建议反复重跑。
+脚本先断开旧连接以避免此前的 `-16`（EBUSY），并已移除强制 DHCP。最新同轮对照中，被动观察版本直连此前 GUI 失败的目标后保持连接并通过公网测试。GUI 尚未修复；以下保留直连方法供参考，不必重复相同测试。
 
-脚本现已移除强制 DHCP，改为被动检查链路和地址；此调整尚未在 macOS 验证。
-
-The helper now leaves the existing link first to avoid the previous `-16` (EBUSY). Direct joining to the old AP previously passed public-IP pings. The previously GUI-failing target now also completes direct authentication, but loses its link about five seconds later without an IP. This coincides with the helper's forced DHCP request; the cause remains unproven. GUI joining is not fixed. The procedure below is retained for reference; repeated reruns are not recommended.
-
-The helper now omits forced DHCP and passively checks link/address state instead. This adjustment has not been runtime-tested on macOS.
+The helper first leaves the old link to avoid the earlier `-16` (EBUSY), and no longer forces DHCP. In the latest same-run comparison, this passive version remains connected to the previously GUI-failing target and passes public-IP pings. GUI joining remains unresolved; the direct-join procedure below is retained for reference, without requiring repeated identical tests.
 
 先在 Wi-Fi 设置中临时关闭**旧的已保存网络**的“自动加入”，不必忘记网络，测试后可恢复。用 `diskutil list` 找到约 467 MB、名为 SYSTEM 的 EFI 分区，替换 `diskXs1`。按脚本提示操作，并关闭 Wi-Fi 菜单和设置窗口：
 
@@ -76,6 +72,24 @@ sudo diskutil unmount /Volumes/SYSTEM
 报告位于 `EFI/Diagnostics/reports/`，可能含网络名、MAC 和硬件标识。原始报告留在本地，不提交 GitHub。
 
 Reports under `EFI/Diagnostics/reports/` may contain network names, MAC addresses and hardware identifiers. Raw reports remain local and are not committed to GitHub.
+
+## 只读凭据检查 / Read-only credential check
+
+为区分保存密码差异与系统/驱动交接问题，新增 `wifi-credential-check.command`。挂载 SYSTEM 后，在已登录的 macOS 用户终端运行，**这一条不用 sudo**：
+
+To distinguish a saved-password discrepancy from a system/driver handoff problem, run the new helper in the logged-in macOS user's Terminal after mounting SYSTEM. **Do not use sudo for this command**:
+
+```sh
+bash /Volumes/SYSTEM/EFI/Diagnostics/wifi-credential-check.command
+```
+
+输入目标网络名和已直连成功的密码（隐藏输入）。脚本仅在内存中比较登录/系统钥匙串各自查询到的一条匹配记录；密码不会显示、写文件、计算散列或上传。若弹出系统访问确认，可选本次“允许”，不必选“始终允许”。不改连接、网络配置、密码或钥匙串访问规则。
+
+Enter the target network name and the password that worked with direct joining (hidden input). The helper compares one matching item from each of the login/system keychains in memory. Passwords are never displayed, written to files, hashed or uploaded. If macOS requests access, a one-time Allow is sufficient; Always Allow is unnecessary. The script does not change connections, network settings, passwords or keychain access rules.
+
+结果保存在 `EFI/Diagnostics/reports/wifi-credentials-*.txt`，仅含状态：`MATCH` 一致、`DIFFERENT` 不同、`NOT_FOUND` 本次查询未找到、`UNREADABLE` 无法读取、`KEYCHAIN_UNAVAILABLE` 路径不可用。不同不证明 airportd 实际用了该记录；一致不证明传给驱动的 PMK 正确；未找到/无法读取也不能说明系统没保存密码。其他钥匙串、重复记录及受保护存储未枚举。已过语法及五类模拟分支检查，尚未在 macOS 实测；这是诊断工具，不是修复。
+
+Only result labels are saved in `EFI/Diagnostics/reports/wifi-credentials-*.txt`: `MATCH`, `DIFFERENT`, `NOT_FOUND`, `UNREADABLE`, or `KEYCHAIN_UNAVAILABLE`. A discrepancy does not prove airportd used that item, a match does not validate the PMK passed to the driver, and missing/unreadable results do not establish an absent saved password. Other keychains, duplicate records and protected stores are not enumerated. Syntax and five mocked branches pass; macOS integration is untested. This is a diagnostic tool, not a repair.
 
 ## 使用与回退 / Use and rollback
 
