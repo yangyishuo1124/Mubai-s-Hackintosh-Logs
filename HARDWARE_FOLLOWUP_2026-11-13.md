@@ -2,6 +2,14 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## Source review and passive address observation
+
+Reviewed the local upstream snapshot at `76d23fe`, particularly native POWER, DISASSOCIATE, ASSOCIATE and CIPHER_KEY handling, plus the external-PMK setter. The native DISASSOCIATE path explicitly calls glue_leave when not joining. The core Ethernet interface enable/disable methods only control output threading, so they alone do not explain a radio disconnect. A POWER-on log near a disconnect does not identify which subsequent caller requested leaving. No raw native request or caller stack was captured, so a proven call chain is still unavailable.
+
+The association decoder reads the PMK/passphrase according to its cipher field; native WPA2 PMK and driver-derived-password joins use separate entry points. The late PMK setter is restricted to external-authentication connections, which is worth bearing in mind when inspecting key timing, but there is no logged late-key delivery proving that branch matters here. Neither a malformed key nor a decoder-offset error has been established.
+
+The helper's forced `ipconfig set en0 DHCP` is removed to avoid injecting interface reconfiguration into the observation. After a successful join it now checks link state and existing IPv4 for up to 20 seconds, reports a link drop separately (exit 2) from no IPv4 (exit 3), and still collects diagnostics. An existing IPv4 is not described as a new lease. Only the helper changed after local backup and readback; config.plist, driver binaries, audio and Bluetooth were retained. Shell syntax and repository whitespace checks passed; macOS runtime behavior remains untested. No further reboot/test was requested at this stage. This correction does not claim to fix GUI joining.
+
 ## Latest target test: authentication succeeds, link is then lost
 
 The new direct join reaches the AP that previously showed GUI M2 timeouts in earlier reports (matched privately by BSSID). Association and WPA2 key installation complete, followed by native link up. This establishes that direct-password authentication can work with that AP, beyond the previously working saved AP. The current driver ring does not contain a fresh GUI join failure in this same run, so this is a cross-report comparison, not a controlled same-run A/B test.

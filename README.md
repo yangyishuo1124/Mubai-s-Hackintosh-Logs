@@ -44,7 +44,11 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. macOS Tah
 
 脚本已改为先断开旧连接，避免此前的 `-16`（EBUSY）。旧接入点密码直连曾通过公网 ping；最新测试中，此前 GUI 失败的目标也完成直连握手，但约五秒后链路断开，无 IP，未达到可用状态。掉线时间紧邻脚本强制请求 DHCP，原因待查。GUI 尚未修复，下面保留测试方法供参考，不建议反复重跑。
 
+脚本现已移除强制 DHCP，改为被动检查链路和地址；此调整尚未在 macOS 验证。
+
 The helper now leaves the existing link first to avoid the previous `-16` (EBUSY). Direct joining to the old AP previously passed public-IP pings. The previously GUI-failing target now also completes direct authentication, but loses its link about five seconds later without an IP. This coincides with the helper's forced DHCP request; the cause remains unproven. GUI joining is not fixed. The procedure below is retained for reference; repeated reruns are not recommended.
+
+The helper now omits forced DHCP and passively checks link/address state instead. This adjustment has not been runtime-tested on macOS.
 
 先在 Wi-Fi 设置中临时关闭**旧的已保存网络**的“自动加入”，不必忘记网络，测试后可恢复。用 `diskutil list` 找到约 467 MB、名为 SYSTEM 的 EFI 分区，替换 `diskXs1`。按脚本提示操作，并关闭 Wi-Fi 菜单和设置窗口：
 

@@ -32,10 +32,26 @@ fi
 join_result=$?
 echo "Direct join exit status: $join_result"
 if [[ "$join_result" -eq 0 ]]; then
-    sleep 5
-    ipconfig set en0 DHCP
-    sleep 10
-    ipconfig getifaddr en0
+    echo 'Handshake accepted; observing automatic addressing without reconfiguring en0.'
+    address=''
+    for attempt in {1..10}; do
+        sleep 2
+        link_status="$("$here/rtw89ctl" status)"
+        if ! printf '%s\n' "$link_status" | grep -Eq '^link[[:space:]]+connected'; then
+            echo 'The link dropped after authentication.'
+            join_result=2
+            break
+        fi
+        address="$(ipconfig getifaddr en0 2>/dev/null)"
+        if [[ -n "$address" ]]; then
+            echo "Current IPv4 address: $address (not proof of a new lease)"
+            break
+        fi
+    done
+    if [[ "$join_result" -eq 0 && -z "$address" ]]; then
+        echo 'Authentication completed, but no IPv4 address appeared within 20 seconds.'
+        join_result=3
+    fi
 fi
 "$here/rtw89ctl" status
 echo 'Collecting diagnostics, including failed joins.'
