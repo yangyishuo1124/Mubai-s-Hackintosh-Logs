@@ -39,3 +39,28 @@ The reference B082 assumptions must not replace B0A0's captured IP/revision valu
 已读取 `gpu-probe-20261114-124459.txt`：v15 策略门禁和资源校验通过；环境记录显式开启 PC start bypass，但阶段请求没有完整返回。不能证明已执行到 48000 绕过点，也不能据此排除所有 PC 路径。保留历史 stage 1–3 成功及 stage 4 内部观察。本轮只更新调查记录，不替换 EFI，不要求重复重启。
 
 The new probe passes the v15 policy/resource gates and records the bypass option, but the stage request never completes. It does not prove checkpoint 48000 was reached or exclude every PC-related path. Earlier stage-1–3 success and internal stage-4 observations remain valid. Documentation only this round; no EFI replacement or repeated reboot requested.
+
+## 新版 Linux 规则复核 / Newer Linux rule audit
+
+本轮参考固定的 Linux 提交 [`2800868f63227c8237d70c41e70d441c919620d6`](https://github.com/torvalds/linux/tree/2800868f63227c8237d70c41e70d441c919620d6/drivers/gpu/drm/xe)，与 v6.14 基线及实际构建使用的 fork 补丁比较。范围为 `xe_wa.c`、GT/device OOB 规则和对应 GuC ADS 条目；不是对全部 Linux 改动或 macOS 兼容层的完整审计。
+
+This pass compares a pinned newer Linux revision with the v6.14 baseline and the fork patches used by our build. Scope: the central WA table, GT/device OOB rules and corresponding GuC ADS entries. It is not an exhaustive audit of all Linux changes or the macOS compatibility layer.
+
+| 候选 / Candidate | 核查结果 / Finding | 本轮处理 / Action |
+|---|---|---|
+| 16026508708 / KLV 0x900b | 新规则覆盖 graphics 3001 和 media 3000，但原作者明确限定其用途为 SR-IOV。The rule matches these IPs, but the author explicitly limits its relevance to SR-IOV. | 未发现本机走 VF 切换路径的证据，不作为裸机卡死修复添加。Not added as a bare-metal freeze fix without evidence of a VF-switch path. |
+| 22019794406 | fork 未扩展该规则，但 ADS 通过 `14022293748 OR 22019794406` 启用同一 KLV 0x9009；0157 已让 14022293748 命中 graphics 3001。The rule itself is not extended, but 0157 already enables the same shared KLV through the other operand. | 仅补规则不会增加已启用的 GuC 行为。No additional GuC behavior from extending this rule alone. |
+| 14021402888 | v6.14 已有 graphics 3000–3001 条目，写入 `CLEAR_OPTIMIZATION_DISABLE`。Already present in the baseline. | 不重复移植。No duplicate backport. |
+| 16021867713 / 16021865536 | media 3000 的视频解码引擎时钟门控规则在基线中已存在。The applicable media-engine clock-gating entries already exist. | 不重复移植。No duplicate backport. |
+| 14021871409 / 18034896535 / 16024792527 / 14021490052 | 新旧表中这些条目要求 graphics **3000** 的 A0–B0 范围；本机先前记录为 **3001**。These specific rules require graphics 3000, not the captured 3001. | 不因都叫 Xe3/A0 就扩展到本机。Do not broaden their IP conditions merely because both are Xe3/A0. |
+| 14021486841 | 要求 media 3000 且 STEP(A0,B0)，不含 B0；本机先前记录解码为 B0。The upper step bound excludes the captured media B0. | 不强制启用。Not forced on. |
+
+关键来源 / Key sources:
+
+- [Newer WA table](https://github.com/torvalds/linux/blob/2800868f63227c8237d70c41e70d441c919620d6/drivers/gpu/drm/xe/xe_wa.c), [OOB rules](https://github.com/torvalds/linux/blob/2800868f63227c8237d70c41e70d441c919620d6/drivers/gpu/drm/xe/xe_wa_oob.rules), [GuC ADS](https://github.com/torvalds/linux/blob/2800868f63227c8237d70c41e70d441c919620d6/drivers/gpu/drm/xe/xe_guc_ads.c).
+- [16026508708 author explanation and patch](https://lore-kernel.gnuweeb.org/intel-xe/hz4aphth73wrlqdamgcdzdudkgmubhxsdg2twkglgcl7s6ge7c@22eolqhdswyf/T/).
+- [Baseline WA table](https://github.com/torvalds/linux/blob/38fec10eb60d687e30c8c6b5420d86e8149f7557/drivers/gpu/drm/xe/xe_wa.c); fork `xkpi/xe/patches/0157-wa-14022293748.patch` explicitly documents why the shared KLV is already enabled.
+
+结论：这些候选中没有找到值得替换 EFI 的新增裸机修正。保持 v15，未构建或部署新的驱动，也未新增一次硬件测试。此结论不能排除其他遗漏；下一步应对照 stage 4 中 GuC/PC 初始化的调用与 macOS 内存映射、锁/中断实现，寻找能在源码上复现的差异，而不是把“不适用”规则全部打开。当前仍未证明最新一次卡死的具体指令或根因。
+
+Outcome: none of these candidates establishes an additional bare-metal fix worth replacing the EFI for. V15 remains installed; no new binary or hardware test was produced. This does not exclude other omissions. Further work should compare the stage-4 GuC/PC call paths against the macOS mapping and lock/interrupt implementations and seek a reproducible source-level discrepancy. The exact instruction and root cause of the latest freeze remain unproven.
