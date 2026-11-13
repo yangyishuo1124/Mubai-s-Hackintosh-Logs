@@ -4,6 +4,12 @@
 
 ## 当前结论 / Current conclusion
 
+### v11 无自动重启：监视启动范围的盲区 / V11 no reboot: watchdog coverage gap
+
+用户报告无自动重启。最新 20261114-105228 报告通过策略及文件校验，EFI 哈希匹配 v11；进度文件仅一行 progress=0，无新完整报告。审查确认 stage sysctl 先顺序执行 1–3，再到 4；v11 专用线程仅在 xg_run_stage(4) 内创建。因此不能确认专用线程已经启动，也不能由此证明全局调度停止。此前以进入 stage 4 为前提的诊断范围不完整，需将监视前移到整次初始化请求前，再区分早期初始化停顿与后续 GPU 卡死。此轮没有修改 EFI 或驱动。
+
+The user reports no automatic reboot. The latest 20261114-105228 probe passes policy/file checks; EFI matches v11, the progress file only has progress=0, and no completed report is new. The sysctl executes stages 1–3 before 4, while v11 creates its dedicated monitor only inside xg_run_stage(4). Monitor startup is therefore unproven; global scheduling failure cannot be inferred. Coverage must begin before the complete initialization request to distinguish earlier initialization from later GPU stalls. No EFI or binary change this round.
+
 ### 独立内核线程看门狗 / Dedicated kernel-thread watchdog
 
 [完整构建通过 / Full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43485047808)。已备份并部署开机/诊断驱动、资源和配套脚本，核对链接后版本及 watchdog 字符串，读回一致，ocvalidate 通过，config.plist 不变。二进制 SHA-256：`8d9986ee6473c32337f7612c84a4ad3d2543f7941c2187311627ec022bf41591`。下一次只运行一次 stage 4，若停住等待约 90 秒观察是否出现 panic/重启；实机监视效果与卡死修复均未确认。
