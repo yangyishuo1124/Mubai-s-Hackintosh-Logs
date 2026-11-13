@@ -2,6 +2,10 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## Touchpad GPIO: platform layout mismatch identified
+
+See the [bilingual GPIO investigation](TOUCHPAD_GPIO.md). Existing INTC10BB matching points at Tiger Lake while firmware register offsets differ; interrupts remain unresolved. Only diagnostic collection is extended; working polling, boot configuration and drivers are retained.
+
 ## Read-only credential check: neither query found a matching item
 
 The user ran the new comparison helper. Its report contains `LOGIN: NOT_FOUND` and `SYSTEM: NOT_FOUND`. These results cover only the target account/kind query against the traditional login/system keychains. No password was retrieved and no password comparison occurred. They establish neither an absent saved password, correct/incorrect credentials, keychain corruption nor exclusion of credential handling. Other stores, record attributes and duplicates were not enumerated. No network, keychain, driver or boot setting was changed; GUI joining remains unresolved.

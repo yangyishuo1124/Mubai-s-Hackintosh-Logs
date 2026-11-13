@@ -38,6 +38,20 @@ ioreg -p IOService -w0 > "$out/ioservice-tree-after-sample.txt" 2>&1
 ioreg -r -c IOBluetoothHostController -l -w0 > "$out/bluetooth-ioreg.txt" 2>&1
 ioreg -r -c RealtekBluetoothFirmware -l -w0 > "$out/realtek-firmware-ioreg.txt" 2>&1
 ioreg -r -c VoodooI2CHIDDevice -l -w0 > "$out/touchpad-ioreg.txt" 2>&1
+ioreg -p IOACPIPlane -l -w0 > "$out/acpi-plane.txt" 2>&1
+for gpio_node in GPI0 GPI1 GPI2 GPI3 GPI4 GPI5; do
+    ioreg -r -n "$gpio_node" -l -w0 > "$out/gpio-${gpio_node}.txt" 2>&1
+done
+ioreg -r -n TPD0 -l -w0 > "$out/touchpad-acpi.txt" 2>&1
+/usr/bin/log show --last boot --info --debug --style compact --predicate 'eventMessage CONTAINS[c] "VoodooI2C" OR eventMessage CONTAINS[c] "VoodooGPIO"' > "$out/touchpad-gpio-log.txt" 2>&1
+if [[ -d /Applications/Xcode.app/Contents/Developer ]]; then
+    echo 'Full Xcode at standard path: present' > "$out/build-tools.txt"
+else
+    echo 'Full Xcode at standard path: not found (other locations not checked)' > "$out/build-tools.txt"
+fi
+if [[ -d /Library/Developer/CommandLineTools ]]; then
+    echo 'Command Line Tools directory: present' >> "$out/build-tools.txt"
+fi
 kmutil showloaded > "$out/loaded-kexts.txt" 2>&1
 ioreg -lw0 -r -c AppleSmartBattery > "$out/battery.txt" 2>&1
 dmesg | tail -n 5000 > "$out/kernel-messages.txt" 2>&1
