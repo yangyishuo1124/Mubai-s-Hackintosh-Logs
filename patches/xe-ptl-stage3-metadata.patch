@@ -1,0 +1,88 @@
+--- a/shim/src/xnu/xg_kext.cpp
++++ b/shim/src/xnu/xg_kext.cpp
+@@ -146,7 +146,7 @@
+ 	if (!IOService::start(provider))
+ 		return false;
+ 	gResident = this;
+-	setProperty("XeGfxProbePolicy", "ptl-metadata-only-v1");
++	setProperty("XeGfxProbePolicy", "ptl-stage3-metadata-v3");
+ 	registerService();
+ 	return true;
+ }
+@@ -316,6 +316,8 @@
+ 
+ /* Stage 2 only. Never infer physical DSM from the BAR2 CPU alias. */
+ #include "xg_ptl_gop_metadata.h"
++static xg_ptl_gop_snapshot gPtlBootSnapshot;
++static bool gPtlMetadataBaseline;
+ 
+ static int
+ xg_xe_capture_bootfb(IOPCIDevice *gpu, IOMemoryMap *mm)
+@@ -405,7 +407,15 @@
+   IOFree(pa, n * sizeof(*pa));
+   IOLog("XeGfx: B0A0 metadata only; CPU framebuffer access blocked, candidate=%#llx span=%#llx pages=%u DM=%u PTEhash=%#llx\n",
+       lo, hi - lo, n, dm_pages, pte_hash);
+-  return gXeBootFound = -EOPNOTSUPP;
++  if (metadata_rc != 1) return gXeBootFound = metadata_rc;
++  // Metadata baseline only: deliberately no CPU pixel mapping or pixel baseline.
++  gPtlBootSnapshot = after;
++  gPtlMetadataBaseline = true;
++  gXePhysStart = lo; gXePhysSize = hi - lo;
++  gXePteSum = after.pte_hash;
++  gXeBaseline = false;
++  gXeBootFound = 1;
++  return 0;
+  }
+  /* FreeBSD x86 VM_MEMATTR_WRITE_COMBINING = PAT_WRITE_COMBINING = 1. */
+  gXeBootPixels = xg_vm_vmap_pa(pa, n, 1);
+@@ -555,6 +565,18 @@
+ 		xg_put(d, "frmcount-delta", f1 - f0);
+ 		rc = (gSurfPte && pte != gSurfPte) ? -71 : (f1 == f0 ? -70 : 1);
+ #ifdef XEGFX_KMD_XE
++  if (gPtlMetadataBaseline) {
++   xg_ptl_gop_snapshot current = {};
++   int check = xg_ptl_gop_read(r, mm->getLength(), &current);
++   if (!check) check = xg_ptl_gop_compare(&gPtlBootSnapshot, &current);
++   xg_put(d, "metadata-result", (uint32_t)check);
++   xg_put(d, "metadata-unchanged", check == 1);
++   xg_put(d, "pixel-verified", 0);
++   xg_put(d, "pte-checksum", current.pte_hash, 64);
++   if (check != 1) rc = check;
++   IOLog("XeGfx: stage %d post-bus GOP metadata=%d frame-delta=%u pixels NOT verified\n",
++       gRunning, check, f1 - f0);
++  } else {
+   unsigned long long ph, ih;
+   int check = xg_xe_bootfb_checksum(&ph, &ih);
+   bool pte_ok = gXeBaseline && !check && ph == gXePteSum;
+@@ -566,6 +588,7 @@
+   xg_put(d, "pixel-checksum", ih, 64);
+   xg_put(d, "checksums-unchanged", pte_ok && pixel_ok);
+   if (!pte_ok || !pixel_ok || surf != gXeBootSurf) rc = -EPROTO;
++  }
+ #endif
+ 		xg_put(d, "result", (uint32_t)rc);
+ 		if (gResident)
+@@ -738,6 +761,13 @@
+ {
+ 	int rc = 1;
+ 
++#ifdef XEGFX_KMD_XE
++ // B0A0 stage 3 is the current boundary. Never run GPU SYSINIT/GuC yet.
++ if (gPtlMetadataBaseline && s >= 4) {
++  IOLog("XeGfx: B0A0 stage %d blocked before GPU SYSINIT\n", s);
++  return -EOPNOTSUPP;
++ }
++#endif
+ 	gRunning = s;
+ 	xg_progress = s * 10;
+ 	gTraceOn = xg_env_has("xegfx.nvram_trace=1");
+@@ -768,6 +798,9 @@
+ 			OSSafeReleaseNULL(gpu);
+ 			rc = err ? -err : 1;
+ 			xg_newbus_dump();
++#ifdef XEGFX_KMD_XE
++   if (rc == 1 && gPtlMetadataBaseline) rc = xg_display_check();
++#endif
+ 		}
+ 		if (s == 4) {
+ 			rc = xg_display_check();
