@@ -1,0 +1,43 @@
+B0A0 MCE containment: retain GGTT metadata, block direct pixel mapping; stage 2 remains incomplete.
+
+--- a/shim/src/xnu/xg_kext.cpp
++++ b/shim/src/xnu/xg_kext.cpp
+@@ -146,6 +146,7 @@
+ 	if (!IOService::start(provider))
+ 		return false;
+ 	gResident = this;
++	setProperty("XeGfxProbePolicy", "ptl-metadata-only-v1");
+ 	registerService();
+ 	return true;
+ }
+@@ -363,6 +364,30 @@
+   if (pa[i] < lo) lo = pa[i];
+   if (pa[i] + 4096 > hi) hi = pa[i] + 4096;
+  }
++ // B0A0: direct CPU reads at DSMBASE triggered a machine-check reboot.
++ // Keep metadata available, but do not map pixels or claim a valid baseline.
++ if (gpu->configRead16(kIOPCIConfigVendorID) == 0x8086 &&
++     gpu->configRead16(kIOPCIConfigDeviceID) == 0xb0a0) {
++  uint64_t pte_hash = 14695981039346656037ull;
++  unsigned dm_pages = 0;
++  for (unsigned i = 0; i < n; i++) {
++   uint64_t pte = gsm[(gXeBootSurf >> 12) + i];
++   pte_hash = xg_fnv(pte_hash, pte, 8);
++   if (pte & 2) dm_pages++;
++  }
++  if (gResident) {
++   gResident->setProperty("XeGfxGOPCandidateStart", lo, 64);
++   gResident->setProperty("XeGfxGOPCandidateSpan", hi - lo, 64);
++   gResident->setProperty("XeGfxGOPPageCount", n, 32);
++   gResident->setProperty("XeGfxGOPDMPages", dm_pages, 32);
++   gResident->setProperty("XeGfxGOPPTEHash", pte_hash, 64);
++   gResident->setProperty("XeGfxGOPCPUAccessBlocked", kOSBooleanTrue);
++  }
++  IOFree(pa, n * sizeof(*pa));
++  IOLog("XeGfx: B0A0 metadata only; CPU framebuffer access blocked, candidate=%#llx span=%#llx pages=%u DM=%u PTEhash=%#llx\n",
++      lo, hi - lo, n, dm_pages, pte_hash);
++  return gXeBootFound = -EOPNOTSUPP;
++ }
+  /* FreeBSD x86 VM_MEMATTR_WRITE_COMBINING = PAT_WRITE_COMBINING = 1. */
+  gXeBootPixels = xg_vm_vmap_pa(pa, n, 1);
+  xg_boot_fb_phys = pa[0];
