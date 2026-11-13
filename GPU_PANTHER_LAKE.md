@@ -4,6 +4,20 @@
 
 ## 当前结论 / Current conclusion
 
+### 显存分配器内部定位版 / Allocator localization revision
+
+[完整构建通过 / Full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43461250290)：原有全部检查及新分配器路径测试通过，固件嵌入/签名/架构验证通过。已备份并替换硬盘 EFI 开机/诊断驱动和脚本，链接后检查点标签与版本标记存在，读回一致，ocvalidate 通过，开机配置不变。二进制 SHA-256：`14b7d142bd0cba6b9df4461aa71a38aff9212c893f29952f0cbc3a8ff9608bb3`。下一次只做一次 stage 4 复现；若卡死，回 Windows 读 NVRAM，不反复重跑。此版实机定位效果尚未验证。
+
+Full build, existing checks and the new allocator control-flow test pass, including embedded firmware/signature/architecture validation. Boot/diagnostic bundles and wrapper are backed up and replaced on the internal EFI, with linked checkpoint/policy markers, matching readback and clean ocvalidate. Configuration is unchanged. One stage-4 reproduction is needed; after a hang, recover NVRAM in Windows rather than repeating the probe. Hardware localization remains unverified.
+
+新增 `xe-0201-allocator-checkpoints.patch`，保留全部原始初始化/错误返回。30001/30002 为 stolen manager 创建前/后，30003/30004 为 stolen WC 映射前/后，30005 为 stolen 初始化返回。31001 为 VRAM manager 入口；31002/31003 为 mutex 初始化前/后；31004/31005 为 TTM resource manager 初始化前/后；31006/31007 为 buddy 初始化前/后；31008/31009 为 driver manager 注册前/后；31010/31011 为 managed cleanup 注册前/后。
+
+The new patch retains initializer semantics and error returns. Codes 30001–30005 bracket stolen-manager initialization and WC mapping. Codes 31001–31011 identify VRAM-manager entry and before/after checkpoints for mutex, TTM resource-manager, buddy, driver-manager installation and managed cleanup.
+
+新策略 `ptl-stage4-alloc-v6` 防止误跑旧版。同步 SYSINIT 和线程初始化追踪继续保留，不禁止 stolen 分配或改变缓存属性来盲试；stage 5+ 仍阻断。新增测试会编译实际修改后的 manager 函数，在模拟成功、buddy 失败和 cleanup 失败时检查执行顺序及原返回值；它不是硬件锁或映射正确性的证明。此版尚是定位实验，卡死没有修复。
+
+The wrapper requires the allocator-checkpoint policy. Existing SYSINIT/current-thread tracing remains; no speculative disabling of stolen memory or cache-attribute change is introduced. Stages 5+ remain blocked. A new compiled test executes the actual modified function with stubbed dependencies, checking order and return values for success, buddy failure and cleanup failure. This does not establish hardware lock/mapping correctness. The hang remains unresolved.
+
 ### 追踪版实机：已进入 xe，最后日志在 stolen 分配器前 / Trace build reaches xe
 
 用户截图中所有资源校验通过，但 stage 请求未返回。Windows 只读 NVRAM 得到 `s4 p11098`，按新编号规则是 pass 1、索引 49 的 GPU SYSINIT 入口。该键还保存了随后驱动日志：GOP GGTT 原范围为 `0xff000000 + 0xfa0000`（分配器交集 `0 + 0`）；两次读取并识别 `xe/ptl_guc_70.bin` 70.72.1；最后打印 `GOP DSM 0x7c800000: exclude prefix 0xfa0000 bytes`。
