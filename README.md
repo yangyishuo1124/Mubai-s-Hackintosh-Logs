@@ -1,6 +1,6 @@
 # ASUS Vivobook S16 S5650AA · Panther Lake Hackintosh
 
-核显实验更新 / GPU experiment update: 最新实机检查点为 GuC 功耗控制启动（44010），已越过 uC 上传、通信、默认上下文及 post-load 调用。已部署功耗控制内部追踪版，完整构建、读回和配置校验通过，待实机定位；卡死未修复，无 Metal。 / Latest hardware checkpoint is GuC power-control startup (44010), past uC upload, communication, default-context and post-load calls. Internal PC tracing is built, deployed and validated; hardware localization pending. Hang unresolved; no Metal. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
+核显实验更新 / GPU experiment update: 最新检查点退至 post-load 返回（44009），尚不能确认 PC 是卡点。已修正定时器/初始化线程并发 NVRAM 追踪写入，部署 v10，完整构建、读回和配置校验通过；卡死改善待实测，无 Metal。 / Latest trace ends at post-load return (44009); PC is not a confirmed failure site. V10 fixes concurrent timer/initializer NVRAM trace writes and is built, deployed and validated. Hang improvement unverified; no Metal. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
 
 **简体中文 / English** · 更新 / Updated: **2026-11-14**
 

@@ -6,6 +6,10 @@
 
 ### 追踪并发修正 / Trace concurrency correction
 
+[完整构建通过 / Full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43471982931)。已备份并部署 EFI 开机/诊断驱动及脚本，读回一致、ocvalidate 通过，config.plist 不变。SHA-256：`3be08e66332814a9cf77ad7eeffab280f240aa26852588807454533a4b621853`。本地生成源码检查了原子门、两个释放出口及 timer 抑制；实际硬件并发行为和卡死改善待验证。
+
+Full build/tests and validation passed. Boot/diagnostic bundles and wrapper are backed up and deployed with matching readback, clean ocvalidate and unchanged config.plist. Local generated-source checks cover the atomic gate, both release exits and timer suppression. Hardware concurrency behavior and any hang improvement remain unverified.
+
 v9 实机最后记录变为 `s4 p44009 checkpoint 44009 xe_guc_post_load_init returned`，未留下 PC 入口或内部标记。EFI 哈希与 v9 一致，最新记录 20261114-091555。位置后退意味着目前不能把 PC 启动当作已确认的唯一故障点。
 
 The v9 attempt leaves `s4 p44009 checkpoint 44009 xe_guc_post_load_init returned`, without PC entry/internal markers. EFI matches v9; latest probe is 20261114-091555. The earlier checkpoint means PC startup is not an established unique failure location.
@@ -14,9 +18,9 @@ The v9 attempt leaves `s4 p44009 checkpoint 44009 xe_guc_post_load_init returned
 
 Review found timer and initializer both invoke `xg_trace_write`, with unprotected NVRAM commits after snapshot capture. Interleaving can overwrite a newer snapshot with an older one. V10 adds a nonblocking atomic single-writer gate, suppresses stage-4 timer persistence (synchronous checkpoints remain), and formats progress from the same locked snapshot. A busy writer causes a skipped write rather than blocking initialization. This fixes a trace-design defect; it does not establish the cause of the system hang. NVRAM sync can still stall, so the last label is not an exact faulting instruction.
 
-策略 `ptl-stage4-trace-v10`，保留 PC 内部检查点和原 GPU 初始化，stage 5+ 阻断。完整构建/部署待确认。
+策略 `ptl-stage4-trace-v10`，保留 PC 内部检查点和原 GPU 初始化，stage 5+ 阻断。完整构建通过并已部署，实机效果待确认。
 
-Policy is `ptl-stage4-trace-v10`; PC checkpoints, original GPU initialization and the stage-5+ boundary remain. Full build/deployment pending.
+Policy is `ptl-stage4-trace-v10`; PC checkpoints, original GPU initialization and the stage-5+ boundary remain. Full build and deployment passed; hardware effects pending.
 
 ### 新实机定位：GuC 功耗控制 / New hardware localization: GuC power control
 
