@@ -22,7 +22,7 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. macOS Tah
 | USB | Intel xHCI / Type-C | 已有设备可用；端口未全面验证 / Devices work; not all ports qualified |
 | 电池 / Battery | Internal battery | 电量显示已修正，用户确认正常 / Percentage corrected and user-confirmed |
 | 音频 / Audio | ALC235 + Intel SST `8086:E328` | 已识别内置音频；播放与录音待分别确认 / Built-in audio detected; playback/capture checks pending |
-| Wi-Fi | RTL8852BE `10EC:B852` | 已保存网络自动连接及同一接入点密码直连可上网；GUI 首次连接/切换仍失败 / Saved autojoin and direct-password join to the same AP work; GUI join/switching unresolved |
+| Wi-Fi | RTL8852BE `10EC:B852` | 同轮对照：同一接入点 GUI 握手失败，驱动密码直连可上网；GUI 待修复 / Same-run comparison: GUI handshake fails, direct-password join to the same AP has working Internet; GUI unresolved |
 | 蓝牙 / Bluetooth | Realtek USB `0BDA:B85B` | 用户确认恢复；配件未全面测试 / User-confirmed recovery; accessory coverage incomplete |
 
 ## 已保留的改动 / Retained changes
@@ -41,6 +41,10 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. macOS Tah
   **Wi-Fi:** GUI failures stop after WPA2 M2 with no M3, followed by reason 15 / error `-2015`, before DHCP. A frequency-band cause has not been established.
 
 ## 下次 Wi-Fi 测试 / Next Wi-Fi test
+
+**最新结果：**已完成同轮同接入点对照，GUI 两次 M2 超时，驱动密码直连随后完成握手、取得 IP 且公网 ping 3/3 成功。直接连接目前可作绕过方案；GUI 尚未修复。先前五秒掉线在这次未重现，但不能单凭一次结果证明其原因。
+
+**Latest result:** The same-run, same-AP comparison is complete: two GUI M2 timeouts followed by successful direct-password authentication, IPv4 and 3/3 public-IP pings. Direct joining is now an observed workaround; GUI joining is not fixed. The earlier five-second drop did not recur, which alone does not establish its cause.
 
 脚本已改为先断开旧连接，避免此前的 `-16`（EBUSY）。旧接入点密码直连曾通过公网 ping；最新测试中，此前 GUI 失败的目标也完成直连握手，但约五秒后链路断开，无 IP，未达到可用状态。掉线时间紧邻脚本强制请求 DHCP，原因待查。GUI 尚未修复，下面保留测试方法供参考，不建议反复重跑。
 

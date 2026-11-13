@@ -2,6 +2,14 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## Same-run GUI/direct comparison completed
+
+The latest report captures two GUI/native WPA2 joins to the same AP, each receiving M1 and sending acknowledged M2 replies before AP deauthentication reason 15 and native error -2015. A later direct-password request in that same boot targets the exact same BSSID and channel, completes key installation/native link up, remains connected at collection, has IPv4, and passes public-IP pings 3/3. Identifiers were compared locally and are not published. The ZIP passed its integrity check.
+
+This establishes an observed direct-password workaround on the previously GUI-failing AP and narrows investigation to differences in native association/credential/state handling. It does not prove the incoming PMK bytes or their offsets are wrong; request flags/RSN and state differences remain possible. Both GUI attempts actually execute the join path and fail before the next attempt, so the duplicate-request shortcut is not supported as the explanation for these recorded attempts. Do not promote that earlier code concern to the root cause or deploy a speculative fix.
+
+The passive-address helper no longer forces DHCP, and this run has no five-second disconnect. That correlation does not prove the prior forced DHCP caused the drop. A new lease is not inferred solely from the IPv4 value; ongoing link state and successful traffic establish usable connectivity. No boot configuration, kext or helper changes were made in this review. Only bilingual documentation was updated; no further test is requested.
+
 ## Source review and passive address observation
 
 Reviewed the local upstream snapshot at `76d23fe`, particularly native POWER, DISASSOCIATE, ASSOCIATE and CIPHER_KEY handling, plus the external-PMK setter. The native DISASSOCIATE path explicitly calls glue_leave when not joining. The core Ethernet interface enable/disable methods only control output threading, so they alone do not explain a radio disconnect. A POWER-on log near a disconnect does not identify which subsequent caller requested leaving. No raw native request or caller stack was captured, so a proven call chain is still unavailable.

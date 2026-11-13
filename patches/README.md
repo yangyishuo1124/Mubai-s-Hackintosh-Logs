@@ -1,5 +1,9 @@
 # AirPort_RTW89 源码核查 / Source investigation
 
+> 最新对照中两次 GUI 请求都进入连接并失败，未发现重复请求被吞的证据。此补丁继续仅作诊断草案，不建议为了该疑点单独编译部署。
+>
+> The latest comparison shows both GUI attempts executing and failing; suppression by the duplicate shortcut is not demonstrated. This remains a diagnostic draft, not a reason by itself to build and deploy a new driver.
+
 ## 状态 / Status
 
 这是待构建的**诊断源码补丁**，不是已验证的 GUI 修复。硬盘 EFI 和驱动二进制未修改。基准为上游 `76d23fe`，补丁已通过 `git apply --check`；未编译、未运行上游测试、未实机启动。Windows 主机没有所需的 macOS/Xcode 构建环境。
