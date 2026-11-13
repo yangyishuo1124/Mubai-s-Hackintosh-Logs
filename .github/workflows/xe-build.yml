@@ -8,7 +8,7 @@ permissions:
   contents: read
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-15-intel
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +27,7 @@ jobs:
           fetch torvalds/linux 38fec10eb60d687e30c8c6b5420d86e8149f7557 "$HOME/src/xe-src/linux"
           fetch freebsd/drm-kmod c16de0f9fa "$HOME/src/xe-src/drm-kmod"
           fetch freebsd/freebsd-src 9da2c05a748fd17757638e1a9e78215cdb8b80d0 "$HOME/src/xe-src/freebsd"
+          cp patches/xe-0159-bsd-context.patch build/WTLIntelGfx/xkpi/xe/patches/0159-guc-fence-once.patch
       - name: Build and verify xe kernel driver
         shell: bash
         run: |
