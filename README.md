@@ -1,6 +1,6 @@
 # ASUS Vivobook S16 S5650AA · Panther Lake Hackintosh
 
-核显实验更新 / GPU experiment update: 已部署分配器内部追踪版，细分 TTM、buddy、清理注册及 WC 映射调用；完整构建测试通过，待一次实机定位。stage 4 卡死未修复，Metal 未启用。 / Deployed allocator-internal checkpoints for TTM, buddy, cleanup and WC mapping. Full build/tests pass; one hardware localization attempt is pending. Stage-4 hang remains unresolved; no Metal acceleration. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
+核显实验更新 / GPU experiment update: 实机 NVRAM 已到达分配器末尾检查点 30005；新增后续 device/GT/forcewake/GGTT 调用追踪，完整构建及部署待确认。卡死未修复，Metal 未启用。 / Hardware trace reached allocator-tail checkpoint 30005. Added downstream device/GT/forcewake/GGTT checkpoints; build and deployment pending. Hang unresolved; no Metal acceleration. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
 
 **简体中文 / English** · 更新 / Updated: **2026-11-13**
 

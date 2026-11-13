@@ -4,6 +4,20 @@
 
 ## 当前结论 / Current conclusion
 
+### 分配器末尾检查点已到达；继续定位 GT / Allocator tail reached; tracing GT
+
+本次卡死后，Windows 只读恢复 NVRAM：`s4 p30005 checkpoint 30005 stolen init returned`。该检查点在 stolen manager 初始化末尾，位于 VRAM manager、清理注册和可选 WC 映射之后。本次证据不支持此前怀疑的分配器内部卡住；不过标签在同步 NVRAM 写入完成前形成，所以尚不能证明该检查点调用已经返回。最新 EFI 探测仍停在 stage 请求，没有新的完整诊断包。
+
+Read-only NVRAM recovery after this hang gives `s4 p30005 checkpoint 30005 stolen init returned`. This is the tail of stolen-manager initialization, after the VRAM manager, cleanup registration and optional WC mapping. An allocator-internal stall is not supported by this attempt. The label is formed before synchronous persistence finishes, so the checkpoint call itself is not proven to have returned. The latest EFI probe stops at the stage request, with no new completed diagnostic archive.
+
+新增 `xe-0202-gt-checkpoints.patch`：40000–40013 跟踪 device probe 中 stolen 返回、display-noaccel、GT、HECI、OA 和 DRM 注册；41000–41017 跟踪 GT 主初始化；42000–42013 跟踪 GT forcewake、GGTT、IRQ、MCR 和 early-engine/sysfs；43000–43013 跟踪全域 forcewake、寄存器恢复、时钟、引擎、uC、迁移和硬件初始化。每对偶数为进入、奇数为返回；多 GT 会复用编号。保留原调用和错误路径，不跳过任何初始化。检查点写入也可能影响时序，不能把最后标签直接当作故障指令。
+
+The new patch brackets device-probe calls (40000–40013), GT initialization (41000–41017), GT-domain forcewake/GGTT/IRQ/MCR/early-engine setup (42000–42013), and all-domain forcewake/register/clock/engine/uC/migration initialization (43000–43013). Even codes enter a call; the following odd code records its return. Multiple GTs reuse codes. All original calls/error paths remain. Persistence can change timing or itself stall; the final label is not an exact faulting instruction.
+
+策略更新为 `ptl-stage4-gt-v7`。CPU 像素访问禁止及 stage 5+ 阻断仍保留，尚未修复卡死、尚无 Metal。补丁已在固定 Linux 源码上实际应用，并核对移除新增检查点后原代码 token 一致；完整构建与实机效果待确认。
+
+Policy is `ptl-stage4-gt-v7`. CPU pixel access and stages 5+ remain blocked; the hang and Metal support remain unresolved. Local patch application against the pinned Linux source passes, and stripping the added checkpoints leaves original code tokens unchanged. Full build and hardware results are pending.
+
 ### 显存分配器内部定位版 / Allocator localization revision
 
 [完整构建通过 / Full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43461250290)：原有全部检查及新分配器路径测试通过，固件嵌入/签名/架构验证通过。已备份并替换硬盘 EFI 开机/诊断驱动和脚本，链接后检查点标签与版本标记存在，读回一致，ocvalidate 通过，开机配置不变。二进制 SHA-256：`14b7d142bd0cba6b9df4461aa71a38aff9212c893f29952f0cbc3a8ff9608bb3`。下一次只做一次 stage 4 复现；若卡死，回 Windows 读 NVRAM，不反复重跑。此版实机定位效果尚未验证。

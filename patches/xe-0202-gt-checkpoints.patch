@@ -1,0 +1,264 @@
+--- a/xe_device.c
++++ b/xe_device.c
+@@ -62,6 +62,8 @@
+ 
+ #include <generated/xe_wa_oob.h>
+ 
++extern void xg_init_checkpoint(int, const char *);
++
+ static int xe_file_open(struct drm_device *dev, struct drm_file *file)
+ {
+ 	struct xe_device *xe = to_xe_device(dev);
+@@ -722,7 +724,9 @@
+ 	}
+ 
+ 	/* Allocate and map stolen after potential VRAM resize */
++	xg_init_checkpoint(40000, "device stolen init begin");
+ 	xe_ttm_stolen_mgr_init(xe);
++	xg_init_checkpoint(40001, "device stolen init returned");
+ 
+ 	/*
+ 	 * Now that GT is initialized (TTM in particular),
+@@ -730,29 +734,41 @@
+ 	 * This is the reason the first allocation needs to be done
+ 	 * inside display.
+ 	 */
++	xg_init_checkpoint(40002, "display noaccel begin");
+ 	err = xe_display_init_noaccel(xe);
++	xg_init_checkpoint(40003, "display noaccel returned");
+ 	if (err)
+ 		goto err;
+ 
+ 	for_each_gt(gt, xe, id) {
+ 		last_gt = id;
+ 
++		xg_init_checkpoint(40004, "GT init begin");
+ 		err = xe_gt_init(gt);
++		xg_init_checkpoint(40005, "GT init returned");
+ 		if (err)
+ 			goto err_fini_gt;
+ 	}
+ 
++	xg_init_checkpoint(40006, "HECI GSC begin");
+ 	xe_heci_gsc_init(xe);
+-
++	xg_init_checkpoint(40007, "HECI GSC returned");
++
++	xg_init_checkpoint(40008, "OA init begin");
+ 	err = xe_oa_init(xe);
++	xg_init_checkpoint(40009, "OA init returned");
+ 	if (err)
+ 		goto err_fini_gt;
+ 
++	xg_init_checkpoint(40010, "display init begin");
+ 	err = xe_display_init(xe);
++	xg_init_checkpoint(40011, "display init returned");
+ 	if (err)
+ 		goto err_fini_oa;
+ 
++	xg_init_checkpoint(40012, "DRM register begin");
+ 	err = drm_dev_register(&xe->drm, 0);
++	xg_init_checkpoint(40013, "DRM register returned");
+ 	if (err)
+ 		goto err_fini_display;
+ 
+--- a/xe_gt.c
++++ b/xe_gt.c
+@@ -60,6 +60,8 @@
+ #include "xe_wa.h"
+ #include "xe_wopcm.h"
+ 
++extern void xg_init_checkpoint(int, const char *);
++
+ static void gt_fini(struct drm_device *drm, void *arg)
+ {
+ 	struct xe_gt *gt = arg;
+@@ -408,14 +410,18 @@
+ 	unsigned int fw_ref;
+ 	int err, i;
+ 
++	xg_init_checkpoint(42000, "GT forcewake get begin");
+ 	fw_ref = xe_force_wake_get(gt_to_fw(gt), XE_FW_GT);
++	xg_init_checkpoint(42001, "GT forcewake get returned");
+ 	if (!fw_ref) {
+ 		err = -ETIMEDOUT;
+ 		goto err_hw_fence_irq;
+ 	}
+ 
+ 	if (!xe_gt_is_media_type(gt)) {
++		xg_init_checkpoint(42002, "GGTT init begin");
+ 		err = xe_ggtt_init(gt_to_tile(gt)->mem.ggtt);
++		xg_init_checkpoint(42003, "GGTT init returned");
+ 		if (err)
+ 			goto err_force_wake;
+ 		if (IS_SRIOV_PF(gt_to_xe(gt)))
+@@ -423,21 +429,31 @@
+ 	}
+ 
+ 	/* Enable per hw engine IRQs */
++	xg_init_checkpoint(42004, "engine IRQ enable begin");
+ 	xe_irq_enable_hwe(gt);
++	xg_init_checkpoint(42005, "engine IRQ enable returned");
+ 
+ 	/* Rerun MCR init as we now have hw engine list */
++	xg_init_checkpoint(42006, "MCR init begin");
+ 	xe_gt_mcr_init(gt);
+-
++	xg_init_checkpoint(42007, "MCR init returned");
++
++	xg_init_checkpoint(42008, "early engines begin");
+ 	err = xe_hw_engines_init_early(gt);
++	xg_init_checkpoint(42009, "early engines returned");
+ 	if (err)
+ 		goto err_force_wake;
+ 
++	xg_init_checkpoint(42010, "engine class sysfs begin");
+ 	err = xe_hw_engine_class_sysfs_init(gt);
++	xg_init_checkpoint(42011, "engine class sysfs returned");
+ 	if (err)
+ 		goto err_force_wake;
+ 
+ 	/* Initialize CCS mode sysfs after early initialization of HW engines */
++	xg_init_checkpoint(42012, "CCS sysfs begin");
+ 	err = xe_gt_ccs_mode_sysfs_init(gt);
++	xg_init_checkpoint(42013, "CCS sysfs returned");
+ 	if (err)
+ 		goto err_force_wake;
+ 
+@@ -465,7 +481,9 @@
+ 	unsigned int fw_ref;
+ 	int err, i;
+ 
++	xg_init_checkpoint(43000, "all forcewake get begin");
+ 	fw_ref = xe_force_wake_get(gt_to_fw(gt), XE_FORCEWAKE_ALL);
++	xg_init_checkpoint(43001, "all forcewake get returned");
+ 	if (!xe_force_wake_ref_has_domain(fw_ref, XE_FORCEWAKE_ALL)) {
+ 		err = -ETIMEDOUT;
+ 		goto err_force_wake;
+@@ -474,9 +492,13 @@
+ 	xe_gt_mcr_set_implicit_defaults(gt);
+ 	xe_wa_process_gt(gt);
+ 	xe_tuning_process_gt(gt);
++	xg_init_checkpoint(43002, "apply register state begin");
+ 	xe_reg_sr_apply_mmio(&gt->reg_sr, gt);
+-
++	xg_init_checkpoint(43003, "apply register state returned");
++
++	xg_init_checkpoint(43004, "GT clock begin");
+ 	err = xe_gt_clock_init(gt);
++	xg_init_checkpoint(43005, "GT clock returned");
+ 	if (err)
+ 		goto err_force_wake;
+ 
+@@ -485,11 +507,15 @@
+ 	if (err)
+ 		goto err_force_wake;
+ 
++	xg_init_checkpoint(43006, "engines init begin");
+ 	err = xe_hw_engines_init(gt);
++	xg_init_checkpoint(43007, "engines init returned");
+ 	if (err)
+ 		goto err_force_wake;
+ 
++	xg_init_checkpoint(43008, "uC post hwconfig begin");
+ 	err = xe_uc_init_post_hwconfig(&gt->uc);
++	xg_init_checkpoint(43009, "uC post hwconfig returned");
+ 	if (err)
+ 		goto err_force_wake;
+ 
+@@ -512,14 +538,18 @@
+ 	if (!xe_gt_is_media_type(gt)) {
+ 		struct xe_tile *tile = gt_to_tile(gt);
+ 
++		xg_init_checkpoint(43010, "migration init begin");
+ 		tile->migrate = xe_migrate_init(tile);
++		xg_init_checkpoint(43011, "migration init returned");
+ 		if (IS_ERR(tile->migrate)) {
+ 			err = PTR_ERR(tile->migrate);
+ 			goto err_force_wake;
+ 		}
+ 	}
+ 
++	xg_init_checkpoint(43012, "uC hardware init begin");
+ 	err = xe_uc_init_hw(&gt->uc);
++	xg_init_checkpoint(43013, "uC hardware init returned");
+ 	if (err)
+ 		goto err_force_wake;
+ 
+@@ -587,42 +617,60 @@
+ 	int err;
+ 	int i;
+ 
++	xg_init_checkpoint(41000, "GT reset work begin");
+ 	INIT_WORK(&gt->reset.worker, gt_reset_worker);
++	xg_init_checkpoint(41001, "GT reset work returned");
+ 
+ 	for (i = 0; i < XE_ENGINE_CLASS_MAX; ++i) {
+ 		gt->ring_ops[i] = xe_ring_ops_get(gt, i);
+ 		xe_hw_fence_irq_init(&gt->fence_irq[i]);
+ 	}
+ 
++	xg_init_checkpoint(41002, "GT pagefault begin");
+ 	err = xe_gt_pagefault_init(gt);
++	xg_init_checkpoint(41003, "GT pagefault returned");
+ 	if (err)
+ 		return err;
+ 
+ 	xe_mocs_init_early(gt);
+ 
++	xg_init_checkpoint(41004, "GT sysfs begin");
+ 	err = xe_gt_sysfs_init(gt);
+-	if (err)
+-		return err;
+-
++	xg_init_checkpoint(41005, "GT sysfs returned");
++	if (err)
++		return err;
++
++	xg_init_checkpoint(41006, "GT FW domain begin");
+ 	err = gt_fw_domain_init(gt);
+-	if (err)
+-		return err;
+-
++	xg_init_checkpoint(41007, "GT FW domain returned");
++	if (err)
++		return err;
++
++	xg_init_checkpoint(41008, "GT idle begin");
+ 	err = xe_gt_idle_init(&gt->gtidle);
+-	if (err)
+-		return err;
+-
++	xg_init_checkpoint(41009, "GT idle returned");
++	if (err)
++		return err;
++
++	xg_init_checkpoint(41010, "GT frequency begin");
+ 	err = xe_gt_freq_init(gt);
+-	if (err)
+-		return err;
+-
++	xg_init_checkpoint(41011, "GT frequency returned");
++	if (err)
++		return err;
++
++	xg_init_checkpoint(41012, "engine forcewake init begin");
+ 	xe_force_wake_init_engines(gt, gt_to_fw(gt));
+-
++	xg_init_checkpoint(41013, "engine forcewake init returned");
++
++	xg_init_checkpoint(41014, "all FW domains begin");
+ 	err = all_fw_domain_init(gt);
+-	if (err)
+-		return err;
+-
++	xg_init_checkpoint(41015, "all FW domains returned");
++	if (err)
++		return err;
++
++	xg_init_checkpoint(41016, "record user engines begin");
+ 	xe_gt_record_user_engines(gt);
++	xg_init_checkpoint(41017, "record user engines returned");
+ 
+ 	return 0;
+ }

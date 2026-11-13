@@ -22,7 +22,7 @@ fi
 
 # Refuse an older boot-loaded binary even if the files on EFI were replaced.
 policy="$(ioreg -r -c XeGfxResident -l)"
-if [[ "$policy" != *'"XeGfxProbePolicy" = "ptl-stage4-alloc-v6"'* ]]; then
+if [[ "$policy" != *'"XeGfxProbePolicy" = "ptl-stage4-gt-v7"'* ]]; then
     print '当前加载的仍是旧版驱动，停止探测，请重启后再运行。'
     print 'Loaded driver lacks the stage-4 policy; reboot before probing.'
     zsh "$base/collect.command"
