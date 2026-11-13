@@ -4,6 +4,28 @@
 
 ## 当前结论 / Current conclusion
 
+### stage 3 已通过，推进 GuC/GT stage 4 / Stage 3 passed; advancing to GuC/GT
+
+[完整构建通过 / Full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43452344154)：阶段边界/快照/阻断及原有 16 项测试通过；编译、链接、KPI、签名、架构、固件资源和内嵌数据检查通过。已备份并部署硬盘 EFI 开机/诊断副本、资源和脚本，读回与固件散列核验通过，ocvalidate 正常，配置不变。驱动 SHA-256：`a45501203b28d657b10f18cf205636739f016bb2eff10a1561444d71892db9fe`。GuC/GT 实机运行状态尚未验证。
+
+All boundary/snapshot/containment and 16 existing tests pass, with compile/link/KPI/signature/architecture and resource/embedded firmware checks passing. Boot/diagnostic bundles, resources and wrapper are backed up and deployed to the internal EFI; readback, firmware hashes and ocvalidate pass. Configuration is unchanged. Driver SHA-256 is shown above. Hardware GuC/GT operation remains unverified.
+
+重启后运行现有探测脚本，目标为 stage 4，失败时不继续手动推阶段。若黑屏重启，回到 Windows 读取阶段追踪，再收集 macOS panic；不把资源校验或 stage 3 成功当成 GuC/GT 成功。
+
+After reboot the wrapper targets stage 4. Do not manually advance after failure. A black-screen reboot requires examination of stage traces and subsequent panic collection. Resource validation or a stage-3 pass is not a GuC/GT success.
+
+最新实机采集：stage 1/2/3 均返回 1，完成阶段为 3。`XeGfxPost.result=1`、`metadata-unchanged=1`、`frmcount-delta=17`、`pixel-verified=0`，页表散列仍为 `0x765b28479d6be205`。newbus 已绑定 vgapci，drmn 节点尚未绑定驱动，符合 SYSINIT 未运行的阶段。shim 报告无 IOMMU，DMA 地址为物理地址。`older than gen11` 是 shim 旧设备列表未识别 B0A0 的诊断文本，不是硬件世代判断；xe 的 DSM 保留使用已修订的 MMIO 路径。
+
+The latest hardware run completes stages 1–3 with successful post-bus GOP metadata validation and frame delta 17; pixels remain unverified. vgapci is attached, while drmn remains unbound before GPU SYSINIT. The shim reports no IOMMU and physical DMA addresses. Its old device-list message incorrectly labels the unrecognized B0A0 as older than gen11; this is not a hardware-generation finding. The xe reservation path uses the corrected MMIO DSM discovery.
+
+本轮加入固定 linux-firmware `bda6eccc3a8f` 的原样 PTL GuC，附原许可，散列 `ac42861c62b69f19923d9a69d971fb849921585a01924e14c0e8ac679d7cde81`。构建要求资源文件、内嵌固件及许可均存在且散列吻合。新策略 `ptl-stage4-guc-v4` 允许 stage 4 SYSINIT/GuC/GT 初始化并执行 GOP 元数据和 GT 状态检查；stage 5 及以后在执行测试之前阻断，不发布 Metal 加速设备。
+
+This revision adds the unmodified pinned PTL GuC with its original licence. Build checks require matching resource and embedded firmware plus the licence. The new policy permits stage-4 SYSINIT/GuC/GT initialization with GOP metadata and GT checks, but blocks stages 5+ before execution tests and does not publish a Metal accelerator.
+
+脚本明确设置 `compat.linuxkpi.xe_probe_display=0 xegfx.nvram_trace=1`，保持固件显示路径并保存阶段追踪。stage 4 会实际操作 GT，关闭显示探测不保证硬件不会黑屏或重启；实机结果必须由返回值、GT 状态、GOP 检查和崩溃报告共同确认。
+
+The wrapper disables display probing and enables persistent stage tracing. Stage 4 operates the GT; disabling display takeover does not guarantee freedom from black screens or reboots. Hardware status must be established from stage results, GT state, GOP checks and crash evidence.
+
 ### 推进至 PCI/DMA stage 3 / Advance to PCI/DMA stage 3
 
 [完整构建通过 / Successful full build](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43448978188)：阶段边界、显示快照、原有阻断测试和全部 16 项测试通过，编译/链接/KPI/签名/架构检查通过。新版已备份并部署至硬盘 EFI 开机/签名诊断副本和脚本，读回一致，ocvalidate 通过，开机配置不变。二进制 SHA-256：`8d48440b3d47e3f3787e5c790a709d2a2bd5fc279e25e072dcf2506248522768`。stage 3 实机效果尚待验证。

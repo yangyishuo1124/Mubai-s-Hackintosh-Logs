@@ -3,9 +3,41 @@
 <plist version="1.0">
 <dict>
 	<key>files</key>
-	<dict/>
+	<dict>
+		<key>Resources/LICENSE.xe</key>
+		<data>
+		Kl+I6DlgV+wRPOy5rXSwlFDzhHk=
+		</data>
+		<key>Resources/ptl_guc_70.bin</key>
+		<data>
+		cI/wtF7qjX9Q1wFv5X6hN+xkTEs=
+		</data>
+	</dict>
 	<key>files2</key>
-	<dict/>
+	<dict>
+		<key>Resources/LICENSE.xe</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			Kl+I6DlgV+wRPOy5rXSwlFDzhHk=
+			</data>
+			<key>hash2</key>
+			<data>
+			JrPJRvHzeP8luzu3w2XRCKK8C/CGGeXgi8Dk+aqm7h4=
+			</data>
+		</dict>
+		<key>Resources/ptl_guc_70.bin</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			cI/wtF7qjX9Q1wFv5X6hN+xkTEs=
+			</data>
+			<key>hash2</key>
+			<data>
+			rEKGHGK2nxmSPZpp2XH7hJkhWFoBkk4UwOisZ5183oE=
+			</data>
+		</dict>
+	</dict>
 	<key>rules</key>
 	<dict>
 		<key>^Resources/</key>
