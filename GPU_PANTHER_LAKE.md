@@ -4,6 +4,12 @@
 
 ## 当前结论 / Current conclusion
 
+### 撤回重复阶段拆测 / Withdraw redundant stage splitting
+
+用户指出已有 stage 1–3 成功及 stage 4 内部进展证据，分段重测前面阶段不能直接推进当前故障。刚提交的分段脚本尚未部署到硬盘 EFI，现从仓库撤回，恢复 v13 原探测脚本。后续调查聚焦 stage 4 内部，尤其已观测到的 GuC post-load/PC 启动相邻路径；早期文件采样不用于推翻之前实测。GPU 卡死仍未解决，本轮无需重启。
+
+Prior stage-1–3 success and internal stage-4 progress remain valid. The proposed split-stage wrapper did not directly advance the current fault and had not been deployed to disk; it is withdrawn from the repository, restoring the v13 wrapper. Further investigation focuses within stage 4, especially the observed GuC post-load/PC-start neighborhood. Early file samples do not invalidate prior hardware evidence. The GPU hang remains unresolved; no reboot is needed this round.
+
 ### v13 仍卡死：保存本次进入 stage 4 前的状态 / V13 still stalls: preserve pre-stage4 state
 
 新日志 20261114-115434 确认 v13 文件/策略通过，EFI hash 匹配；请求未返回，progress 只有启动采样 0。错误传播修正尚未带来可见返回或固件错误，不能声称修复整机卡死。之前 stage 1–3 已通过、部分尝试进入过 stage 4 的证据仍有效。
