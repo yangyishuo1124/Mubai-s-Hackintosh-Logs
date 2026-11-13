@@ -2,6 +2,14 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## Latest target test: authentication succeeds, link is then lost
+
+The new direct join reaches the AP that previously showed GUI M2 timeouts in earlier reports (matched privately by BSSID). Association and WPA2 key installation complete, followed by native link up. This establishes that direct-password authentication can work with that AP, beyond the previously working saved AP. The current driver ring does not contain a fresh GUI join failure in this same run, so this is a cross-report comparison, not a controlled same-run A/B test.
+
+Approximately 5.1 seconds later, the ring records a macOS Wi-Fi-on operation, local MLME leaving, and native link down. The final interface is inactive, without an IPv4 address or DHCP packet; public-IP pings fail. No AP-originated deauthentication is recorded at that disconnect. The timing closely matches the helper's five-second wait followed by `ipconfig set en0 DHCP`, and system logs show an iff_up event and DHCP media-inactive status. An interface reconfiguration/reset is therefore a concrete suspect for loss after authentication; causation by the DHCP command is not yet proven.
+
+GUI credential handoff/state and post-direct-join interface handling should be investigated separately. A completed handshake does not establish usable networking, and does not by itself prove a PMK decoder bug. Only bilingual documentation was updated; no EFI or helper changes and no additional test request were made. Raw identifiers and reports remain local; ZIP integrity passed.
+
 ## Latest report: direct-password join succeeds
 
 The newest report captures a direct driver join request followed by association and a completed WPA2 handshake, without EBUSY. The subsequent report has an IPv4 address and successful gateway/public-IP pings (3/3 each). This validates the direct-join helper and a working direct-password connection on the tested AP. The IPv4 address alone does not establish a newly issued lease; connectivity after the join is independently demonstrated by pings.
