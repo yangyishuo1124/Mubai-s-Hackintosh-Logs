@@ -33,3 +33,15 @@ ipconfig getpacket en0
 The [AirPort_RTW89 porting notes](https://github.com/FranciumOS-org/Airport_RTW89/blob/main/docs/PORTING.md) document a case where macOS did not create a network service for a new interface and DHCP had to be started manually. This is a diagnostic lead, not yet the established cause on this machine.
 
 For Bluetooth, the [firmware driver's installation notes](https://github.com/thegwchr/RealtekBluetoothFirmware/blob/main/docs/Installation.md) say that `RealtekFirmware` log entries distinguish a successful firmware upload from a device that was never matched. If upload succeeded but Bluetooth still fails, inspect `bluetoothd` and BlueToolFixup logs before changing the EFI again.
+
+## First report readback
+
+The user confirmed that the touchpad works again after restoring polling. The first report shows `en0` active on a WPA2 network, an IPv4 address, a DHCP ACK, DNS and a default route. The user did **not** manually run `ipconfig set en0 DHCP` on this boot; remembering the network password may have allowed automatic connection. The first report therefore does not support a persistent DHCP failure. Internet reachability and GUI switching to a different network still need confirmation.
+
+`BlueToolFixup` and `RealtekBluetoothFirmware` are loaded, but System Information contains no Bluetooth controller. The first diagnostics script accidentally called zsh's `log` builtin instead of `/usr/bin/log`, so the firmware and bluetoothd logs were not captured. The script has been corrected and now records USB IORegistry and network pings into a single ZIP.
+
+The FAT32 report directory was corrupt after the first macOS write. A raw image of the EFI partition was saved locally before a filesystem repair. The repair completed, Windows reported the volume healthy, and the active `config.plist` hash remained unchanged. For the next run, unmount the EFI volume cleanly in macOS before rebooting:
+
+```sh
+sudo diskutil unmount /Volumes/SYSTEM
+```
