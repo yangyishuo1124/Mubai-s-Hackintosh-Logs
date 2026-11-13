@@ -6,13 +6,17 @@
 
 ### 新实机定位：uC 硬件初始化 / New hardware localization: uC hardware initialization
 
+[完整构建通过 / Full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43467363285)。已备份并替换硬盘 EFI 的开机和诊断驱动及脚本，读回一致、ocvalidate 通过，开机配置不变。新版 SHA-256：`4d4827f7774f5718149951767eb7e504773c68168c50e6a0a8d9800d16829f33`。待重启后实机定位，不代表卡死已修复。
+
+Full build/tests and validation passed. Boot and diagnostic drivers plus wrapper are backed up and deployed to the internal EFI, with matching readback and clean ocvalidate. Boot configuration is unchanged. Hardware localization after reboot remains pending; the hang is not fixed.
+
 Windows 只读恢复最新 NVRAM：`s4 p43012 checkpoint 43012 uC hardware init begin`；新 EFI 记录仍停在 stage 请求。已越过此前的 stolen、GT forcewake、GGTT、引擎和迁移初始化；当前范围缩至 `xe_uc_init_hw` 或该入口检查点的同步保存。尚不能判断卡在 HuC 上传、GuC 上传、通信、默认 LRC、功耗初始化还是持久化本身，亦不能由此证明 GuC 正常运行。
 
 Read-only Windows recovery gives `s4 p43012 checkpoint 43012 uC hardware init begin`. The new EFI log again ends at the stage request. This run passed stolen initialization, GT forcewake, GGTT, engines and migration setup. The current candidate is `xe_uc_init_hw` or synchronous persistence at its entry checkpoint. HuC/GuC upload, communication, default LRC setup, power control and persistence remain to be distinguished; running GuC is not established.
 
-新增 0203 补丁：44000–44015 逐项标记 uC 硬件初始化，45000–45011 标记 GuC 提频、参数、传输准备、RSA、固件 DMA 上传和认证等待。每对偶数开始、奇数返回，不改变原调用或错误处理。策略为 `ptl-stage4-uc-v8`；stage 5+ 继续阻断。完整构建和部署待确认，卡死尚未修复。
+新增 0203 补丁：44000–44015 逐项标记 uC 硬件初始化，45000–45011 标记 GuC 提频、参数、传输准备、RSA、固件 DMA 上传和认证等待。每对偶数开始、奇数返回，不改变原调用或错误处理。策略为 `ptl-stage4-uc-v8`；stage 5+ 继续阻断。完整构建通过并已部署，卡死尚未修复。
 
-Patch 0203 brackets uC hardware initialization (44000–44015) and GuC frequency/parameters/transfer preparation/RSA/firmware DMA/authentication wait (45000–45011). Even codes enter, odd codes return. Calls and error handling remain unchanged. Policy is `ptl-stage4-uc-v8`; stages 5+ remain blocked. Full build/deployment are pending; the hang is unresolved.
+Patch 0203 brackets uC hardware initialization (44000–44015) and GuC frequency/parameters/transfer preparation/RSA/firmware DMA/authentication wait (45000–45011). Even codes enter, odd codes return. Calls and error handling remain unchanged. Policy is `ptl-stage4-uc-v8`; stages 5+ remain blocked. Full build and deployment passed; the hang is unresolved.
 
 ### 分配器末尾检查点已到达；继续定位 GT / Allocator tail reached; tracing GT
 
