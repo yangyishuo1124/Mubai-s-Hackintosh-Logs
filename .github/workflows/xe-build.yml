@@ -31,6 +31,7 @@ jobs:
           cp third_party/linux-firmware/ptl_guc_70.bin "$HOME/src/xe-src/linux-firmware/xe/"
           cp third_party/linux-firmware/LICENSE.xe "$HOME/src/xe-src/linux-firmware/"
           echo 'ac42861c62b69f19923d9a69d971fb849921585a01924e14c0e8ac679d7cde81  third_party/linux-firmware/ptl_guc_70.bin' | shasum -a 256 -c -
+          cp patches/xe-0201-allocator-checkpoints.patch build/WTLIntelGfx/xkpi/xe/patches/0201-allocator-checkpoints.patch
           cp patches/xe-0200-gop-mmio-reservation.patch build/WTLIntelGfx/xkpi/xe/patches/0200-m1-gop-reservations.patch
           python3 patches/adapt_xe_mmio_reservation_tests.py build/WTLIntelGfx/harness/test_xe_stages.py
           cp patches/xe-0159-bsd-context.patch build/WTLIntelGfx/xkpi/xe/patches/0159-guc-fence-once.patch
@@ -49,7 +50,7 @@ jobs:
           test -r /System/Library/KernelCollections/BootKernelExtensions.kc
           cd build/WTLIntelGfx
           python3 "$GITHUB_WORKSPACE/patches/test_ptl_gop_snapshot.py" shim/src/xnu/xg_kext.cpp
-          sed -i.bak "s/ptl-stage4-guc-v4/ptl-stage4-trace-v5/g" "$GITHUB_WORKSPACE/patches/test_ptl_stage3_policy.py"
+          sed -i.bak "s/ptl-stage4-guc-v4/ptl-stage4-alloc-v6/g" "$GITHUB_WORKSPACE/patches/test_ptl_stage3_policy.py"
           python3 "$GITHUB_WORKSPACE/patches/test_ptl_stage3_policy.py" shim/src/xnu/xg_kext.cpp
           XEGFX_KMD=xe bash build/build_xegfx.sh 2>&1 | tee "$GITHUB_WORKSPACE/build/xe-build.log"
           python3 - <<'PY'
@@ -61,6 +62,7 @@ jobs:
           python3 harness/test_xe_stages.py 2>&1 | tee "$GITHUB_WORKSPACE/build/xe-tests.log"
           lipo out/XeGfx.kext/Contents/MacOS/XeGfx -verify_arch x86_64
           codesign --verify --verbose out/XeGfx.kext
+          python3 "$GITHUB_WORKSPACE/patches/test_allocator_checkpoints.py" out/xe-src/xe_ttm_vram_mgr.c
           python3 - <<'PY'
           from pathlib import Path
           import hashlib
