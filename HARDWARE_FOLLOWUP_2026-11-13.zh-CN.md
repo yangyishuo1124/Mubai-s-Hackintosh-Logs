@@ -2,6 +2,10 @@
 
 [English](HARDWARE_FOLLOWUP_2026-11-13.md) · [中英双语首页](README.md)
 
+## GPIO 实测：配置声明了二进制不存在的类
+
+最新报告五个 GPIO 节点均已枚举，但启动时五次无法创建 VoodooGPIOTigerLakeLP；当前 VoodooGPIO 1.1 二进制无该类，配置与二进制不一致。触摸板明确为 Polling。此问题发生在寄存器配置之前，但仅补 Tiger Lake 类仍不等于支持 Panther Lake。详见 [GPIO 调查](TOUCHPAD_GPIO.md)。本轮不改 EFI、不要求重复采集，中断尚未修复。
+
 ## 触摸板 GPIO：发现平台布局不匹配
 
 详见 [GPIO 调查](TOUCHPAD_GPIO.md)。现有 INTC10BB 被加入 Tiger Lake 匹配列表，但 BIOS 寄存器偏移不匹配；尚未修复中断。只增强诊断采集，保留当前可用轮询，未修改配置或驱动。

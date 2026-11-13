@@ -2,6 +2,10 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## GPIO test: declared class absent from the binary
+
+All five GPIO nodes enumerate, but boot logs show five failures to allocate VoodooGPIOTigerLakeLP, whose class name is absent from the current VoodooGPIO 1.1 binary. The personality and binary are inconsistent; the touchpad explicitly remains Polling. This blocks startup before register configuration, but adding Tiger Lake support alone would not establish Panther Lake compatibility. See the [GPIO investigation](TOUCHPAD_GPIO.md). No EFI changes or repeated collection requested; interrupts remain unresolved.
+
 ## Touchpad GPIO: platform layout mismatch identified
 
 See the [bilingual GPIO investigation](TOUCHPAD_GPIO.md). Existing INTC10BB matching points at Tiger Lake while firmware register offsets differ; interrupts remain unresolved. Only diagnostic collection is extended; working polling, boot configuration and drivers are retained.

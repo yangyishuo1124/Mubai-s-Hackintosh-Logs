@@ -1,5 +1,19 @@
 # 触摸板 GPIO 中断调查 / Touchpad GPIO interrupt investigation
 
+## 最新实测：声明的驱动类不存在 / Latest test: declared class unavailable
+
+最新报告 ZIP 完整性通过。五个 GPIO ACPI 节点 GPI0、GPI1、GPI3、GPI4、GPI5 均已枚举，各有 UID 与 IRQ 14 资源。启动日志五次报 `Couldn’t alloc class VoodooGPIOTigerLakeLP`（原日志使用 ASCII 撇号）。核对当前 VoodooGPIO 1.1 二进制，未找到该类名称，而其他六个 personality 的类名均存在。由配置声明、运行时分配失败和二进制检查共同确认：现有 Tiger Lake personality 与驱动二进制不一致，尚未进入有效 GPIO 控制器初始化。这比寄存器布局差异更早阻断启动。
+
+The latest ZIP passes integrity validation. GPI0, GPI1, GPI3, GPI4 and GPI5 enumerate with UID and IRQ 14 resources. Boot logs show five failures to allocate VoodooGPIOTigerLakeLP. The current VoodooGPIO 1.1 binary lacks that class-name string, while the other six personality class names are present. The declared personality, runtime allocation failures and binary inspection together establish an inconsistent Tiger Lake personality/binary package, blocking effective controller initialization before the register-layout issue is reached.
+
+触摸板 nub 明确报告 Polling，I2C 地址 0x2C，400 kHz，HID 描述符地址 0x20。GPIO 控制器的共享 IRQ 14 不等于触摸板引脚，更不能直接把触摸板改成 IRQ 14。现有报告未提供运行时已求值的完整 TPD0 GPIO 资源，因此触摸板 GPIO 引脚仍未确证。标准位置没有完整 Xcode，也未报告 Command Line Tools 目录；不排除其他安装路径。
+
+The touchpad nub explicitly reports Polling, I2C address 0x2C, 400 kHz and HID descriptor address 0x20. The controller's shared IRQ 14 is not the touchpad pin and must not be substituted as its interrupt. These reports do not expose the complete evaluated TPD0 GPIO resource, so the runtime pin remains unconfirmed. Full Xcode was not found at its standard path, and no Command Line Tools directory was reported; other locations were not checked.
+
+下一步是获取/实现与二进制一致的 Panther Lake GPIO 平台支持，并验证资源、映射、引脚与中断处理。仅补同名 Tiger Lake 类仍不解决硬件布局差异。不通过换成其他旧平台类名来强行启动。本轮只记录结果，未改 EFI、未部署新驱动，不要求重复本轮采集；中断仍未修复。
+
+The next implementation step is a coherent Panther Lake GPIO driver with validated resources, mappings, pins and interrupt handling. Adding the missing Tiger Lake class alone does not resolve the layout mismatch. Do not force an older platform class to start. This update records evidence only, changes no EFI files and deploys no new driver. Repeating this collection is unnecessary; interrupts remain unresolved.
+
 ## 当前结论 / Current finding
 
 本机仍使用用户确认可用的强制轮询模式，中断尚未修复。上次仅移除 `-vi2c-force-polling` 后触摸板失效；本次不重复部署该配置。
