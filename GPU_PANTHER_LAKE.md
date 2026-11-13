@@ -4,6 +4,20 @@
 
 ## 当前结论 / Current conclusion
 
+### stage 4 卡死：持久追踪 s4 p1035 / Stage-4 hang: persistent trace
+
+用户实测运行即系统卡死。EFI 探测记录停在 stage 请求处，无完整新采集。Windows 只读读取 Apple NVRAM 的 `xegfx-step` 成功，最后保存 `s4 p1035`；另两个追踪键不存在。根据该构建 Mach-O 的 `__xg_set` 表及 SYSINIT 的 subsystem/order 排序，1035 对应 pass 0、索引 35 的 `_linux_current_sys_init`（`linux_current_init`）。其结构已按所用 FreeBSD 的 sysinit 布局核对；这是兼容层线程初始化，非 GPU driver pass 1。
+
+The hardware attempt hung before completing collection. Read-only Windows firmware-variable access recovered `s4 p1035`. Matching this exact binary's linker set and subsystem/order sorting identifies pass 0 index 35 as the LinuxKPI current-thread SYSINIT. This is before the GPU-driver pass, not evidence of GuC execution.
+
+追踪为周期持久化，因此 1035 只是最后保存位置；实际停止点可能是该入口或后续紧邻入口，尚不能定位具体语句。`linux_current_init` 包括 UMA zone 建立和 thread_dtor 事件注册，shim 的 UMA reserve/prealloc 本身为空实现，不能据此假定预分配耗尽。需要增加每个 SYSINIT 入口/返回的同步追踪及函数内部检查点，不能直接跳过线程初始化来推进。
+
+The trace is periodic: the actual stop may be in this or a subsequent nearby initializer, and no exact statement is established. The function creates UMA zones and registers a thread destructor; reserve/prealloc are no-ops in this shim, so allocation exhaustion cannot be inferred from them. Further localization needs synchronous entry/exit checkpoints and internal checkpoints, not bypassing current-thread initialization.
+
+保留开机驱动和配置，仅将探测脚本改为采集后退出，避免重跑已卡死的路径。采集脚本补齐真实键 `xegfx-step-prev`、`xegfx-accel` 和阶段状态。原始报告只保留在本地；本轮未替换驱动二进制。下一次 macOS 仅采集上次卡死/panic 证据。
+
+Boot injection and configuration are retained; the wrapper now collects and exits without repeating stage 4. The collector adds the actual previous-trace key, acceleration trace and stage state. Raw reports stay local. No driver binary is replaced in this round; the next macOS action is collection only.
+
 ### stage 3 已通过，推进 GuC/GT stage 4 / Stage 3 passed; advancing to GuC/GT
 
 [完整构建通过 / Full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43452344154)：阶段边界/快照/阻断及原有 16 项测试通过；编译、链接、KPI、签名、架构、固件资源和内嵌数据检查通过。已备份并部署硬盘 EFI 开机/诊断副本、资源和脚本，读回与固件散列核验通过，ocvalidate 正常，配置不变。驱动 SHA-256：`a45501203b28d657b10f18cf205636739f016bb2eff10a1561444d71892db9fe`。GuC/GT 实机运行状态尚未验证。

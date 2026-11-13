@@ -1,6 +1,6 @@
 # ASUS Vivobook S16 S5650AA · Panther Lake Hackintosh
 
-核显实验更新 / GPU experiment update: stage 3 已实机通过，初始化后 GOP 检查正常。已部署带固定 GuC 固件的 stage 4 GT 初始化实验版，关闭显示接管，阻断 stage 5；完整构建测试通过，GuC/GT 实机待验证，Metal 未启用。 / Stage 3 and post-bus GOP checks pass on hardware. Deployed a pinned-GuC stage-4 GT experiment with display takeover disabled and stage 5 blocked. Build/tests pass; GuC/GT hardware validation is pending, with no Metal acceleration. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
+核显实验更新 / GPU experiment update: stage 4 实测卡死，持久追踪最后为 s4 p1035（LinuxKPI SYSINIT 附近）；探测已改为只采集，不重复初始化。stage 3 已通过，GuC/GT 未验证，Metal 未启用。 / Stage 4 hung; last persistent trace is s4 p1035 near LinuxKPI SYSINIT. Wrapper now collects only. Stage 3 passes; GuC/GT remains unverified and Metal unavailable. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
 
 **简体中文 / English** · 更新 / Updated: **2026-11-13**
 
