@@ -4,6 +4,16 @@
 
 ## 当前结论 / Current conclusion
 
+### 新实机定位：uC 硬件初始化 / New hardware localization: uC hardware initialization
+
+Windows 只读恢复最新 NVRAM：`s4 p43012 checkpoint 43012 uC hardware init begin`；新 EFI 记录仍停在 stage 请求。已越过此前的 stolen、GT forcewake、GGTT、引擎和迁移初始化；当前范围缩至 `xe_uc_init_hw` 或该入口检查点的同步保存。尚不能判断卡在 HuC 上传、GuC 上传、通信、默认 LRC、功耗初始化还是持久化本身，亦不能由此证明 GuC 正常运行。
+
+Read-only Windows recovery gives `s4 p43012 checkpoint 43012 uC hardware init begin`. The new EFI log again ends at the stage request. This run passed stolen initialization, GT forcewake, GGTT, engines and migration setup. The current candidate is `xe_uc_init_hw` or synchronous persistence at its entry checkpoint. HuC/GuC upload, communication, default LRC setup, power control and persistence remain to be distinguished; running GuC is not established.
+
+新增 0203 补丁：44000–44015 逐项标记 uC 硬件初始化，45000–45011 标记 GuC 提频、参数、传输准备、RSA、固件 DMA 上传和认证等待。每对偶数开始、奇数返回，不改变原调用或错误处理。策略为 `ptl-stage4-uc-v8`；stage 5+ 继续阻断。完整构建和部署待确认，卡死尚未修复。
+
+Patch 0203 brackets uC hardware initialization (44000–44015) and GuC frequency/parameters/transfer preparation/RSA/firmware DMA/authentication wait (45000–45011). Even codes enter, odd codes return. Calls and error handling remain unchanged. Policy is `ptl-stage4-uc-v8`; stages 5+ remain blocked. Full build/deployment are pending; the hang is unresolved.
+
 ### 分配器末尾检查点已到达；继续定位 GT / Allocator tail reached; tracing GT
 
 [新版完整构建通过 / New full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43464244177)：16 项原测试、分配器路径测试、GOP 元数据/阶段边界检查及固件/签名/架构检查通过。已备份并部署开机与诊断驱动、资源和脚本，读回一致，ocvalidate 无问题，config.plist 保持不变。链接后二进制包含新策略及 GT/GGTT 标签。SHA-256：`10e0151c184b88f7fb1bcb078f7445ed6c0f2dde20ae8d78325adec342a355f4`。下一次重启后可运行一次 stage 4 定位；若卡死，回 Windows 读取 NVRAM，不反复执行。部署完成不代表硬件初始化成功。

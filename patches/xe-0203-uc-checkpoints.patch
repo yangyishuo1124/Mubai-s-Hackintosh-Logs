@@ -1,0 +1,134 @@
+--- a/xe_uc.c
++++ b/xe_uc.c
+@@ -19,6 +19,8 @@
+ #include "xe_uc_fw.h"
+ #include "xe_wopcm.h"
+ 
++extern void xg_init_checkpoint(int, const char *);
++
+ static struct xe_gt *
+ uc_to_gt(struct xe_uc *uc)
+ {
+@@ -186,36 +188,52 @@
+ 	if (IS_SRIOV_VF(uc_to_xe(uc)))
+ 		return vf_uc_init_hw(uc);
+ 
++	xg_init_checkpoint(44000, "xe_huc_upload begin");
+ 	ret = xe_huc_upload(&uc->huc);
+-	if (ret)
+-		return ret;
+-
++	xg_init_checkpoint(44001, "xe_huc_upload returned");
++	if (ret)
++		return ret;
++
++	xg_init_checkpoint(44002, "xe_guc_upload begin");
+ 	ret = xe_guc_upload(&uc->guc);
+-	if (ret)
+-		return ret;
+-
++	xg_init_checkpoint(44003, "xe_guc_upload returned");
++	if (ret)
++		return ret;
++
++	xg_init_checkpoint(44004, "xe_guc_enable_communication begin");
+ 	ret = xe_guc_enable_communication(&uc->guc);
+-	if (ret)
+-		return ret;
+-
++	xg_init_checkpoint(44005, "xe_guc_enable_communication returned");
++	if (ret)
++		return ret;
++
++	xg_init_checkpoint(44006, "xe_gt_record_default_lrcs begin");
+ 	ret = xe_gt_record_default_lrcs(uc_to_gt(uc));
+-	if (ret)
+-		return ret;
+-
++	xg_init_checkpoint(44007, "xe_gt_record_default_lrcs returned");
++	if (ret)
++		return ret;
++
++	xg_init_checkpoint(44008, "xe_guc_post_load_init begin");
+ 	ret = xe_guc_post_load_init(&uc->guc);
+-	if (ret)
+-		return ret;
+-
++	xg_init_checkpoint(44009, "xe_guc_post_load_init returned");
++	if (ret)
++		return ret;
++
++	xg_init_checkpoint(44010, "xe_guc_pc_start begin");
+ 	ret = xe_guc_pc_start(&uc->guc.pc);
++	xg_init_checkpoint(44011, "xe_guc_pc_start returned");
+ 	if (ret)
+ 		return ret;
+ 
+ 	/* We don't fail the driver load if HuC fails to auth, but let's warn */
++	xg_init_checkpoint(44012, "xe_huc_auth begin");
+ 	ret = xe_huc_auth(&uc->huc, XE_HUC_AUTH_VIA_GUC);
++	xg_init_checkpoint(44013, "xe_huc_auth returned");
+ 	xe_gt_assert(uc_to_gt(uc), !ret);
+ 
+ 	/* GSC load is async */
++	xg_init_checkpoint(44014, "xe_gsc_load_start begin");
+ 	xe_gsc_load_start(&uc->gsc);
++	xg_init_checkpoint(44015, "xe_gsc_load_start returned");
+ 
+ 	return 0;
+ }
+--- a/xe_guc.c
++++ b/xe_guc.c
+@@ -40,6 +40,8 @@
+ #include "xe_wa.h"
+ #include "xe_wopcm.h"
+ 
++extern void xg_init_checkpoint(int, const char *);
++
+ static u32 guc_bo_ggtt_addr(struct xe_guc *guc,
+ 			    struct xe_bo *bo)
+ {
+@@ -1047,10 +1049,16 @@
+ 	int ret;
+ 
+ 	/* Raise GT freq to speed up HuC/GuC load */
++	xg_init_checkpoint(45000, "xe_guc_pc_raise_unslice begin");
+ 	xe_guc_pc_raise_unslice(&guc->pc);
+-
++	xg_init_checkpoint(45001, "xe_guc_pc_raise_unslice returned");
++
++	xg_init_checkpoint(45002, "guc_write_params begin");
+ 	guc_write_params(guc);
++	xg_init_checkpoint(45003, "guc_write_params returned");
++	xg_init_checkpoint(45004, "guc_prepare_xfer begin");
+ 	guc_prepare_xfer(guc);
++	xg_init_checkpoint(45005, "guc_prepare_xfer returned");
+ 
+ 	/*
+ 	 * Note that GuC needs the CSS header plus uKernel code to be copied
+@@ -1060,19 +1068,25 @@
+ 	 * size > 256). The RSA size and therefore the way we provide it to the
+ 	 * HW is fixed for each platform and hard-coded in the bootrom.
+ 	 */
++	xg_init_checkpoint(45006, "guc_xfer_rsa begin");
+ 	ret = guc_xfer_rsa(guc);
++	xg_init_checkpoint(45007, "guc_xfer_rsa returned");
+ 	if (ret)
+ 		goto out;
+ 	/*
+ 	 * Current uCode expects the code to be loaded at 8k; locations below
+ 	 * this are used for the stack.
+ 	 */
++	xg_init_checkpoint(45008, "xe_uc_fw_upload begin");
+ 	ret = xe_uc_fw_upload(&guc->fw, 0x2000, UOS_MOVE);
++	xg_init_checkpoint(45009, "xe_uc_fw_upload returned");
+ 	if (ret)
+ 		goto out;
+ 
+ 	/* Wait for authentication */
++	xg_init_checkpoint(45010, "guc_wait_ucode begin");
+ 	guc_wait_ucode(guc);
++	xg_init_checkpoint(45011, "guc_wait_ucode returned");
+ 
+ 	xe_uc_fw_change_status(&guc->fw, XE_UC_FIRMWARE_RUNNING);
+ 	return 0;
