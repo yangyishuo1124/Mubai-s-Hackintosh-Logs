@@ -1,5 +1,9 @@
 # Hardware test after the 2026-11-13 internal EFI update
 
+[简体中文](HARDWARE_TEST_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
+
+> Historical initial test plan. Battery and polling touchpad operation were subsequently confirmed, Bluetooth recovered, and audio devices now enumerate. GUI Wi-Fi joins remain unresolved. See the latest [follow-up](HARDWARE_FOLLOWUP_2026-11-13.md).
+
 The internal ESP received the contents checked into this commit. The previous working EFI was backed up locally before the write. Every changed payload was read back and SHA-256 compared; OpenCore 1.0.8 `ocvalidate` passed against the ESP's `config.plist`. A successful boot and device operation have **not** yet been observed after this update.
 
 ## Tests to run in macOS

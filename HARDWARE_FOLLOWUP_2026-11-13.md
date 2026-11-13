@@ -1,5 +1,9 @@
 # Follow-up after first macOS test
 
+[简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
+
+> Entries below are chronological. Earlier unresolved states are superseded by later retests: Bluetooth recovered and audio devices enumerate; speaker/jack/microphone checks and the GUI Wi-Fi fix remain pending.
+
 ## Observed
 
 - Battery percentage is now normal with `SSDT-BATT-FIX-UNIT0.aml`; keep this patch.
