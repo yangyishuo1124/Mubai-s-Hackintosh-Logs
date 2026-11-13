@@ -4,6 +4,28 @@
 
 ## 当前结论 / Current conclusion
 
+### 推进至 PCI/DMA stage 3 / Advance to PCI/DMA stage 3
+
+[完整构建通过 / Successful full build](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43448978188)：阶段边界、显示快照、原有阻断测试和全部 16 项测试通过，编译/链接/KPI/签名/架构检查通过。新版已备份并部署至硬盘 EFI 开机/签名诊断副本和脚本，读回一致，ocvalidate 通过，开机配置不变。二进制 SHA-256：`8d48440b3d47e3f3787e5c790a709d2a2bd5fc279e25e072dcf2506248522768`。stage 3 实机效果尚待验证。
+
+Stage-boundary, snapshot, containment and all 16 existing tests pass, along with compilation/link/KPI/signature/architecture checks. Boot and signed diagnostic copies plus the wrapper are backed up and deployed to the internal EFI with matching readback and clean ocvalidate. Boot configuration is unchanged. The binary SHA-256 is shown above; stage-3 hardware behavior remains unverified.
+
+重启后运行现有 `gpu-probe.command`：预期完成阶段为 3，`XeGfxPost.result=1`、`metadata-unchanged=1`、`pixel-verified=0`；若阶段 2 或 3 失败，不应手动请求更高阶段。脚本必须检测到新加载策略才会运行。日志采集完成后卸载 SYSTEM 再重启。
+
+After reboot, run the existing wrapper. Expected evidence is completed stage 3 and a successful post-bus GOP check, with metadata unchanged and pixels explicitly unverified. If stage 2 or 3 fails, do not request higher stages. The wrapper requires the new resident policy. Unmount SYSTEM after collection before rebooting.
+
+新增 `xe-ptl-stage3-metadata.patch`，使用明确的 `ptl-stage3-metadata-v3` 加载策略。B0A0 的非像素检查明确返回 1 后保存独立的 GOP 元数据基线、GGTT/物理保留范围；像素 baseline 始终为 false，不建立 CPU 显存映射。stage 2 此时可通过“元数据探测”条件，但不表示像素已验证。失败或非明确成功的返回值均停止推进。
+
+The new policy accepts a B0A0 metadata baseline only after an explicit successful comparison. It records separate GOP metadata and reservation ranges while leaving the pixel baseline false and never mapping framebuffer pixels. Stage 2 can then pass as a metadata probe, not as pixel verification. Negative or ambiguous results stop progression.
+
+stage 3 按上游执行 PCI/DMA shim 初始化及 newbus/IOPCIDevice 总线绑定，再调用 GOP 显示检查：布局、DSM、全量 PTE 必须和原基线一致，当前 100 ms 采样期间帧计数也必须前进。结果写入 `XeGfxPost`，明确区分 `metadata-unchanged` 和 `pixel-verified=0`。任一条件失败则 stage 3 不标为完成。
+
+Stage 3 initializes PCI/DMA shim layers and newbus/IOPCIDevice attachment, then validates GOP state against the original metadata baseline. Layout, DSM and all PTEs must match; the current 100 ms frame sample must also advance. `XeGfxPost` distinguishes consistent metadata from unverified pixels. Any failure prevents stage-3 completion.
+
+在运行 stage 4 的 SYSINIT 之前硬性返回不支持，因此手动请求 stage 4–7 也不能绕过限制。当前不加载 GuC，不初始化 GPU 引擎或接管显示；GuC 固件、GT 初始化及后续未实现功能仍待处理。这是比上一版更进一步的总线初始化实验，不是 Metal 支持。
+
+A hard boundary rejects stage 4 before GPU SYSINIT, including requests for later stages. No GuC, GPU-engine initialization or display takeover occurs. GuC firmware, GT bring-up and missing later implementations remain outstanding. This is a bus-initialization experiment beyond the prior metadata-only probe, not Metal support.
+
 ### 实机通过：非像素 GOP 检查 / Hardware pass: pixel-free GOP checks
 
 最新完整采集显示 `XeGfxGOPMetadataResult=1`，两次采样间显示布局和全量 PTE 散列一致；帧计数前进 18。`XeGfxGOPMetadataPTEHash` 与初次页表遍历散列均为 `0x765b28479d6be205`。仍为 4000 个 DM 页、候选起点 `0x7c800000`、长度 `0xfa0000`。`XeGfxGOPCPUAccessBlocked=Yes`、`XeGfxGOPPixelVerified=No`。采集完成，panic 目录仅有先前已分析的报告，无新增文件。
