@@ -4,6 +4,16 @@
 
 ## 当前结论 / Current conclusion
 
+### 修正 panic 自动重启配置 / Correct panic reboot configuration
+
+v12 最新 20261114-111730 报告未完成，progress 只有启动采样 22，EFI 驱动 hash 匹配 v12。发现启动参数一直含 debug=0x100，会阻止 panic 自动重启；此前由“不重启”推断 watchdog 未运行的依据不足，不能排除已经 panic 而画面未更新。
+
+The latest v12 probe is incomplete, with only startup progress=22 and a matching EFI binary. Boot arguments still included debug=0x100, which prevents automatic panic reboot. Prior inference from no reboot to watchdog failure was insufficient; a panic without display update remains possible.
+
+已备份并从实际 EFI/仓库配置移除 debug=0x100，并确保 NVRAM Delete 含 boot-args，使下次启动采用新值。其余启动参数、驱动二进制不变，读回一致、ocvalidate 通过。此改动恢复自动重启的前提，不保证所有死锁能 panic/重启，更不是 GPU 修复。参考：https://dortania.github.io/OpenCore-Install-Guide/config-HEDT/nehalem.html 。
+
+Backed up and removed debug=0x100 from active/repository config, ensuring boot-args is in NVRAM Delete so the new value applies at next boot. Other arguments and binary remain unchanged; matching readback and clean ocvalidate. This removes a panic-reboot blocker, not every possible deadlock or the GPU failure itself.
+
 ### 请求入口监视修订 / Request-entry watchdog revision
 
 [完整构建通过 / Full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43489172557)。已备份并部署 EFI 开机/诊断驱动、资源及脚本；链接后版本与 request-watchdog 字符串存在，读回一致，ocvalidate 通过，config.plist 不变。SHA-256：`c71676c1410153c7ed8b4d9ea55fa2c7cb26bcbd7f8c1ad05f1bf3666b36e493`。下一次重启运行一次探测，若卡住等待约 90 秒观察 panic/自动重启，再回 Windows 读报告。监视范围修正已部署，实机效果及 GPU 卡死修复未确认。
