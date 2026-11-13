@@ -6,6 +6,10 @@
 
 ### 无 NVRAM 写入对照 / No-NVRAM comparison
 
+[脚本校验通过 / Wrapper verification passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43474465119)。此任务包含 zsh 语法检查及旧基线产物的既有测试，不是重新构建或验证新的驱动二进制；本轮二进制未变。
+
+This run checks wrapper syntax and existing tests against the older baseline artifact; it is not a rebuild or new-binary verification. No binary was changed this round.
+
 v10 最新只读记录为 `s4 p46001 checkpoint 46001 PC forcewake returned`，EFI 二进制哈希与 v10 一致。这证明到了该检查点，尚不证明同步保存调用已经返回，也不能确认下一步共享内存清零是原因。
 
 The latest v10 trace is `s4 p46001 checkpoint 46001 PC forcewake returned`, with matching EFI binary hash. This establishes reaching the checkpoint, not returning from synchronous persistence; it does not establish shared-memory clearing as the cause.
@@ -14,9 +18,9 @@ The latest v10 trace is `s4 p46001 checkpoint 46001 PC forcewake returned`, with
 
 Driver binary and boot configuration remain unchanged. The wrapper disables `debug.xegfx_trace` and omits the NVRAM-trace environment flag. In-memory progress remains; an independent process samples once a second into the matching `-progress.txt`, flushing the filesystem. The 60s watchdog remains; monitoring is bounded to 90 samples and stopped on wrapper exit. A kernel/storage-wide stall can stop sampling/flushing too, so missing samples do not prove a step was not reached. This comparison removes synchronous NVRAM persistence from initialization; it is not an established GPU fix.
 
-脚本校验与 EFI 部署待确认，实机对照待运行。下次结果优先读取进度文件/完整报告/panic；旧 NVRAM 标签可能原样保留，不能当作本次结果。
+脚本语法/现有验证通过，已备份并部署 EFI 脚本、读回一致；驱动二进制与开机配置逐字节保持不变。实机对照待运行。下次结果优先读取进度文件/完整报告/panic；旧 NVRAM 标签可能原样保留，不能当作本次结果。
 
-Wrapper verification/deployment pending; hardware comparison pending. Read the new progress file, completed report or panic first. Old NVRAM can remain unchanged and must not be treated as a new trace.
+Wrapper syntax/existing verification passed; the EFI wrapper is backed up, deployed and read back identically. Driver binary and boot configuration remain byte-for-byte unchanged. Hardware comparison pending. Read the new progress file, completed report or panic first. Old NVRAM can remain unchanged and must not be treated as a new trace.
 
 ### 追踪并发修正 / Trace concurrency correction
 
