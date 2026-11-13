@@ -1,3 +1,3 @@
 6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b  XeGfx.kext/Contents/_CodeSignature/CodeResources
 9f1c7bb0c3e81d55fc1f96203c759f3d73df642f5cb1e4631a14859026ca4c51  XeGfx.kext/Contents/Info.plist
-3ad564ca02e5d91324f7392b897b709f4e0e75fab66218e4c05b24f868f5461b  XeGfx.kext/Contents/MacOS/XeGfx
+a3412d5d5cda6b2c136bb3891a6ac8f9b4f26665725806c84c60e678ab5f42cb  XeGfx.kext/Contents/MacOS/XeGfx

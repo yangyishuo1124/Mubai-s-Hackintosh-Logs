@@ -4,6 +4,20 @@
 
 ## 当前结论 / Current conclusion
 
+### GOP 非像素检查 / Pixel-free GOP checks
+
+[完整构建通过 / Successful full build](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43446074325)：新增快照测试、既有阻断测试和全部 16 项测试通过，驱动编译、链接、KPI、签名及架构检查通过。已备份并替换硬盘 EFI 的开机/签名诊断副本，散列读回一致，ocvalidate 无问题，配置不变。二进制 SHA-256：`a3412d5d5cda6b2c136bb3891a6ac8f9b4f26665725806c84c60e678ab5f42cb`。尚待本机重启采集确认 `XeGfxGOPMetadataResult` 和帧计数差值。
+
+Snapshot, containment and all 16 existing tests pass, together with driver compilation/link/KPI/signature/architecture checks. Boot and signed diagnostic copies on the internal EFI are backed up and replaced, with matching readback and clean ocvalidate; configuration is unchanged. Binary SHA-256 is shown above. Hardware snapshot result and frame delta remain unverified until the next boot collection.
+
+新增 `xe-ptl-gop-snapshot.patch`：只通过现有 BAR0 映射读取寄存器和完整 GOP 页表，两次采样间隔 100 ms，对比平面控制、stride、尺寸、offset、surface、pipe-enable、DSM、覆盖长度及全部 PTE 的 64 位散列，并要求帧计数前进（接受 32 位回绕）。不映射或解引用像素内存。发布 `XeGfxGOPMetadataResult`，成功为 1；同时始终发布 `XeGfxGOPPixelVerified=No`。失败包括寄存器/页表变化、停帧、缺页、无活动 pipe 或 DSM 以及越界。
+
+The new patch samples registers and the full GOP page table through the existing BAR0 mapping twice, 100 ms apart. It compares plane control, stride, size, offset, surface, pipe enable, DSM, footprint and a full 64-bit PTE hash, requiring frame-counter progress with unsigned wrap handling. It never maps or dereferences pixel memory. `XeGfxGOPMetadataResult=1` denotes a successful metadata check; `XeGfxGOPPixelVerified` remains false. Register/PTE changes, stalled frames, missing pages, inactive pipe/DSM and bounds failures are rejected.
+
+此结果不是像素完整性或显示加速的证明；只检查两次采样之间的显示元数据。当前不将它接入后续阶段的通过条件：B0A0 stage 2 仍返回 -102，防止在其他初始化前提未满足时推进。完整构建同时纳入上轮已验证的 MMIO GOP 显存保留修订。
+
+This checks display metadata between samples, not pixel integrity or acceleration. It does not yet replace later-stage pass conditions: B0A0 stage 2 still returns -102 to prevent progression before remaining initialization prerequisites are established. The complete build also incorporates the previously tested MMIO GOP reservation correction.
+
 ### 后续分配器修订与实际缺口 / Reservation fix and remaining implementation gaps
 
 新增 `patches/xe-0200-gop-mmio-reservation.patch`，替换原 0200 补丁在 graphics >= 1270 的 PCI DSM 读取，使用 `xe_mmio_read64_2x32(xe_root_tile_mmio(xe), DSMBASE) & BDSM_MASK`。本机 PCI DSM=0；原逻辑可能不排除正在扫描输出的显存。保留算法仍对候选物理范围执行保守前缀排除，同时推进 GPU stolen_base 和 CPU io_base。此修订仅提交源码和验证，不替换当前 EFI 驱动，也未进入 stage 4。
