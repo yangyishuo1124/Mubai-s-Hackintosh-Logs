@@ -18,24 +18,24 @@ Successfully boots macOS into the graphical desktop / Recovery environment using
 | **Storage 1** | RS1D0TSSD710 1TB NVMe (Maxio MAP1608 controller) | **Working** (APFS root filesystem mounted) |
 | **Storage 2** | Samsung PM981 256GB NVMe (Secondary slot) | **Disabled** via `SSDT-Disable-PM981.aml` (Prevents panic) |
 | **Keyboard** | ASUS Built-in Keyboard (`\_SB.PC00.PS2K`) | **Working** (`VoodooPS2Keyboard.kext`) |
-| **Touchpad** | ASUS Precision Touchpad (`\_SB.PC00.I2C0.TPD0`) | **Testing GPIO interrupt** (`VoodooI2C` + `VoodooI2CHID`; polling boot argument removed) |
+| **Touchpad** | ASUS Precision Touchpad (`\_SB.PC00.I2C0.TPD0`) | **Working in polling mode** (`VoodooI2C` + `VoodooI2CHID`; interrupt trial failed) |
 | **USB Controllers** | Intel Panther Lake xHCI & Type-C Subsystems | **Working** (`SSDT-EC-USBX-LAPTOP.aml`) |
 | **Audio** | Realtek ALC235 on Intel SST Bus (`8086:E328`, Class `040100`) | **USB DAC / Type-C Audio / Bluetooth** (Intel SST DSP has no macOS AppleHDA stack) |
-| **Wireless / BT** | Realtek RTL8852BE Wi-Fi 6 (`10EC:B852`) & Realtek BT (`0BDA:B85B`) | **Testing** (AirPort_RTW89 0.6.0, RealtekBluetoothFirmware 1.0.2, BlueToolFixup 2.7.2) |
+| **Wireless / BT** | Realtek RTL8852BE Wi-Fi 6 (`10EC:B852`) & Realtek BT (`0BDA:B85B`) | **Wi-Fi/BT unresolved** (AirPort_RTW89 0.6.0, RealtekBluetoothFirmware 1.0.2, BlueToolFixup 2.7.2) |
 
 ---
 
 ## Current EFI update (2026-11-13)
 
-The internal ESP was backed up locally before this update. The checked-in `EFI/OC/config.plist` and changed kexts were copied from the internal ESP after writeback. Static validation with OpenCore 1.0.8 `ocvalidate` passed. **Boot and hardware behavior have not yet been retested in macOS.**
+The internal ESP was backed up locally before this update. The checked-in `EFI/OC/config.plist` and changed kexts were copied from the internal ESP after writeback. Static validation with OpenCore 1.0.8 `ocvalidate` passed. **The first macOS retest found a normal battery readout, a nonfunctional touchpad in interrupt mode, Wi-Fi GUI join errors with no DHCP address after a command-line join, and Bluetooth still only appearing as a USB device. Polling has since been restored; that rollback has not yet been retested.**
 
 - Wi-Fi: updated AirPort_RTW89 from 0.5.0 to 0.6.0 Beta. The reported symptom was network scanning followed by “Unable to join network.”
 - Bluetooth: added RealtekBluetoothFirmware 1.0.2 and BlueToolFixup 2.7.2 for USB ID `0BDA:B85B`. Firmware upload and controller operation require macOS log verification.
-- Battery: added `SSDT-BATT-FIX-UNIT0.aml` to correct the ACPI power unit from mAh to mWh for values already calculated in mWh. This may not be the sole cause of the 4% display.
-- Touchpad: removed `-vi2c-force-polling` to test GPIO interrupt mode. Keep a USB mouse available for recovery.
+- Battery: `SSDT-BATT-FIX-UNIT0.aml` corrected the displayed percentage in the first macOS test.
+- Touchpad: the GPIO interrupt trial failed. `-vi2c-force-polling` has been restored in the active EFI.
 - Audio: unchanged. Intel SST `8086:E328` and Realtek ALC235 remain undetected in macOS; Tahoe also lacks the old AppleHDA stack.
 
-See [`HARDWARE_TEST_2026-11-13.md`](HARDWARE_TEST_2026-11-13.md) for verification steps and rollback.
+See [`HARDWARE_TEST_2026-11-13.md`](HARDWARE_TEST_2026-11-13.md) for test history and [`HARDWARE_FOLLOWUP_2026-11-13.md`](HARDWARE_FOLLOWUP_2026-11-13.md) for the next diagnostics.
 
 ---
 
@@ -55,7 +55,7 @@ See [`HARDWARE_TEST_2026-11-13.md`](HARDWARE_TEST_2026-11-13.md) for verificatio
    - Clean `DeviceProperties` (no toxic property injection that tricks `IONDRVSupport` into crashing).
 4. **Input Devices (Keyboard & Touchpad)**:
    - Built-in keyboard is fully driven by `VoodooPS2Keyboard.kext`.
-   - The previously booted EFI used `VoodooI2C`/`VoodooI2CHID` in forced polling mode. The current EFI removes `-vi2c-force-polling` to test the firmware GPIO interrupt resource. This has not yet been verified after reboot.
+   - The previously booted EFI used `VoodooI2C`/`VoodooI2CHID` in forced polling mode. The GPIO interrupt trial made the touchpad unusable; the active EFI again uses `-vi2c-force-polling`. The rollback awaits a macOS reboot test.
 
 ---
 
@@ -70,9 +70,9 @@ See [`HARDWARE_TEST_2026-11-13.md`](HARDWARE_TEST_2026-11-13.md) for verificatio
   - macOS's `AppleHDAController` strictly binds to legacy High Definition Audio (PCI Class `040300`). Apple never implemented an Intel SST DSP firmware loader or SoundWire stack.
   - **Recommended Solution**: Plug in any class-compliant USB-C / USB audio dongle or DAC (e.g. Apple's official USB-C to 3.5mm adapter, ~$9). macOS includes native `AppleUSBAudio` drivers that work out of the box with zero configuration and volume control. Bluetooth headphones also work once Bluetooth is loaded.
 - **Native I²C Multitouch Gestures**:
-  - The current EFI tests GPIO interrupt mode. If the touchpad stops responding or CPU usage rises, restore the backed-up EFI or add `-vi2c-force-polling` back to `boot-args`.
+  - The GPIO interrupt trial did not work on this hardware. The active EFI uses forced polling again.
 - **Internal Battery Indicator**:
-  - `SMCBatteryManager` is enabled. The previous EFI showed 4% while Windows reported a much higher charge. The current EFI tests an ACPI `_BIF`/`_BIX` power-unit correction (`SSDT-BATT-FIX-UNIT0.aml`); the actual percentage still needs a macOS readback.
+  - `SMCBatteryManager` is enabled. The previous EFI showed 4% while Windows reported a much higher charge. The current EFI tests an ACPI `_BIF`/`_BIX` power-unit correction (`SSDT-BATT-FIX-UNIT0.aml`); the user reports the battery percentage is now normal in macOS.
 
 ---
 
