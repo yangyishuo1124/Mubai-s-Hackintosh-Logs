@@ -3,7 +3,7 @@
 ## Observed
 
 - Battery percentage is now normal with `SSDT-BATT-FIX-UNIT0.aml`; keep this patch.
-- The touchpad stopped working after removing `-vi2c-force-polling`. The active internal EFI has the polling argument restored, with the battery patch retained. This rollback still needs a macOS reboot test.
+- The touchpad stopped working after removing `-vi2c-force-polling`. The active internal EFI has the polling argument restored, with the battery patch retained. The user confirmed the touchpad works again after reboot.
 - Wi-Fi scans. The graphical interface reports a join error. `networksetup -setairportnetwork en0 ...` was used to connect, but `en0` did not obtain an IP address. It is not yet clear whether the command established a full association or whether DHCP/network-service creation failed.
 - The Realtek Bluetooth device remains visible under USB but is not usable. Firmware upload and `bluetoothd` state have not yet been observed.
 
@@ -36,7 +36,7 @@ For Bluetooth, the [firmware driver's installation notes](https://github.com/the
 
 ## First report readback
 
-The user confirmed that the touchpad works again after restoring polling. The first report shows `en0` active on a WPA2 network, an IPv4 address, a DHCP ACK, DNS and a default route. The user did **not** manually run `ipconfig set en0 DHCP` on this boot; remembering the network password may have allowed automatic connection. The first report therefore does not support a persistent DHCP failure. Internet reachability and GUI switching to a different network still need confirmation.
+The user confirmed that the touchpad works again after restoring polling. The first report shows `en0` active on a WPA2 network, an IPv4 address, a DHCP ACK, DNS and a default route. The user did **not** manually run `ipconfig set en0 DHCP` on this boot; remembering the network password may have allowed automatic connection. The first report therefore does not support a persistent DHCP failure. The user confirmed web browsing works over this Wi-Fi. GUI switching to another network still reports a join error.
 
 `BlueToolFixup` and `RealtekBluetoothFirmware` are loaded, but System Information contains no Bluetooth controller. The first diagnostics script accidentally called zsh's `log` builtin instead of `/usr/bin/log`, so the firmware and bluetoothd logs were not captured. The script has been corrected and now records USB IORegistry and network pings into a single ZIP.
 

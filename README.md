@@ -21,13 +21,13 @@ Successfully boots macOS into the graphical desktop / Recovery environment using
 | **Touchpad** | ASUS Precision Touchpad (`\_SB.PC00.I2C0.TPD0`) | **Working in polling mode** (`VoodooI2C` + `VoodooI2CHID`; interrupt trial failed) |
 | **USB Controllers** | Intel Panther Lake xHCI & Type-C Subsystems | **Working** (`SSDT-EC-USBX-LAPTOP.aml`) |
 | **Audio** | Realtek ALC235 on Intel SST Bus (`8086:E328`, Class `040100`) | **USB DAC / Type-C Audio / Bluetooth** (Intel SST DSP has no macOS AppleHDA stack) |
-| **Wireless / BT** | Realtek RTL8852BE Wi-Fi 6 (`10EC:B852`) & Realtek BT (`0BDA:B85B`) | **Wi-Fi/BT unresolved** (AirPort_RTW89 0.6.0, RealtekBluetoothFirmware 1.0.2, BlueToolFixup 2.7.2) |
+| **Wireless / BT** | Realtek RTL8852BE Wi-Fi 6 (`10EC:B852`) & Realtek BT (`0BDA:B85B`) | **Wi-Fi auto-join works; GUI network switching and Bluetooth unresolved** (AirPort_RTW89 0.6.0, RealtekBluetoothFirmware 1.0.2, BlueToolFixup 2.7.2) |
 
 ---
 
 ## Current EFI update (2026-11-13)
 
-The internal ESP was backed up locally before this update. The checked-in `EFI/OC/config.plist` and changed kexts were copied from the internal ESP after writeback. Static validation with OpenCore 1.0.8 `ocvalidate` passed. **The first macOS retest found a normal battery readout, a nonfunctional touchpad in interrupt mode, Wi-Fi GUI join errors with no DHCP address after a command-line join, and Bluetooth still only appearing as a USB device. Polling has since been restored; that rollback has not yet been retested.**
+The internal ESP was backed up locally before this update. The checked-in `EFI/OC/config.plist` and changed kexts were copied from the internal ESP after writeback. Static validation with OpenCore 1.0.8 `ocvalidate` passed. **The first macOS retest found a normal battery readout, a nonfunctional touchpad in interrupt mode, Wi-Fi GUI errors when manually switching networks, and Bluetooth still only appearing as a USB device. Wi-Fi auto-join now obtains a DHCP lease and can browse the web. Polling has been restored and the user confirmed the touchpad works again.**
 
 - Wi-Fi: updated AirPort_RTW89 from 0.5.0 to 0.6.0 Beta. The reported symptom was network scanning followed by “Unable to join network.”
 - Bluetooth: added RealtekBluetoothFirmware 1.0.2 and BlueToolFixup 2.7.2 for USB ID `0BDA:B85B`. Firmware upload and controller operation require macOS log verification.
@@ -55,7 +55,7 @@ See [`HARDWARE_TEST_2026-11-13.md`](HARDWARE_TEST_2026-11-13.md) for test histor
    - Clean `DeviceProperties` (no toxic property injection that tricks `IONDRVSupport` into crashing).
 4. **Input Devices (Keyboard & Touchpad)**:
    - Built-in keyboard is fully driven by `VoodooPS2Keyboard.kext`.
-   - The previously booted EFI used `VoodooI2C`/`VoodooI2CHID` in forced polling mode. The GPIO interrupt trial made the touchpad unusable; the active EFI again uses `-vi2c-force-polling`. The rollback awaits a macOS reboot test.
+   - The previously booted EFI used `VoodooI2C`/`VoodooI2CHID` in forced polling mode. The GPIO interrupt trial made the touchpad unusable; the active EFI again uses `-vi2c-force-polling`. The user confirmed it works again after a macOS reboot.
 
 ---
 
