@@ -4,6 +4,11 @@
 
 ## 当前结论 / Current conclusion
 
+按用户要求，现已启用 EFI Kernel/Add 的 XeGfx.kext（x86_64 Darwin 25），IOResourceMatch 改为 IOKit。二进制不变，开机副本移除失效签名，原签名副本及配置已备份。读回一致、ocvalidate 通过；加载尚待重启验证。stage 2 仍由脚本触发，不自动初始化 GuC/Metal。脚本仅使用开机驱动，不再手动加载或重试审批。
+
+At the user's request, XeGfx is enabled in EFI Kernel/Add for x86_64 Darwin 25, matching the IOKit resource. Binary unchanged; stale signature omitted from the boot copy, with original signed bundle and configuration backed up. Readback and ocvalidate pass; boot loading is unverified. Stage 2 remains script-triggered; no automatic GuC/Metal initialization. The wrapper now requires the boot-resident driver rather than retrying manual approval.
+
+
 第二次实机尝试：EFI 和 macOS 本地副本的所有散列均通过，99:99 所有权错误不再出现。kmutil 改为报告 `org.watchthelight.XeGfx not approved to load`，要求通过系统设置批准。驱动仍未加载，debug.xegfx_stage/results/log 均未注册，未运行 stage 2。当前是加载策略阻塞，不是已证实的 GPU 探测失败。下一步先查看 macOS「系统设置 → 隐私与安全性」是否提供允许按钮；仅批准这次 XeGfx，若系统要求则重启，再运行脚本。如无批准入口，应记录界面情况继续调查，避免重复相同测试。未更改安全策略、驱动或开机配置。
 
 Second hardware attempt: every hash on EFI and the local macOS copy passes; the 99:99 ownership error is gone. kmutil now reports `org.watchthelight.XeGfx not approved to load` and requests System Settings approval. The driver has not loaded, its debug.xegfx_stage/results/log controls are absent, and stage 2 has not run. This is a loading-policy blocker, not an established GPU-probe failure. Next inspect System Settings → Privacy & Security for an approval control, approve only this XeGfx attempt, restart if requested, then rerun the wrapper. If no approval control exists, record the UI state for further investigation rather than repeating the same test. No security-policy, driver or boot-configuration change was made.

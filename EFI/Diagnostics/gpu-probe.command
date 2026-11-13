@@ -1,5 +1,5 @@
 #!/bin/zsh
-# B0A0 bring-up: load the diagnostic kext manually and stop at stage 2.
+# B0A0 bring-up: use the boot-injected diagnostic kext and stop at stage 2.
 # No boot configuration, system-volume or AuxiliaryKC installation changes.
 set -eu
 base="${0:A:h}"
@@ -14,25 +14,16 @@ print 'Stage 2 probe only; no GPU engine or Metal initialization.'
 cd "$base/GPU"
 shasum -a 256 -c SHA256.txt
 if ! sysctl -n debug.xegfx_stage >/dev/null 2>&1; then
-    # FAT EFI ownership is 99:99; kmutil requires a root-owned local bundle.
-    runtime="$(mktemp -d /private/var/tmp/s5650aa-xe-probe.XXXXXXXX)"
-    ditto --noqtn "$base/GPU/XeGfx.kext" "$runtime/XeGfx.kext"
-    chown -R root:wheel "$runtime"
-    find "$runtime" -type d -exec chmod 755 {} +
-    find "$runtime" -type f -exec chmod 644 {} +
-    chmod 755 "$runtime/XeGfx.kext/Contents/MacOS/XeGfx"
-    (cd "$runtime" && shasum -a 256 -c "$base/GPU/SHA256.txt")
-    print "本次本地加载目录 / Local load directory: $runtime"
-    kmutil load -p "$runtime/XeGfx.kext" || {
-        print '驱动加载失败，停止。 / Driver load failed; stopping.'
-        zsh "$base/collect.command"
-        exit 1
-    }
+    print '开机驱动尚未启动，采集后停止，不再尝试手动加载。'
+    print 'Boot driver is not active; collecting without manual loading.'
+    zsh "$base/collect.command"
+    exit 1
 fi
+
 stage="$(sysctl -n debug.xegfx_stage)"
 [[ "$stage" == <0-2> ]] || { print '已有其他阶段运行，本脚本停止 / Unexpected existing stage; stopping'; exit 1; }
 sysctl debug.xegfx_stage=2
 sysctl debug.xegfx_stage
 sysctl -b debug.xegfx_log
 zsh "$base/collect.command"
-print '探测结束。下次重启不会自动加载该驱动。 / Probe finished; driver is not configured to load at next boot.'
+print '探测结束。驱动由 EFI 配置开机加载。 / Probe finished; EFI controls boot loading.'
