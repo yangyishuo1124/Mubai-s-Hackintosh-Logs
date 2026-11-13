@@ -6,6 +6,10 @@
 
 ### 无 NVRAM 对照实机结果 / No-NVRAM hardware comparison result
 
+用户确认卡住后等待超过 90 秒仍无自动重启，最后手动重启。60 秒 watchdog 未产生可见恢复；源码表明 watchdog 和 irqoff checker 均依赖 thread_call，并非独立 NMI 看门狗。因此调度/中断阻塞是候选，尚非确证。暂不要求重复同一测试。
+
+The user waited over 90 seconds without automatic reboot and manually restarted. The 60s watchdog produced no visible recovery. Both watchdog and irqoff checker use thread_call, not an independent NMI watchdog. Scheduling/interrupt blocking is a candidate, not proven. No repeat of this identical test is requested.
+
 最新日志 `gpu-probe-20261114-094258.txt` 明确显示 trace=0、env 无 NVRAM 标志、watchdog=60。stage 请求未返回，没有新完整诊断包。配套 progress 文件只有一行 `09:42:58 progress=22`，是启动附近采样，不能当作卡死位置；背景采样没有提供后续步骤证据。
 
 The latest probe explicitly records trace=0, no NVRAM environment flag and watchdog=60. The stage request did not return and no new completed diagnostic archive appeared. Its progress file contains only `09:42:58 progress=22`, a startup sample rather than an established failure site. Background sampling provides no later-step evidence.
