@@ -4,6 +4,16 @@
 
 ## 当前结论 / Current conclusion
 
+### 修正 GuC/功耗控制错误传播 / Correct GuC and PC error propagation
+
+审查固定源码发现：__xe_guc_upload 在 RSA/DMA 失败出口仍返回 0；guc_wait_ucode 为 void，失败后调用者仍可标记 RUNNING；PC 两次状态等待超时后 ret 仍可能为 0。0205 补丁令上传失败返回原错误，认证等待返回状态/超时错误且禁止误标 RUNNING，PC 等待结果存入 ret。它修正真实的假成功路径，但尚未证明就是整机冻结原因。错误退出可能改变后续清理路径，需实机确认。
+
+Pinned-source review found __xe_guc_upload returns 0 on RSA/DMA failure, void guc_wait_ucode allows its caller to mark RUNNING after failure, and PC timeout can retain ret=0. Patch 0205 propagates original upload errors, authentication errors/timeouts and PC wait results, preventing false RUNNING. This corrects actual false-success paths, not an established cause of the hard freeze. Earlier failure can exercise different cleanup paths; hardware validation is needed.
+
+新增测试编译修改后的真实上传函数，用桩模拟成功、RSA 失败、DMA 失败和认证等待超时，核对返回值、失败标记及后续调用短路；另检查 PC 等待结果存储。它不是固件实际运行或硬件通信验证。v13 保留请求入口监视、无 NVRAM 和 stage 5+ 阻断。完整构建与部署待确认。
+
+The new test compiles the actual modified upload function with stubbed success/RSA/DMA/authentication outcomes, checking returns, status and short-circuiting. PC wait-result storage is checked separately. This is not real firmware/hardware validation. V13 retains request-entry monitoring, no NVRAM and the stage-5+ boundary. Full build/deployment pending.
+
 ### 移除 panic 停留参数后仍无重启 / No reboot after removing panic-stop argument
 
 用户再次报告没有自动重启。新报告 20261114-113054 确认 trace=0、env 无 NVRAM、watchdog=60；配置文件已无 debug=0x100（日志本身未输出实际运行 boot-args）。请求未返回，进度文件仅一条 progress=20，对应 stage 2 入口附近；它是较早采样，不是已确认的最终停止点。不能因此继续断言这次卡在 GuC，也不能以没有 reboot 就证明监视线程从未运行。下一步应分开请求各阶段、在每次前后落盘标记，避免连续阶段覆盖进度造成误判。本轮没有再改 EFI。
