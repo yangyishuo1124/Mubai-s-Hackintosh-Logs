@@ -4,6 +4,12 @@
 
 ## 当前结论 / Current conclusion
 
+### 移除 panic 停留参数后仍无重启 / No reboot after removing panic-stop argument
+
+用户再次报告没有自动重启。新报告 20261114-113054 确认 trace=0、env 无 NVRAM、watchdog=60；配置文件已无 debug=0x100（日志本身未输出实际运行 boot-args）。请求未返回，进度文件仅一条 progress=20，对应 stage 2 入口附近；它是较早采样，不是已确认的最终停止点。不能因此继续断言这次卡在 GuC，也不能以没有 reboot 就证明监视线程从未运行。下一步应分开请求各阶段、在每次前后落盘标记，避免连续阶段覆盖进度造成误判。本轮没有再改 EFI。
+
+The user again reports no automatic reboot. New probe 20261114-113054 records trace=0, no NVRAM flag and watchdog=60. Config lacks debug=0x100, although this log does not report effective runtime boot-args. The request did not return; its sole progress=20 sample is near stage-2 entry, not a proven final stall. Neither a GuC failure nor watchdog nonexecution is established. Next localization should request each stage separately with durable before/after markers, rather than infer a final stop from an early sample. No further EFI change this round.
+
 ### 修正 panic 自动重启配置 / Correct panic reboot configuration
 
 v12 最新 20261114-111730 报告未完成，progress 只有启动采样 22，EFI 驱动 hash 匹配 v12。发现启动参数一直含 debug=0x100，会阻止 panic 自动重启；此前由“不重启”推断 watchdog 未运行的依据不足，不能排除已经 panic 而画面未更新。
