@@ -1,6 +1,6 @@
 --- a/VoodooGPIO/VoodooGPIOIntel.cpp
 +++ b/VoodooGPIO/VoodooGPIOIntel.cpp
-@@ -1029,3 +1029,181 @@
+@@ -1029,3 +1029,194 @@
          }
      }
  }
@@ -40,7 +40,13 @@
 +    }
 +
 +public:
++    IOService *probe(IOService *provider, SInt32 *score) override {
++        provider->setProperty("PTLProbeStage", "probe entered");
++        IOLog("VoodooGPIOPantherLake::probe entered for %s\n", provider->getName());
++        return VoodooGPIOIntel::probe(provider, score);
++    }
 +    bool start(IOService *provider) override {
++        provider->setProperty("PTLProbeStage", "start entered");
 +        IOLog("VoodooGPIOPantherLake::start entered for %s\n", provider->getName());
 +        IOACPIPlatformDevice *acpi = OSDynamicCast(IOACPIPlatformDevice, provider);
 +        OSObject *dsd = nullptr;
@@ -50,10 +56,13 @@
 +        }
 +        IOReturn dsdResult = acpi->evaluateObject("_DSD", &dsd);
 +        if (dsdResult != kIOReturnSuccess || !dsd) {
++            provider->setProperty("PTLProbeStage", "DSD evaluation failed");
++            provider->setProperty("PTLDSDResult", (UInt32)dsdResult, 32);
 +            IOLog("VoodooGPIOPantherLake::_DSD evaluation failed 0x%x\n", dsdResult);
 +            if (dsd) dsd->release();
 +            return false;
 +        }
++        provider->setProperty("PTLProbeStage", "DSD evaluated; preparing platform");
 +        bool valid = prepare(acpi, dsd);
 +        dsd->release();
 +        if (!valid) {
@@ -63,6 +72,7 @@
 +        this->pins = platformPins;
 +        this->communities = &platformCommunity;
 +        this->ncommunities = 1;
++        provider->setProperty("PTLProbeStage", "platform validated; starting core");
 +        IOLog("VoodooGPIOPantherLake::Starting %s: %u pins, %u groups, IS=0x%x IE=0x%x\n",
 +              provider->getName(), (unsigned)npins, (unsigned)platformCommunity.ngpps,
 +              platformCommunity.is_offset, platformCommunity.ie_offset);
@@ -76,6 +86,7 @@
 +        // firmware descriptor, never all five PTL communities.
 +        OSObject *routes = nullptr;
 +        IOReturn routesResult = acpi->evaluateObject("\\TPDI", &routes);
++        acpi->setProperty("PTLTPDIResult", (UInt32)routesResult, 32);
 +        if (routesResult != kIOReturnSuccess || !routes) {
 +            IOLog("VoodooGPIOPantherLake::TPDI evaluation failed 0x%x\n", routesResult);
 +            if (routes) routes->release();
@@ -95,6 +106,7 @@
 +        bool allocated = true;
 +        for (unsigned i = 0; i < 6; ++i) if (!args[i]) allocated = false;
 +        IOReturn result = allocated ? acpi->evaluateObject("\\_SB.G_IN", &resource, args, 6) : kIOReturnNoMemory;
++        acpi->setProperty("PTLGINResult", (UInt32)result, 32);
 +        IOLog("VoodooGPIOPantherLake::G_IN result 0x%x\n", result);
 +        for (unsigned i = 0; i < 6; ++i) if (args[i]) args[i]->release();
 +        OSData *data = OSDynamicCast(OSData, resource);
@@ -114,6 +126,7 @@
 +            }
 +        }
 +        if (resource) resource->release();
++        acpi->setProperty("PTLTouchpadSelected", selected);
 +        if (!selected) { IOLog("VoodooGPIOPantherLake::%s not selected or descriptor unsupported\n", acpi->getName()); return false; }
 +        bzero(&platformCommunity, sizeof(platformCommunity));
 +        bzero(platformGroups, sizeof(platformGroups));
@@ -199,7 +212,7 @@
 +				<string>INTC10BB</string>
 +			</array>
 +			<key>IOProviderClass</key>
-+			<string>IOACPIPlatformDevice</string>
++			<string>IOService</string>
 +		</dict>
  	</dict>
  	<key>NSHumanReadableCopyright</key>
