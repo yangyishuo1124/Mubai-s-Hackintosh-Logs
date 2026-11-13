@@ -1,5 +1,19 @@
 # 触摸板 GPIO 中断调查 / Touchpad GPIO interrupt investigation
 
+## 内存资源映射兼容版已部署 / Memory resource mapping compatibility deployed
+
+最新报告 ZIP 完整性通过。PTG0/PTG1 引脚组求值返回成功，GPP_F 为 26 引脚、偏移 0x800，GPP_E 为 25 引脚、偏移 0x9A0；已通过模式和引脚组校验。PTLProbeStage 停在 mapping GPIO registers，未出现 PTLMappingLength/PADBAR，按已部署代码可确认 mapDeviceMemoryWithIndex(0) 返回空。GPIO 控制器与触摸板 HID 仍未建立。
+
+固件 GCRS 使用 IRQ + QWordMemory 资源格式。新驱动记录原有内存资源数量；仅当数量为零时，读取并严格验证 _CRS 的 57 字节结构、内存类型、固定边界、64 KiB 对齐与长度、零转换偏移和防溢出条件，再依据固件的完整 64 位地址创建 IODeviceMemory。未猜测物理地址，未放宽 PADBAR 或布局检查。缺失内存资源是否为实际原因仍待新报告验证。
+
+The new report passes ZIP integrity validation. PTG0/PTG1 evaluation succeeds: GPP_F has 26 pins at offset 0x800 and GPP_E has 25 at 0x9A0. Schema and pad-group validation now pass. PTLProbeStage stops at mapping GPIO registers without PTLMappingLength/PADBAR; the deployed code establishes that mapDeviceMemoryWithIndex(0) returned null. GPIO controller and touchpad HID initialization remain unresolved.
+
+Firmware GCRS uses an IRQ plus QWordMemory resource. The new driver records the existing memory count. Only when zero, it reads and strictly validates the 57-byte _CRS structure, memory type, fixed bounds, 64 KiB alignment/length, zero translation and overflow bounds, then creates IODeviceMemory from the complete firmware-provided 64-bit address. No physical address is guessed and PADBAR/layout checks remain enforced. Whether missing published memory resources explain the null mapping still awaits the next hardware report.
+
+macOS build and static checks passed; active EFI is backed up, deployed and verified by readback, with ocvalidate passing. Forced polling stays disabled. Hardware validation is pending. / macOS 构建与静态检查通过，已备份并写入硬盘，读回一致且 ocvalidate 通过。继续关闭强制轮询，待实机验证。
+
+[Build / 构建](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43425427132) · SHA-256: `22a97381c2ed65ff884aa32ee2bef6b7edc1aa44ca3af62696df4ec8a35f6b0e`
+
 ## 桥接成功，继续修复平台初始化 / Resource bridge works; platform initialization repair
 
 用户确认关闭强制轮询后触摸板完全无响应。新报告中 PTLTPDIResult / PTLGINResult 均为 0，触摸板描述符选中 GPI1、引脚 46；说明 TPDI / G_IN 本地桥接成功。但仍停在平台准备阶段，未建立 GPIO 控制器或触摸板 HID。具体退出点尚未由旧阶段属性区分，不能断言引脚组读取就是已证实根因。

@@ -2,6 +2,16 @@
 
 [English](HARDWARE_FOLLOWUP_2026-11-13.md) · [中英双语首页](README.md)
 
+## 内存资源映射兼容版已部署
+
+最新报告 ZIP 完整性通过。PTG0/PTG1 引脚组求值返回成功，GPP_F 为 26 引脚、偏移 0x800，GPP_E 为 25 引脚、偏移 0x9A0；已通过模式和引脚组校验。PTLProbeStage 停在 mapping GPIO registers，未出现 PTLMappingLength/PADBAR，按已部署代码可确认 mapDeviceMemoryWithIndex(0) 返回空。GPIO 控制器与触摸板 HID 仍未建立。
+
+固件 GCRS 使用 IRQ + QWordMemory 资源格式。新驱动记录原有内存资源数量；仅当数量为零时，读取并严格验证 _CRS 的 57 字节结构、内存类型、固定边界、64 KiB 对齐与长度、零转换偏移和防溢出条件，再依据固件的完整 64 位地址创建 IODeviceMemory。未猜测物理地址，未放宽 PADBAR 或布局检查。缺失内存资源是否为实际原因仍待新报告验证。
+
+macOS build and static checks passed; active EFI is backed up, deployed and verified by readback, with ocvalidate passing. Forced polling stays disabled. Hardware validation is pending. / macOS 构建与静态检查通过，已备份并写入硬盘，读回一致且 ocvalidate 通过。继续关闭强制轮询，待实机验证。
+
+[Build / 构建](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43425427132) · SHA-256: `22a97381c2ed65ff884aa32ee2bef6b7edc1aa44ca3af62696df4ec8a35f6b0e`
+
 ## 资源桥接成功，引脚组桥接版已部署
 
 用户确认关闭强制轮询后触摸板完全无响应。新报告中 PTLTPDIResult / PTLGINResult 均为 0，触摸板描述符选中 GPI1、引脚 46；说明 TPDI / G_IN 本地桥接成功。但仍停在平台准备阶段，未建立 GPIO 控制器或触摸板 HID。具体退出点尚未由旧阶段属性区分，不能断言引脚组读取就是已证实根因。

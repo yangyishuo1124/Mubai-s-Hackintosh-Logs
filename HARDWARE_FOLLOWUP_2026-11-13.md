@@ -2,6 +2,16 @@
 
 [简体中文](HARDWARE_FOLLOWUP_2026-11-13.zh-CN.md) · [Bilingual home](README.md)
 
+## Memory resource mapping compatibility deployed
+
+The new report passes ZIP integrity validation. PTG0/PTG1 evaluation succeeds: GPP_F has 26 pins at offset 0x800 and GPP_E has 25 at 0x9A0. Schema and pad-group validation now pass. PTLProbeStage stops at mapping GPIO registers without PTLMappingLength/PADBAR; the deployed code establishes that mapDeviceMemoryWithIndex(0) returned null. GPIO controller and touchpad HID initialization remain unresolved.
+
+Firmware GCRS uses an IRQ plus QWordMemory resource. The new driver records the existing memory count. Only when zero, it reads and strictly validates the 57-byte _CRS structure, memory type, fixed bounds, 64 KiB alignment/length, zero translation and overflow bounds, then creates IODeviceMemory from the complete firmware-provided 64-bit address. No physical address is guessed and PADBAR/layout checks remain enforced. Whether missing published memory resources explain the null mapping still awaits the next hardware report.
+
+macOS build and static checks passed; active EFI is backed up, deployed and verified by readback, with ocvalidate passing. Forced polling stays disabled. Hardware validation is pending. / macOS 构建与静态检查通过，已备份并写入硬盘，读回一致且 ocvalidate 通过。继续关闭强制轮询，待实机验证。
+
+[Build / 构建](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43425427132) · SHA-256: `22a97381c2ed65ff884aa32ee2bef6b7edc1aa44ca3af62696df4ec8a35f6b0e`
+
 ## Resource bridge works; pad-group bridge deployed
 
 The user confirms no touchpad response with forced polling disabled. The new report has PTLTPDIResult / PTLGINResult equal to zero and selects GPI1, pin 46, establishing that the local TPDI / G_IN bridge works. Platform preparation still exits without a GPIO controller or touchpad HID. The old stage properties do not identify the precise exit point; pad-group evaluation is not a proven root cause.
