@@ -20,8 +20,8 @@ Successfully boots macOS into the graphical desktop / Recovery environment using
 | **Keyboard** | ASUS Built-in Keyboard (`\_SB.PC00.PS2K`) | **Working** (`VoodooPS2Keyboard.kext`) |
 | **Touchpad** | ASUS Precision Touchpad (`\_SB.PC00.I2C0.TPD0`) | **Working in polling mode** (`VoodooI2C` + `VoodooI2CHID`; interrupt trial failed) |
 | **USB Controllers** | Intel Panther Lake xHCI & Type-C Subsystems | **Working** (`SSDT-EC-USBX-LAPTOP.aml`) |
-| **Audio** | Realtek ALC235 on Intel SST Bus (`8086:E328`, Class `040100`) | **Experimental: SimpleHDA 1.0.1 + AppleALC, layout 3; pending boot test** |
-| **Wireless / BT** | Realtek RTL8852BE Wi-Fi 6 (`10EC:B852`) & Realtek BT (`0BDA:B85B`) | **Wi-Fi auto-join works; GUI network switching and Bluetooth unresolved** (AirPort_RTW89 0.6.0, RealtekBluetoothFirmware 1.0.2, BlueToolFixup 2.7.2) |
+| **Audio** | Realtek ALC235 on Intel SST Bus (`8086:E328`, Class `040100`) | **Device detected** with SimpleHDA + AppleALC, layout 3 and 51CA compatibility ID; playback/capture qualification pending |
+| **Wireless / BT** | Realtek RTL8852BE Wi-Fi 6 (`10EC:B852`) & Realtek BT (`0BDA:B85B`) | **Bluetooth recovered; Wi-Fi auto-join works, GUI switching unresolved** (AirPort_RTW89 0.6.0, RealtekBluetoothFirmware 1.0.2, BlueToolFixup 2.7.2) |
 
 ---
 
