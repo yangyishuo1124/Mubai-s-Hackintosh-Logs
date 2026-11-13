@@ -5,7 +5,7 @@
  		return false;
  	gResident = this;
 -	setProperty("XeGfxProbePolicy", "ptl-metadata-only-v1");
-+	setProperty("XeGfxProbePolicy", "ptl-stage3-metadata-v3");
++	setProperty("XeGfxProbePolicy", "ptl-stage4-guc-v4");
  	registerService();
  	return true;
  }
@@ -67,9 +67,9 @@
  	int rc = 1;
  
 +#ifdef XEGFX_KMD_XE
-+ // B0A0 stage 3 is the current boundary. Never run GPU SYSINIT/GuC yet.
-+ if (gPtlMetadataBaseline && s >= 4) {
-+  IOLog("XeGfx: B0A0 stage %d blocked before GPU SYSINIT\n", s);
++ // B0A0 stage 4 is the current boundary. Never submit execution tests yet.
++ if (gPtlMetadataBaseline && s >= 5) {
++  IOLog("XeGfx: B0A0 stage %d blocked before execution tests\n", s);
 +  return -EOPNOTSUPP;
 + }
 +#endif

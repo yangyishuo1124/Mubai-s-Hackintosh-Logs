@@ -1,10 +1,10 @@
 from pathlib import Path
 import sys,tempfile,subprocess
 s=Path(sys.argv[1]).read_text()
-guard=s[s.index(' // B0A0 stage 3 is the current boundary.'):s.index('\n#endif\n\tgRunning = s;',s.index(' // B0A0 stage 3 is the current boundary.'))]
+guard=s[s.index(' // B0A0 stage 4 is the current boundary.'):s.index('\n#endif\n\tgRunning = s;',s.index(' // B0A0 stage 4 is the current boundary.'))]
 commit=s[s.index('  if (metadata_rc != 1)'):s.index('\n }\n /* FreeBSD',s.index('  if (metadata_rc != 1)'))]
 assert 'if (rc == 1 && gPtlMetadataBaseline) rc = xg_display_check();' in s
-assert 'ptl-stage3-metadata-v3' in s
+assert 'ptl-stage4-guc-v4' in s
 code=r'''
 #include <cassert>
 #include <cerrno>
@@ -29,13 +29,14 @@ int main(){
  assert(gXeBootFound==1 && gXePhysStart==0x7c800000 && gXePhysSize==0xfa0000);
  assert(gXePteSum==123 && gPtlBootSnapshot.pte_hash==123);
  assert(stage(3)==1 && calls==1);
- assert(stage(4)==-EOPNOTSUPP && calls==1);
- assert(stage(7)==-EOPNOTSUPP && calls==1);
- gPtlMetadataBaseline=false;assert(stage(4)==1 && calls==2);
+ assert(stage(4)==1 && calls==2);
+ assert(stage(5)==-EOPNOTSUPP && calls==2);
+ assert(stage(7)==-EOPNOTSUPP && calls==2);
+ gPtlMetadataBaseline=false;assert(stage(4)==1 && calls==3);
 }
 '''
 with tempfile.TemporaryDirectory() as d:
  p=Path(d)/'policy.cpp';p.write_text(code);exe=Path(d)/'policy'
  subprocess.run(['c++','-std=c++17','-Wall','-Werror','-fsanitize=undefined',str(p),'-o',str(exe)],check=True)
  subprocess.run([str(exe)],check=True)
-print('Stage-3 policy passed: failed baseline rejected, metadata commit distinguished from pixel baseline, stages 4+ blocked before initialization.')
+print('Stage-4 policy passed: failed baseline rejected, metadata commit distinguished from pixel baseline, stages 5+ blocked before execution tests.')

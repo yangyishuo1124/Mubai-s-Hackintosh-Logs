@@ -27,6 +27,10 @@ jobs:
           fetch torvalds/linux 38fec10eb60d687e30c8c6b5420d86e8149f7557 "$HOME/src/xe-src/linux"
           fetch freebsd/drm-kmod c16de0f9fa "$HOME/src/xe-src/drm-kmod"
           fetch freebsd/freebsd-src 9da2c05a748fd17757638e1a9e78215cdb8b80d0 "$HOME/src/xe-src/freebsd"
+          mkdir -p "$HOME/src/xe-src/linux-firmware/xe"
+          cp third_party/linux-firmware/ptl_guc_70.bin "$HOME/src/xe-src/linux-firmware/xe/"
+          cp third_party/linux-firmware/LICENSE.xe "$HOME/src/xe-src/linux-firmware/"
+          echo 'ac42861c62b69f19923d9a69d971fb849921585a01924e14c0e8ac679d7cde81  third_party/linux-firmware/ptl_guc_70.bin' | shasum -a 256 -c -
           cp patches/xe-0200-gop-mmio-reservation.patch build/WTLIntelGfx/xkpi/xe/patches/0200-m1-gop-reservations.patch
           python3 patches/adapt_xe_mmio_reservation_tests.py build/WTLIntelGfx/harness/test_xe_stages.py
           cp patches/xe-0159-bsd-context.patch build/WTLIntelGfx/xkpi/xe/patches/0159-guc-fence-once.patch
@@ -55,6 +59,16 @@ jobs:
           python3 harness/test_xe_stages.py 2>&1 | tee "$GITHUB_WORKSPACE/build/xe-tests.log"
           lipo out/XeGfx.kext/Contents/MacOS/XeGfx -verify_arch x86_64
           codesign --verify --verbose out/XeGfx.kext
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          k=Path('out/XeGfx.kext/Contents')
+          blob=(k/'Resources/ptl_guc_70.bin').read_bytes()
+          assert hashlib.sha256(blob).hexdigest()=='ac42861c62b69f19923d9a69d971fb849921585a01924e14c0e8ac679d7cde81'
+          assert blob in (k/'MacOS/XeGfx').read_bytes()
+          assert (k/'Resources/LICENSE.xe').stat().st_size > 1000
+          print('Pinned PTL GuC resource, embedded image and licence verified.')
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
