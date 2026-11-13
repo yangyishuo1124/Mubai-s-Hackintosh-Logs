@@ -4,6 +4,20 @@
 
 ## 当前结论 / Current conclusion
 
+### 后续分配器修订与实际缺口 / Reservation fix and remaining implementation gaps
+
+新增 `patches/xe-0200-gop-mmio-reservation.patch`，替换原 0200 补丁在 graphics >= 1270 的 PCI DSM 读取，使用 `xe_mmio_read64_2x32(xe_root_tile_mmio(xe), DSMBASE) & BDSM_MASK`。本机 PCI DSM=0；原逻辑可能不排除正在扫描输出的显存。保留算法仍对候选物理范围执行保守前缀排除，同时推进 GPU stolen_base 和 CPU io_base。此修订仅提交源码和验证，不替换当前 EFI 驱动，也未进入 stage 4。
+
+The replacement 0200 patch changes DSM discovery for graphics >= 1270 from PCI reads to MMIO DSMBASE. With this machine's zero PCI DSM, the prior logic could miss exclusion of the active scanout allocation. The existing conservative prefix reservation still advances both GPU and CPU allocator bases. This round publishes source and tests only; it does not replace the current EFI binary or enter stage 4.
+
+[隔离验证 / Isolated validation](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43444890227)通过：修订补丁实际应用于 Linux 源文件后，编译执行分配器真实代码片段；原有全部 16 项测试通过。更新测试中的 MMIO 模型，并增加本机 GOP 起点/长度用例：在假设 32 MiB stolen 池下排除 0xfa0000 字节前缀，剩余 0x1060000 字节。32 MiB 是测试容量，不是本机实测 stolen 总容量。此验证不等于新版完整 kext 已编译或实机分配器已运行。
+
+Isolated verification applies the corrected patch to the Linux source and compiles/executes its actual reservation block. All 16 tests pass. The MMIO mock and a captured B0A0 GOP-range case verify a 0xfa0000-byte exclusion and 0x1060000-byte remainder in a hypothetical 32 MiB pool. That pool size is a test input, not a measured hardware capacity. This is not a complete new kext build or a hardware allocator test.
+
+目前仍需实现并验证：不读取像素的 GOP 布局/PTE/帧计数基线及对比、显存保留规则与实际容量、GuC 固件及 GT 初始化。现有 `xg_store_check()` 在 xe 路径返回“不支持”，`xg_accel_claim()` 明确不发布 Metal 加速设备；这两项属于缺失实现，不能通过修改阶段返回值或 EFI 参数解决。当前 stage 2 阻断保持，不要求重复重启。
+
+Outstanding work includes a non-pixel GOP layout/PTE/frame-counter baseline and comparison, reservation/capacity validation, GuC firmware and GT initialization. The xe path in `xg_store_check()` returns unsupported, and `xg_accel_claim()` explicitly does not publish an accelerated device. These are missing implementations, not EFI settings or stage-return-value fixes. The stage-2 guard remains; no repeat reboot is requested.
+
 ### 实机验证：元数据阻断生效 / Hardware validation: metadata guard works
 
 22:31 探测、22:34 完整采集结束。实际加载策略为 `ptl-metadata-only-v1`，`XeGfxGOPCPUAccessBlocked=Yes`。阶段结果为 stage 1 = 1、stage 2 = -102 (`EOPNOTSUPP`)，完成阶段保持 1；IORegistry 的 XeGfxStage=2 仅代表尝试过。完整采集成功，panic 目录仅包含此前 22:01 的文件。
