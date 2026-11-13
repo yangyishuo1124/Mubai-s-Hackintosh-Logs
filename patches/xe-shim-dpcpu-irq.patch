@@ -1,0 +1,53 @@
+--- a/shim/src/fbsd/xg_kern.c
++++ b/shim/src/fbsd/xg_kern.c
+@@ -124,9 +124,11 @@
+ void *
+ xg_dpcpu_block(const void *tmpl, unsigned long size)
+ {
+-	void *blk = NULL;
+-	int i;
+-
++	void *blk = NULL, *discard = NULL;
++	int i, en;
++
++	/* Raw lock: prevent a preempted owner from blocking a pinned waiter. */
++	en = ml_set_interrupts_enabled(0);
+ 	xg_spin_lock(&xg_dpcpu_lock);
+ 	for (i = 0; i < XG_DPCPU_MAX && xg_dpcpu[i].tmpl != NULL; i++)
+ 		if (xg_dpcpu[i].tmpl == tmpl) {
+@@ -134,6 +136,7 @@
+ 			break;
+ 		}
+ 	xg_spin_unlock(&xg_dpcpu_lock);
++	ml_set_interrupts_enabled(en);
+ 	if (blk != NULL)
+ 		return (blk);
+ 	blk = IOMallocZero(size * XG_MAXCPU);
+@@ -141,6 +144,8 @@
+ 		panic("xegfx: no memory for per-CPU data");
+ 	for (int c = 0; c < XG_MAXCPU; c++)
+ 		memcpy((char *)blk + c * size, tmpl, size);
++	/* Raw lock: prevent a preempted owner from blocking a pinned waiter. */
++	en = ml_set_interrupts_enabled(0);
+ 	xg_spin_lock(&xg_dpcpu_lock);
+ 	for (i = 0; i < XG_DPCPU_MAX && xg_dpcpu[i].tmpl != NULL; i++)
+ 		if (xg_dpcpu[i].tmpl == tmpl)
+@@ -148,13 +153,17 @@
+ 	if (i == XG_DPCPU_MAX)
+ 		panic("xegfx: too many DPCPU variables");
+ 	if (xg_dpcpu[i].tmpl == tmpl) {
+-		IOFree(blk, size * XG_MAXCPU);
++		discard = blk;
+ 		blk = xg_dpcpu[i].blk;
+ 	} else {
+ 		xg_dpcpu[i].blk = blk;
+ 		xg_dpcpu[i].tmpl = tmpl;
+ 	}
+ 	xg_spin_unlock(&xg_dpcpu_lock);
++	ml_set_interrupts_enabled(en);
++	/* IOKit release must happen outside our raw lock. */
++	if (discard != NULL)
++		IOFree(discard, size * XG_MAXCPU);
+ 	return (blk);
+ }
+ 

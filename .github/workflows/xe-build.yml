@@ -1,5 +1,5 @@
 name: Experimental Panther Lake Xe build
-# V14 applies upstream PC map access and elapsed-time wait corrections.
+# V16 protects the raw DPCPU registry lock against owner preemption.
 on:
   push:
     paths:
@@ -62,6 +62,9 @@ jobs:
           (cd build/WTLIntelGfx && patch -p1 -i "$GITHUB_WORKSPACE/patches/xe-ptl-stage3-metadata.patch")
           python3 patches/instrument_sysinit.py build/WTLIntelGfx "$HOME/src/xe-src/freebsd"
           python3 patches/instrument_watchdog.py build/WTLIntelGfx
+          python3 patches/test_dpcpu_irq.py build/WTLIntelGfx/shim/src/fbsd/xg_kern.c --expect-regression
+          (cd build/WTLIntelGfx && patch -p1 -i "$GITHUB_WORKSPACE/patches/xe-shim-dpcpu-irq.patch")
+          python3 patches/test_dpcpu_irq.py build/WTLIntelGfx/shim/src/fbsd/xg_kern.c
       - name: Build and verify xe kernel driver
         shell: bash
         run: |
@@ -71,7 +74,7 @@ jobs:
           test -r /System/Library/KernelCollections/BootKernelExtensions.kc
           cd build/WTLIntelGfx
           python3 "$GITHUB_WORKSPACE/patches/test_ptl_gop_snapshot.py" shim/src/xnu/xg_kext.cpp
-          sed -i.bak "s/ptl-stage4-guc-v4/ptl-pc-bypass-v15/g" "$GITHUB_WORKSPACE/patches/test_ptl_stage3_policy.py"
+          sed -i.bak "s/ptl-stage4-guc-v4/ptl-dpcpu-irq-v16/g" "$GITHUB_WORKSPACE/patches/test_ptl_stage3_policy.py"
           python3 "$GITHUB_WORKSPACE/patches/test_ptl_stage3_policy.py" shim/src/xnu/xg_kext.cpp
           XEGFX_KMD=xe bash build/build_xegfx.sh 2>&1 | tee "$GITHUB_WORKSPACE/build/xe-build.log"
           python3 - <<'PY'
