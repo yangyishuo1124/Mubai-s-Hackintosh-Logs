@@ -40,6 +40,7 @@ progress_out="${out%.txt}-progress.txt"
 print '本次关闭 NVRAM 追踪；后台保存进度，60 秒 watchdog 保留。'
 print 'NVRAM trace disabled; background progress logging and 60s watchdog retained.'
 print "Progress file: $progress_out"
+print "Phase file: ${out%.txt}-phases.txt"
 (
     for (( sample=0; sample<90; sample++ )); do
         value="$(sysctl -n debug.xegfx_progress 2>&1)" || break
@@ -50,7 +51,35 @@ print "Progress file: $progress_out"
 ) &
 monitor_pid=$!
 trap 'kill "$monitor_pid" 2>/dev/null || true' EXIT
-sysctl debug.xegfx_stage=4
+# Keep a durable record for this attempt before each stage request.
+phase_out="${out%.txt}-phases.txt"
+sysctl kern.bootargs >> "$phase_out"
+for target in 1 2 3 4; do
+    print -r -- "$(date '+%Y-%m-%d %H:%M:%S') stage=$target request" >> "$phase_out"
+    sync
+    sysctl "debug.xegfx_stage=$target"
+    print -r -- "$(date '+%Y-%m-%d %H:%M:%S') stage=$target returned" >> "$phase_out"
+    results=( $(sysctl -b debug.xegfx_results | od -An -v -t d4) )
+    print -r -- "results: ${results[*]}" >> "$phase_out"
+    sysctl -n debug.xegfx_stage >> "$phase_out"
+    sync
+    result_index=$(( target + 1 ))
+    if (( ${#results} < result_index || results[result_index] <= 0 )); then
+        print '阶段未成功，保存诊断后停止 / Stage failed; collecting and stopping.'
+        sysctl -b debug.xegfx_log >> "$phase_out"
+        sync
+        zsh "$base/collect.command"
+        exit 1
+    fi
+    if (( target == 3 )); then
+        sysctl -b debug.xegfx_log > "${out%.txt}-before-stage4-log.txt"
+        ioreg -r -c XeGfxResident -l > "${out%.txt}-before-stage4-ioreg.txt"
+        print '本次 stage 1–3 成功状态已保存 / This attempt passed stages 1–3; snapshot saved.'
+        sync
+    fi
+    # Allow the prior request monitor to exit before arming the next one.
+    sleep 1
+done
 sysctl debug.xegfx_stage
 print '阶段结果数组（索引对应阶段号） / Signed results indexed by stage:'
 sysctl -b debug.xegfx_results | od -An -v -t d4

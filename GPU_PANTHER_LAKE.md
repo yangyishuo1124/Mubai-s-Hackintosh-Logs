@@ -4,6 +4,16 @@
 
 ## 当前结论 / Current conclusion
 
+### v13 仍卡死：保存本次进入 stage 4 前的状态 / V13 still stalls: preserve pre-stage4 state
+
+新日志 20261114-115434 确认 v13 文件/策略通过，EFI hash 匹配；请求未返回，progress 只有启动采样 0。错误传播修正尚未带来可见返回或固件错误，不能声称修复整机卡死。之前 stage 1–3 已通过、部分尝试进入过 stage 4 的证据仍有效。
+
+The new 20261114-115434 probe passes v13 file/policy checks and EFI hash matches. The request does not return; progress only samples startup 0. Error propagation has not yet yielded a visible return or firmware error; the hard freeze is unresolved. Prior stage-1–3 success and stage-4 progress remain valid evidence.
+
+本轮不改二进制。脚本分别请求阶段 1–4，每次前后保存阶段标记、签名结果及当前阶段并 sync；失败则采集并停止。阶段 3 成功后额外落盘日志与 ioreg，再请求阶段 4。每次请求间等待 1 秒，给上一监视线程退出时间。另保存实际 kern.bootargs。目标是保存本次运行的阶段边界，不是用早期采样否定此前结果。脚本验证/部署待确认。
+
+The wrapper requests stages 1–4 separately, saving/flushing before/after markers, signed results and current stage; failures collect and stop. After stage 3 succeeds, driver log/ioreg snapshots are saved before requesting stage 4. A 1s gap permits prior monitor retirement. Effective kern.bootargs is recorded. This preserves boundaries for this attempt rather than negating prior results. Binary unchanged; wrapper verification/deployment pending.
+
 ### 修正 GuC/功耗控制错误传播 / Correct GuC and PC error propagation
 
 [完整构建通过 / Full build passed](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43495307922)。16 项原测试与新增真实上传函数错误路径测试通过，固件、架构及签名检查通过。已备份并部署 EFI 开机/诊断驱动和脚本，读回一致、ocvalidate 通过，开机配置不变。SHA-256：`64ed733117aa795e37fcb7098272764d633389be9286ce9de442a4fc67b634db`。下一次只运行一次探测；若正常返回，检查实际阶段错误和固件日志，不仅看命令退出码；若卡死仍等待约 90 秒再恢复。真实硬件错误是否被截获、整机卡死是否改善均待验证。
