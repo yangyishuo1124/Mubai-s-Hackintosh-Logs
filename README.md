@@ -1,6 +1,6 @@
 # ASUS Vivobook S16 S5650AA · Panther Lake Hackintosh
 
-核显实验更新 / GPU experiment update: MCE 已定位到 GOP 显存访问路径，新版已阻断 B0A0 的 CPU 像素映射/读取并保留 GGTT 元数据，已部署至 EFI，待重启验证；stage 2 未完成、Metal 未可用。 / A new deployed revision blocks B0A0 CPU framebuffer mapping/reads after the MCE and retains GGTT metadata. Hardware validation is pending; stage 2 remains incomplete and Metal is unavailable. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
+核显实验更新 / GPU experiment update: 不读取像素的 GOP 检查已实机通过：布局/PTE 一致、帧计数前进 18；CPU 显存访问继续阻断，stage 2 仍未完成，Metal 未可用。 / Pixel-free GOP checks pass on hardware: stable layout/PTEs and frame delta 18. CPU framebuffer access remains blocked; stage 2 is incomplete and Metal is unavailable. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
 
 **简体中文 / English** · 更新 / Updated: **2026-11-13**
 

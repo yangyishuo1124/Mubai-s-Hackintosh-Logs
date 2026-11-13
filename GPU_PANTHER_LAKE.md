@@ -4,6 +4,16 @@
 
 ## 当前结论 / Current conclusion
 
+### 实机通过：非像素 GOP 检查 / Hardware pass: pixel-free GOP checks
+
+最新完整采集显示 `XeGfxGOPMetadataResult=1`，两次采样间显示布局和全量 PTE 散列一致；帧计数前进 18。`XeGfxGOPMetadataPTEHash` 与初次页表遍历散列均为 `0x765b28479d6be205`。仍为 4000 个 DM 页、候选起点 `0x7c800000`、长度 `0xfa0000`。`XeGfxGOPCPUAccessBlocked=Yes`、`XeGfxGOPPixelVerified=No`。采集完成，panic 目录仅有先前已分析的报告，无新增文件。
+
+The latest complete hardware collection reports `XeGfxGOPMetadataResult=1`: the display layout and full PTE hash match between samples, and the frame counter advances by 18. The comparison hash matches the initial page-walk hash, `0x765b28479d6be205`. The region remains 4000 DM pages at candidate start `0x7c800000`, length `0xfa0000`. CPU framebuffer access stays blocked and pixel verification remains false. Collection completes; only the previously analyzed panic report is present.
+
+阶段结果仍为 stage 1=1、stage 2=-102，完成阶段保持 1，符合本版阻断设计。系统显示信息仍为基础 GOP（2560×1600、15 MB），不代表 Metal 加速或可继续初始化。此次仅验证非像素检查在初始化前有效；尚未验证它作为初始化前后对比的完整性检查。下一步需接入明确区分“元数据一致”和“像素未验证”的检查策略、验证 GOP 保留与 GuC/GT 前提，当前不重复测试也不撤掉阶段阻断。
+
+Stage 1 returns 1, stage 2 remains -102 and completed stage stays at 1, as intended. Display reporting is still basic GOP (2560×1600, 15 MB), not Metal acceleration or permission to advance initialization. This validates the check before initialization; it does not yet validate preservation across initialization. Further work must integrate a policy distinguishing consistent metadata from unverified pixels, validate GOP reservation and establish GuC/GT prerequisites. No repeat test or removal of the stage guard is requested in this round.
+
 ### GOP 非像素检查 / Pixel-free GOP checks
 
 [完整构建通过 / Successful full build](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43446074325)：新增快照测试、既有阻断测试和全部 16 项测试通过，驱动编译、链接、KPI、签名及架构检查通过。已备份并替换硬盘 EFI 的开机/签名诊断副本，散列读回一致，ocvalidate 无问题，配置不变。二进制 SHA-256：`a3412d5d5cda6b2c136bb3891a6ac8f9b4f26665725806c84c60e678ab5f42cb`。尚待本机重启采集确认 `XeGfxGOPMetadataResult` 和帧计数差值。
