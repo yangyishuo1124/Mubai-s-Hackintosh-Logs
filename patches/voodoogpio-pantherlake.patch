@@ -1,10 +1,11 @@
 --- a/VoodooGPIO/VoodooGPIOIntel.cpp
 +++ b/VoodooGPIO/VoodooGPIOIntel.cpp
-@@ -1029,3 +1029,204 @@
+@@ -1029,3 +1029,251 @@
          }
      }
  }
 +
++#include <IOKit/IODeviceMemory.h>
 +// Experimental INTC10BB support using firmware's INTC105F property schema.
 +// Platform layout follows intel pinctrl's ACPI-property based platform model.
 +// This class owns its tables: one ACPI device is one community.
@@ -13,6 +14,49 @@
 +    intel_community platformCommunity;
 +    intel_padgroup platformGroups[8];
 +    pinctrl_pin_desc platformPins[256];
++
++    static UInt64 little64(const UInt8 *p) {
++        UInt64 result = 0;
++        for (unsigned i = 0; i < 8; ++i) result |= (UInt64)p[i] << (i * 8);
++        return result;
++    }
++
++    bool installFirmwareMemory(IOACPIPlatformDevice *acpi) {
++        // Some ACPI QWordMemory windows are not exposed as IODeviceMemory.
++        // Accept only this firmware's bounded IRQ + QWordMemory resource form.
++        OSObject *object = nullptr;
++        IOReturn result = acpi->evaluateObject("_CRS", &object);
++        acpi->setProperty("PTLCRSResult", (UInt32)result, 32);
++        OSData *data = OSDynamicCast(OSData, object);
++        bool valid = result == kIOReturnSuccess && data && data->getLength() == 57;
++        UInt64 base = 0, size = 0;
++        if (valid) {
++            const UInt8 *b = static_cast<const UInt8 *>(data->getBytesNoCopy());
++            acpi->setProperty("PTLFirmwareCRS", data);
++            base = little64(b + 23);
++            size = little64(b + 47);
++            valid = b[0] == 0x89 && b[1] == 6 && b[2] == 0 &&
++                    b[4] == 1 && b[9] == 0x8a && b[10] == 43 && b[11] == 0 &&
++                    b[12] == 0 && b[13] == 0x0d && b[14] == 1 &&
++                    little64(b + 15) == 0 && little64(b + 39) == 0 &&
++                    base != 0 && (base & 0xffff) == 0 && size == 0x10000 &&
++                    base <= (~(UInt64)0) - size && little64(b + 31) == base + size - 1 &&
++                    b[55] == 0x79 && b[56] == 0;
++        }
++        if (object) object->release();
++        if (!valid) return false;
++        IODeviceMemory *memory = IODeviceMemory::withRange(base, size);
++        if (!memory) return false;
++        OSArray *array = OSArray::withCapacity(1);
++        if (!array) { memory->release(); return false; }
++        array->setObject(memory);
++        acpi->setDeviceMemory(array);
++        array->release();
++        memory->release();
++        acpi->setProperty("PTLMemoryFromCRS", true);
++        acpi->setProperty("PTLMemoryBase", base, 64);
++        return true;
++    }
 +
 +    static OSObject *property(OSObject *object, const char *key, unsigned depth = 0) {
 +        OSArray *array = OSDynamicCast(OSArray, object);
@@ -186,6 +230,9 @@
 +        }
 +        // Validate mapping and PADBAR before the inherited driver can write registers.
 +        acpi->setProperty("PTLProbeStage", "mapping GPIO registers");
++        acpi->setProperty("PTLMemoryCount", acpi->getDeviceMemoryCount(), 32);
++        if (!acpi->getDeviceMemoryCount() && !installFirmwareMemory(acpi))
++            return false;
 +        IOMemoryMap *mapping = acpi->mapDeviceMemoryWithIndex(0);
 +        if (!mapping)
 +            return false;
