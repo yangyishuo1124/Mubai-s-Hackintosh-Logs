@@ -27,6 +27,7 @@ jobs:
           from pathlib import Path
           import urllib.request, subprocess
           root=Path('source'); xe=root/'out/xe-src'; xe.mkdir(parents=True)
+          subprocess.run(['git','init','-q'],cwd=xe,check=True)
           names=['xe_ggtt.c','xe_ttm_stolen_mgr.c','display/xe_display.c','regs/xe_gt_regs.h']
           for name in names:
               p=xe/name; p.parent.mkdir(parents=True,exist_ok=True)
