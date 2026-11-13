@@ -1,6 +1,6 @@
 --- a/VoodooGPIO/VoodooGPIOIntel.cpp
 +++ b/VoodooGPIO/VoodooGPIOIntel.cpp
-@@ -1029,3 +1029,188 @@
+@@ -1029,3 +1029,204 @@
          }
      }
  }
@@ -126,6 +126,7 @@
 +        bzero(platformGroups, sizeof(platformGroups));
 +        bzero(platformPins, sizeof(platformPins));
 +        npins = 0;
++        acpi->setProperty("PTLProbeStage", "validating register schema");
 +        unsigned revision, count, stride;
 +        if (!number(dsd, "intc-gpio-sw-revision", revision) || revision != 0x10000 ||
 +            !number(dsd, "intc-gpio-group-count", count) || !count || count > 8 ||
@@ -141,6 +142,7 @@
 +            platformCommunity.hostown_offset != 0x2c0 || platformCommunity.is_offset != 0x300 ||
 +            platformCommunity.ie_offset != 0x310)
 +            return false;
++        acpi->setProperty("PTLProbeStage", "reading pad groups");
 +        for (unsigned i = 0; i < count; ++i) {
 +            char key[48];
 +            snprintf(key, sizeof(key), "intc-gpio-group-%u-subproperties", i);
@@ -153,8 +155,18 @@
 +                      (path[j] >= '0' && path[j] <= '9') || path[j] == '_'))
 +                    return false;
 +            OSObject *group = nullptr;
-+            if (acpi->evaluateObject(path, &group) != kIOReturnSuccess || !group)
++            char method[5];
++            snprintf(method, sizeof(method), "PTG%u", i);
++            IOReturn groupResult = acpi->evaluateObject(method, &group);
++            acpi->setProperty("PTLGroupIndex", i, 32);
++            acpi->setProperty("PTLGroupResult", (UInt32)groupResult, 32);
++            if (groupResult != kIOReturnSuccess || !group) {
++                if (group) group->release();
 +                return false;
++            }
++            char diagnostic[24];
++            snprintf(diagnostic, sizeof(diagnostic), "PTLGroup%u", i);
++            if (OSDynamicCast(OSArray, group)) acpi->setProperty(diagnostic, group);
 +            unsigned size, offset;
 +            bool valid = number(group, "intc-gpio-pad-count", size) && size > 0 && size <= 32 &&
 +                         npins + size <= 256 && number(group, "intc-gpio-group-offset", offset) &&
@@ -173,11 +185,15 @@
 +            npins += size;
 +        }
 +        // Validate mapping and PADBAR before the inherited driver can write registers.
++        acpi->setProperty("PTLProbeStage", "mapping GPIO registers");
 +        IOMemoryMap *mapping = acpi->mapDeviceMemoryWithIndex(0);
 +        if (!mapping)
 +            return false;
-+        bool valid = mapping->getLength() >= 0x800 + npins * 16 &&
-+                     readl(mapping->getVirtualAddress() + 0x0c) == 0x800;
++        UInt64 length = mapping->getLength();
++        UInt32 padbar = length >= 0x10 ? readl(mapping->getVirtualAddress() + 0x0c) : 0;
++        acpi->setProperty("PTLMappingLength", length, 64);
++        acpi->setProperty("PTLPADBAR", padbar, 32);
++        bool valid = length >= 0x800 + npins * 16 && padbar == 0x800;
 +        mapping->release();
 +        if (!valid)
 +            return false;
