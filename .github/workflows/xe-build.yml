@@ -1,0 +1,54 @@
+name: Experimental Panther Lake Xe build
+on:
+  push:
+    paths:
+      - '.github/workflows/xe-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch source snapshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/src/xe-src" build
+          fetch() {
+            mkdir -p "$3"
+            curl -fL --retry 3 "https://codeload.github.com/$1/tar.gz/$2" -o build/source.tar.gz
+            tar -xzf build/source.tar.gz --strip-components=1 -C "$3"
+          }
+          fetch InSnh-Gd/WTLIntelGfx 5ffc79fb9e53eb820899edd644b83681bea3aa39 "$GITHUB_WORKSPACE/build/WTLIntelGfx"
+          fetch watchthelight-labs/WTLKcAbi 99808a2dcd645b971eaa19a65ca9e94682892ddb "$HOME/src/kcabi"
+          fetch torvalds/linux 38fec10eb60d687e30c8c6b5420d86e8149f7557 "$HOME/src/xe-src/linux"
+          fetch freebsd/drm-kmod c16de0f9fa "$HOME/src/xe-src/drm-kmod"
+          fetch freebsd/freebsd-src 9da2c05a748fd17757638e1a9e78215cdb8b80d0 "$HOME/src/xe-src/freebsd"
+      - name: Build and verify xe kernel driver
+        shell: bash
+        run: |
+          set -euo pipefail
+          export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
+          test -d "$SDKROOT/System/Library/Frameworks/Kernel.framework/Headers"
+          test -r /System/Library/KernelCollections/BootKernelExtensions.kc
+          cd build/WTLIntelGfx
+          XEGFX_KMD=xe bash build/build_xegfx.sh 2>&1 | tee "$GITHUB_WORKSPACE/build/xe-build.log"
+          python3 harness/test_xe_stages.py 2>&1 | tee "$GITHUB_WORKSPACE/build/xe-tests.log"
+          lipo out/XeGfx.kext/Contents/MacOS/XeGfx -verify_arch x86_64
+          codesign --verify --verbose out/XeGfx.kext
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: PantherLake-Xe-build-investigation
+          path: |
+            build/xe-build.log
+            build/xe-tests.log
+            build/WTLIntelGfx/out/*.txt
+            build/WTLIntelGfx/out/*.json
+            build/WTLIntelGfx/out/*.log
+            build/WTLIntelGfx/out/link/ld.txt
+            build/WTLIntelGfx/out/XeGfx.kext
+          retention-days: 14
