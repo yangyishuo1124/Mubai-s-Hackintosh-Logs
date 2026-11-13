@@ -6,6 +6,10 @@
 
 ### v15：只绕过 PC start 的对照 / PC-start-only control
 
+构建 43502931677 已通过：16 项原有测试、GuC 错误传播、PC 等待和开关测试，以及架构、签名、链接和固件验证。硬盘 EFI 的开机驱动、诊断驱动及脚本已备份、替换并读回校验一致，OpenCore 校验通过。SHA-256：`238ff1f7be6a1e6ecede6af962115a3371c4034b104242dca48642a37a18a097`。本地备份：`backups/before-xe-pc-bypass-20261114-044227`。硬件结果待测试。
+
+Build 43502931677 passes 16 existing tests, GuC error, PC wait and selector tests, plus architecture, signature, link and firmware validation. Boot/diagnostic drivers and the wrapper were backed up, replaced and read back consistently; OpenCore validation passes. SHA-256 and local backup are listed above. Hardware outcome pending.
+
 新增默认关闭的 `compat.linuxkpi.xe_probe_skip_pc_start=1`。只在 `xe_uc_init_hw` 的 PC start 调用点绕过该调用并记录 48000；此前 GuC 上传、通信、默认 LRC、post-load 及之后 HuC/GSC 和剩余初始化保留。未改 `skip_guc_pc` 平台标志，不走它的 C6/max-frequency 替代分支。原 stage 5+ 阻断保留。该模式下的 stage 4 返回只代表诊断路径返回，不能报告正常 stage 4 通过或功耗/Metal 可用。
 
 Adds an opt-in PC-start-only bypass at the xe_uc_init_hw call site, marked by checkpoint 48000. All preceding GuC upload/communication/LRC/post-load and subsequent HuC/GSC/remaining initialization stay intact. The platform skip_guc_pc flag and its C6/max-frequency fallback are untouched. Stages 5+ remain blocked. Any stage-4 return in this mode is diagnostic only, not normal stage-4, power-management or Metal success.
