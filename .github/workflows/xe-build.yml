@@ -5,6 +5,11 @@ on:
     paths:
       - '.github/workflows/xe-build.yml'
   workflow_dispatch:
+    inputs:
+      uapi_only:
+        description: 'Build only xe-uapi-probe userspace tool'
+        required: false
+        default: 'false'
 permissions:
   contents: read
 jobs:
@@ -88,6 +93,29 @@ jobs:
           test -d "$SDKROOT/System/Library/Frameworks/Kernel.framework/Headers"
           test -r /System/Library/KernelCollections/BootKernelExtensions.kc
           cd build/WTLIntelGfx
+          mkdir -p out/uapi_inc/drm
+          cat > out/uapi_inc/drm/drm_os_freebsd.h << 'EOF'
+          #include <stdint.h>
+          #include <sys/ioccom.h>
+          #include <sys/types.h>
+          typedef int8_t   __s8;
+          typedef uint8_t  __u8;
+          typedef int16_t  __s16;
+          typedef uint16_t __u16;
+          typedef int32_t  __s32;
+          typedef uint32_t __u32;
+          typedef int64_t  __s64;
+          typedef uint64_t __u64;
+          typedef size_t   __kernel_size_t;
+          typedef unsigned int drm_handle_t;
+          EOF
+          xcrun clang -arch x86_64 -mmacosx-version-min=15.0 -O2 -Wall -Iout/uapi_inc -I"$HOME/src/xe-src/drm-kmod/include/uapi" -I"$HOME/src/xe-src/drm-kmod/include/uapi/drm" "$GITHUB_WORKSPACE/patches/xe_uapi_probe.c" -o out/xe-uapi-probe
+          codesign -s - --force out/xe-uapi-probe
+          lipo out/xe-uapi-probe -verify_arch x86_64
+          if [ "${{ github.event.inputs.uapi_only }}" = "true" ]; then
+            echo "uapi_only=true; skipping full kext build."
+            exit 0
+          fi
           python3 "$GITHUB_WORKSPACE/patches/test_ptl_gop_snapshot.py" shim/src/xnu/xg_kext.cpp
           sed -i.bak "s/ptl-stage4-guc-v4/ptl-worker-heartbeat-v24/g" "$GITHUB_WORKSPACE/patches/test_ptl_stage3_policy.py"
           python3 "$GITHUB_WORKSPACE/patches/test_ptl_stage3_policy.py" shim/src/xnu/xg_kext.cpp
@@ -101,9 +129,6 @@ jobs:
           python3 harness/test_xe_stages.py 2>&1 | tee "$GITHUB_WORKSPACE/build/xe-tests.log"
           lipo out/XeGfx.kext/Contents/MacOS/XeGfx -verify_arch x86_64
           codesign --verify --verbose out/XeGfx.kext
-          xcrun clang -arch x86_64 -mmacosx-version-min=15.0 -O2 -Wall -I"$HOME/src/xe-src/drm-kmod/include/uapi" -I"$HOME/src/xe-src/drm-kmod/include/uapi/drm" "$GITHUB_WORKSPACE/patches/xe_uapi_probe.c" -o out/xe-uapi-probe
-          codesign -s - --force out/xe-uapi-probe
-          lipo out/xe-uapi-probe -verify_arch x86_64
           python3 "$GITHUB_WORKSPACE/patches/test_allocator_checkpoints.py" out/xe-src/xe_ttm_vram_mgr.c
           python3 "$GITHUB_WORKSPACE/patches/test_guc_error_propagation.py" out/xe-src/xe_guc.c out/xe-src/xe_guc_pc.c
           python3 "$GITHUB_WORKSPACE/patches/test_ggtt_init_flow.py" out/xe-src/xe_ggtt.c
