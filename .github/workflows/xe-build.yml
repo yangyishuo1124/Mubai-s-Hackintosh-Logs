@@ -47,6 +47,7 @@ jobs:
           echo 'ac42861c62b69f19923d9a69d971fb849921585a01924e14c0e8ac679d7cde81  third_party/linux-firmware/ptl_guc_70.bin' | shasum -a 256 -c -
           cp patches/xe-0208-guc-return-log.patch build/WTLIntelGfx/xkpi/xe/patches/0208-guc-return-log.patch
           cp patches/xe-0209-ggtt-checkpoints.patch build/WTLIntelGfx/xkpi/xe/patches/0209-ggtt-checkpoints.patch
+          cp patches/xe-0213-lrc-cleanup-isolate.patch build/WTLIntelGfx/xkpi/xe/patches/0213-lrc-cleanup-isolate.patch
           cp patches/xe-0212-cleanup-trace.patch build/WTLIntelGfx/xkpi/xe/patches/0212-cleanup-trace.patch
           cp patches/xe-0211-lrc-correlation.patch build/WTLIntelGfx/xkpi/xe/patches/0211-lrc-correlation.patch
           cp patches/xe-0210-ggtt-batch-drain.patch build/WTLIntelGfx/xkpi/xe/patches/0210-ggtt-batch-drain.patch
@@ -65,6 +66,7 @@ jobs:
           (cd build/WTLIntelGfx && python3 "$GITHUB_WORKSPACE/patches/test_ptl_metadata_guard.py" shim/src/xnu/xg_kext.cpp)
           (cd build/WTLIntelGfx && patch -p1 -i "$GITHUB_WORKSPACE/patches/xe-ptl-gop-snapshot.patch")
           (cd build/WTLIntelGfx && patch -p1 -i "$GITHUB_WORKSPACE/patches/xe-ptl-stage3-metadata.patch")
+          (cd build/WTLIntelGfx && patch -p1 -i "$GITHUB_WORKSPACE/patches/xe-boot-personality.patch")
           python3 patches/instrument_sysinit.py build/WTLIntelGfx "$HOME/src/xe-src/freebsd"
           python3 patches/instrument_watchdog.py build/WTLIntelGfx
           python3 patches/instrument_boot_stage4.py build/WTLIntelGfx
