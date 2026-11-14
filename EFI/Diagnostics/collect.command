@@ -14,7 +14,10 @@ for panic_file in /Library/Logs/DiagnosticReports/*panic*(Nom[1,5]) /Library/Log
     cp -p "$panic_file" "$out/kernel-panics/"
 done
 nvram -p 2>/dev/null | awk '$1 ~ /(^|:)(aapl,panic-info|panic-info|xegfx-step|xegfx-step-prev|xegfx-accel|xegfx-prev)$/' > "$out/kernel-panic-nvram.txt"
-log show --last 30m --style compact --predicate 'process == "kernel" AND (eventMessage CONTAINS[c] "XeGfx" OR eventMessage CONTAINS[c] "panic" OR eventMessage CONTAINS[c] "machine check")' > "$out/gpu-crash-log.txt" 2>&1
+/usr/bin/log show --last 30m --style compact --predicate 'process == "kernel" AND (eventMessage CONTAINS[c] "XeGfx" OR eventMessage CONTAINS[c] "panic" OR eventMessage CONTAINS[c] "machine check")' > "$out/gpu-crash-log.txt" 2>&1
+if [[ -f "$here/gpu-ui-capture.command" ]]; then
+    /bin/zsh "$here/gpu-ui-capture.command" "$out/gpu-ui"
+fi
 sysctl hw.ncpu hw.activecpu hw.physicalcpu hw.logicalcpu hw.physicalcpu_max hw.logicalcpu_max > "$out/cpu-counts.txt" 2>&1
 ioreg -r -c AppleACPICPU -l -w0 > "$out/cpu-ioreg.txt" 2>&1
 ioreg -r -c IOAudioDevice -l -w0 > "$out/audio-devices.txt" 2>&1

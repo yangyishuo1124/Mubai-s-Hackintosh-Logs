@@ -87,6 +87,23 @@ if ! ioreg -r -c NMXAccel | grep -q NMXAccel; then
 fi
 sysctl -w debug.nvaccelfb=1 >/dev/null 2>&1 || true
 
+# Consume the request BEFORE installation: a failed attempt never loops on boot.
+if [[ -f "$here/gpu-ui-install.request" && -f "$here/gpu-ui-install.command" ]]; then
+    request="$here/reports/gpu-ui-request-$(date +%Y%m%d-%H%M%S)-$$.attempted"
+    if mv "$here/gpu-ui-install.request" "$request"; then
+        /bin/bash "$here/gpu-ui-install.command" install > "$out/ui-install-launch.txt" 2>&1
+        print "installer exit=$? (see gpu-ui-install report)" >> "$out/ui-install-launch.txt"
+    fi
+fi
+if [[ -f "$here/gpu-ui-rollback.request" && -f "$here/gpu-ui-install.command" ]]; then
+    request="$here/reports/gpu-ui-rollback-$(date +%Y%m%d-%H%M%S)-$$.attempted"
+    if mv "$here/gpu-ui-rollback.request" "$request"; then
+        /bin/bash "$here/gpu-ui-install.command" rollback > "$out/ui-rollback-launch.txt" 2>&1
+    fi
+fi
+if [[ -f "$here/gpu-ui-capture.command" ]]; then
+    /bin/zsh "$here/gpu-ui-capture.command" "$out/ui-first" &
+fi
 /usr/sbin/sysctl debug.xegfx_progress debug.xegfx_running debug.xegfx_stage > "$out/status-first.txt" 2>&1 &
 state_pid=$!
 /usr/sbin/sysctl -b debug.xegfx_log > "$out/driver-first.txt" 2>&1 &
@@ -107,4 +124,7 @@ else
     /usr/sbin/sysctl debug.xegfx_progress debug.xegfx_running debug.xegfx_stage > "$out/status-last.txt" 2>&1 &
 fi
 /bin/ps -axo pid,ppid,state,etime,comm > "$out/processes-last.txt" 2>&1
+if [[ -f "$here/gpu-ui-capture.command" ]]; then
+    /bin/zsh "$here/gpu-ui-capture.command" "$out/ui-last" &
+fi
 print -r -- "$out"

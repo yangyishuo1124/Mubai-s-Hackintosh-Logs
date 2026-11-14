@@ -2,7 +2,13 @@
 
 2026-11-14 · ASUS S5650AA · Intel `8086:B0A0` · macOS 26.0 `25A354`
 
-## 当前结论 / Current conclusion
+## 最新实测与桌面修复 / Latest verified state and desktop fix
+
+用户指定的 `gpu-probe-20261115-024055.txt` / `s5650aa-20261115-024103.zip` 已通过 Metal 计算与绘图回读，系统枚举一个 Metal 设备。现在调查的是 IONDRVFramebuffer 到 WindowServer 的桌面呈现链路。一次性 XeGfxIntelFB 安装、回退及采集入口已部署，实机安装和重启后的 UI 效果尚未验证。见 [GPU_UI_FIX.md](GPU_UI_FIX.md)。
+
+The designated reports verify real Metal compute and draw readback. Current work targets desktop presentation through the framebuffer and WindowServer. The installer/rollback/capture hook is staged; macOS installation and reboot verification are still pending. Earlier notes below describe historical bring-up stages.
+
+## 历史调查 / Historical investigation
 
 ### v17：GuC 返回值定位 / GuC return-path diagnostics
 

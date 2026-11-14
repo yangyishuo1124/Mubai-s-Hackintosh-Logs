@@ -1,12 +1,12 @@
 # ASUS Vivobook S16 S5650AA · Panther Lake Hackintosh
 
-核显实验更新 / GPU experiment update: 已部署 v13，修正 GuC 上传/认证失败误报成功、功耗控制超时返回成功的路径；完整构建、16 项原测试和新增错误路径测试通过，EFI 读回及配置校验通过。实机效果待验证，卡死未确认修复，无 Metal。 / V13 fixes false-success paths in GuC upload/authentication and PC timeouts. Full build, 16 existing tests, new error-path tests and EFI validation pass. Hardware behavior pending; hard-freeze fix unconfirmed; no Metal. See [GPU investigation / 核显调查](GPU_PANTHER_LAKE.md).
+核显更新 / GPU update: 用户指定的 024055/024103 报告已验证 Vulkan 和 Metal 计算、离屏绘图及像素回读。桌面仍卡顿，使用 IONDRVFramebuffer；已部署一次性 XeGfxIntelFB 安装与回退入口，待 macOS 安装和重启验证。 / Vulkan and Metal compute, offscreen drawing and pixel readback pass. Desktop acceleration remains unresolved; a one-shot Intel framebuffer installer and rollback are staged for boot verification. See [桌面修复 / Desktop fix](GPU_UI_FIX.md).
 
 **简体中文 / English** · 更新 / Updated: **2026-11-14**
 
-这是我的 ASUS Vivobook S16 S5650AA 黑苹果适配记录与 OpenCore EFI。macOS Tahoe 26.0 已能进入桌面，显示使用 UEFI GOP 基础帧缓冲，尚无硬件图形加速。
+这是我的 ASUS Vivobook S16 S5650AA 黑苹果适配记录与 OpenCore EFI。macOS Tahoe 26.0 已能进入桌面，Metal 离屏加速已实测通过，系统 UI 的加速显示仍待修复。
 
-My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. macOS Tahoe 26.0 boots to the desktop using the UEFI GOP basic framebuffer. Hardware graphics acceleration is not available in this setup.
+My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. macOS Tahoe 26.0 boots to the desktop and passes Metal offscreen tests. Accelerated desktop presentation remains unresolved.
 
 ## 硬件与当前状态 / Hardware and current status
 
@@ -14,7 +14,7 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. macOS Tah
 | :--- | :--- | :--- |
 | 机型 / Model | ASUS Vivobook S16 S5650AA | 本仓库测试机 / Machine tested here |
 | 处理器 / CPU | Core Ultra 7 356H, Panther Lake, 16C/16T | 16 核在线；Comet Lake CPUID 伪装 / All 16 cores online; Comet Lake CPUID spoof |
-| 显卡 / GPU | Intel Arc, PCI `8086:B0A0` | GOP 桌面；无 Metal 加速 / GOP desktop; no Metal acceleration |
+| 显卡 / GPU | Intel Arc, PCI `8086:B0A0` | Vulkan / Metal 实测通过；桌面加速待修复 / Vulkan and Metal tests pass; desktop acceleration unresolved |
 | 内存 / Memory | 32 GB LPDDR5X 7467 MT/s | 可用 / Working |
 | 屏幕 / Display | 16-inch 3200×2000 OLED, panel rated 120 Hz | 原生分辨率 GOP；macOS 刷新率未确认 / Native-resolution GOP; macOS refresh rate unverified |
 | 主硬盘 / Primary SSD | RS1D0TSSD710 1 TB NVMe | APFS 系统可启动 / Boots APFS system |
@@ -44,9 +44,9 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. macOS Tah
 
 ## 核显驱动调查 / GPU driver investigation
 
-B0A0 实验驱动由 EFI 开机加载；禁止 CPU 像素读取后，stage 1–3 已实测通过，stage 2/3 验证的是 GOP 元数据，未验证像素。stage 4 仍卡死，最新持久检查点到达 stolen 分配器末尾，正在细分后续 GT 初始化。stage 5+ 已阻断，当前桌面仍为 GOP，无 Metal 加速。见 [Panther Lake 核显记录](GPU_PANTHER_LAKE.md)。
+B0A0 驱动已通过 stage 7、用户态 DRM/Xe、Mesa ANV Vulkan 和 Metal 计算/绘图回读测试。当前问题转为 framebuffer 与 WindowServer 桌面显示链路；本次修复状态和回退方法见 [桌面修复记录](GPU_UI_FIX.md)。早期卡死记录保留为历史资料。
 
-The B0A0 experimental driver loads at EFI boot. Stages 1–3 passed hardware testing after CPU pixel reads were blocked; stages 2/3 validate GOP metadata, not pixels. Stage 4 still hangs, with the latest persistent trace reaching the stolen-allocator tail; downstream GT initialization is under investigation. Stages 5+ remain blocked. The desktop uses GOP with no Metal acceleration. See the [Panther Lake GPU record](GPU_PANTHER_LAKE.md).
+The designated reports pass stage 7, userspace DRM/Xe, Mesa ANV Vulkan and Metal compute/draw readback. Current work targets framebuffer integration with WindowServer; see the [desktop fix and recovery record](GPU_UI_FIX.md). Earlier freeze notes are historical.
 
 ## 下次 Wi-Fi 测试 / Next Wi-Fi test
 
