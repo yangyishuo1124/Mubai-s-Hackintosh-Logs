@@ -33,3 +33,6 @@ The next statement logs `LRC q put begin` before calling xe_exec_queue_put(q). T
 对照固定版本 Linux xe_exec_queue.c：destroy 会调用 q->ops->fini(q)，最终 fini 包含 LRC 引用释放及队列内存释放。是否在移植层异步触发及对应锁行为仍需检查，尚无根因结论。源码参考 / Pinned source: https://github.com/torvalds/linux/blob/38fec10eb60d687e30c8c6b5420d86e8149f7557/drivers/gpu/drm/xe/xe_exec_queue.c
 
 Pinned Linux queue destruction invokes q->ops->fini(q); finalization releases LRC references and queue memory. Port-specific scheduling and lock behavior remain to be audited; no root cause is established. Zero helper return codes do not prove working acceleration. 本次 EFI 未发现新增自动采集目录，驱动未改动。No new EFI capture directory was found; the driver is unchanged this turn.
+
+
+后续 / Follow-up: [V23 asynchronous cleanup tracing](GPU_CLEANUP_TRACE_2026-11-14.md).
