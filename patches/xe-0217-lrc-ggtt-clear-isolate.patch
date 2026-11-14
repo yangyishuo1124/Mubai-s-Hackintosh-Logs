@@ -2,7 +2,7 @@ diff --git a/xe_ggtt.c b/xe_ggtt.c
 index 1111111..2222222 100644
 --- a/xe_ggtt.c
 +++ b/xe_ggtt.c
-@@ -292,8 +292,18 @@ static void ggtt_node_remove(struct xe_ggtt_node *node)
+@@ -292,9 +292,20 @@ static void ggtt_node_remove(struct xe_ggtt_node *node)
  
  	bound = drm_dev_enter(&xe->drm, &idx);
  
