@@ -70,3 +70,6 @@ Source review identifies the stage-2 path: with a null GPU, xg_probe returns -19
 自动采集服务已实际运行；用户无需重复安装。将安装器启用后的 boot-args 精确读回同步到仓库，其他配置内容通过解析对比确认一致。本轮未替换二进制或修改硬盘上的配置。
 
 The capture service has actually run; reinstalling it is unnecessary. The installer's enabled boot arguments are synced from exact EFI readback after parsed comparison confirms other configuration contents match. No driver binary or on-disk configuration is modified in this observation turn.
+
+
+后续版本 / Follow-up: [V21 deferred boot initialization](GPU_DEFERRED_BOOT_2026-11-14.md).
