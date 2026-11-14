@@ -18,3 +18,17 @@ Source reference: [pinned xe_guc_submit.c](https://github.com/torvalds/linux/blo
 - Backup: `backups/before-xe-cleanup-trace-20261114-174051` (local workspace).
 - 保留 V21 延迟启动、V22 LRC/GGTT 日志及自动采集，无需重装。/ Deferred boot, LRC/GGTT logs and automatic capture remain; no installer rerun required.
 - 真机重启结果待验证 / Hardware reboot result pending.
+
+## 最新照片结果 / Latest photographed result
+
+用户提供 `1794650229317.jpg`、`1794650229277.jpg`，确认拍照后持续停屏。照片中至少一次完整的 `__guc_exec_queue_fini_async` 已返回：ge 释放、最终队列释放以及 runtime PM put 均有返回记录；此后继续出现 launchd、APFS 挂载和 FIPS POST PASS 输出。因此不能再仅凭先前最后一行把故障归因于队列清理。
+
+The user supplied the two photographs above and reported that the screen stayed there. At least one asynchronous GuC queue finalizer fully returned, including ge release, final queue release and runtime PM release. Subsequent launchd, APFS mount and FIPS POST PASS output shows further boot activity. The earlier last visible line does not establish a queue-cleanup fault.
+
+照片没有显示 stage 4 RETURN、BOOT initialization returned、panic 原因或调用栈。屏幕停止不等于已证明整机死锁；目前也不能证明 stage 4 完成或硬件加速可用。`posix_spawn: 86 Bad CPU type in executable` 是可见的用户态启动任务错误，尚未建立其与 GPU 停屏的因果关系。
+
+Neither a stage-4 return / boot-initialization completion nor a panic reason or backtrace is visible. A stationary screen alone does not prove a machine-wide deadlock. Stage-4 success and acceleration remain unverified. The visible userspace boot-task error `posix_spawn: 86 Bad CPU type in executable` has no established causal connection to the GPU symptom.
+
+Windows 回读确认仍为 V23 原二进制，debug=0x100 已生效于 EFI 配置；EFI 未见晚于 gpu-display-20261115-002735 的自动采集报告，也未发现 panic 文件。最新 OpenCore 日志为 opencore-2026-11-14-175326.txt，仅作为引导记录，不能替代内核日志。本次只记录结果，未修改 EFI 或驱动。
+
+Windows readback confirms the original V23 binary and debug=0x100 in the EFI configuration. No automatic report newer than gpu-display-20261115-002735 or panic file was found in EFI. The newest OpenCore log is opencore-2026-11-14-175326.txt; this is a bootloader log, not a kernel log. This update records evidence only and changes neither EFI nor the driver.
