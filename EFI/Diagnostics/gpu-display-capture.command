@@ -70,11 +70,7 @@ EOF
     chmod 644 /Library/GPUBundles/nvmtl/intel_icd.json 2>/dev/null || true
 fi
 cat > /Library/GPUBundles/nvmtl-allow.txt << 'EOF'
--ControlCenter
--System Settings
--System Information
--com.apple.dock.extra
-*
+WindowServer
 EOF
 chmod 644 /Library/GPUBundles/nvmtl-allow.txt 2>/dev/null || true
 if ! codesign -v /Library/GPUBundles/NVMTLDriver.bundle >/dev/null 2>&1; then
@@ -112,7 +108,8 @@ sleep 1
 if [[ -f "$here/ws-restart.request" ]]; then
     mv "$here/ws-restart.request" "$here/reports/ws-restart-$(date +%Y%m%d-%H%M%S)-$$.attempted" 2>/dev/null || rm -f "$here/ws-restart.request"
     killall -9 WindowServer 2>/dev/null || true
-    sleep 5
+    sleep 8
+    /usr/bin/log show --last 1m --style compact --predicate 'process == "WindowServer" OR sender == "XeGfxAccel" OR sender == "XeGfxAGDC"' > "$out/ws-after-restart.txt" 2>&1 || true
 fi
 
 # Consume the request BEFORE installation: a failed attempt never loops on boot.
