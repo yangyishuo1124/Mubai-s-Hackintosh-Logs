@@ -35,5 +35,17 @@ Hardware reboot testing is pending. Run the existing `gpu-probe.command` after b
 
 ## 来源 / Sources
 
+## 实机结果：仍卡死 / Hardware outcome: still freezes
+
+用户反馈 v16 仍卡死。已从内部 EFI 读取并在本地保留 `gpu-probe-20261114-220542.txt` 及对应 progress 文件：资源校验通过，包装脚本通过 v16 策略门禁，环境明确记录 display=0、skip_pc_start=1、trace=0、watchdog=60。stage 请求只留下 `debug.xegfx_stage: 0`，未完整返回；progress 文件仅有 `2026-11-14 22:05:42 progress=0`。EFI 开机二进制回读 SHA256 仍为上述 v16 值。临时 EFI 盘符已移除。
+
+The user reports another freeze. The EFI probe dated 20261114-220542 passes resource checks and the v16 policy gate, with display=0, skip_pc_start=1, trace=0 and watchdog=60. The stage request does not complete; the progress file has only its initial sample. The EFI boot binary still matches the recorded v16 hash. Raw logs remain local and the temporary drive letter has been removed.
+
+DPCPU 修改未消除本机故障，不能报告为已修复。初始进度不是故障定位，不能否定历史 stage 1–3 通过及 stage 4 内部记录；也不能证明 48000 PC 绕过点已执行，或排除全部 PC 相关路径。本轮没有新内部堆栈或寄存器证据，保持现有驱动，不要求重复运行同一实验。
+
+The DPCPU change did not resolve the machine freeze. An initial progress sample is not a fault location and does not invalidate earlier stage-1–3 success or internal stage-4 observations. It does not prove checkpoint 48000 was reached or exclude all PC paths. No new internal stack/register evidence was captured. No replacement driver or repeat of the same experiment is requested this round.
+
+## 源码链接 / Source links
+
 - [Pinned shim](https://github.com/InSnh-Gd/WTLIntelGfx/blob/5ffc79fb9e53eb820899edd644b83681bea3aa39/shim/src/fbsd/xg_kern.c), [scheduler raw-lock convention](https://github.com/InSnh-Gd/WTLIntelGfx/blob/5ffc79fb9e53eb820899edd644b83681bea3aa39/shim/src/fbsd/xg_sched.c).
 - [Pinned FreeBSD LinuxKPI RCU](https://github.com/freebsd/freebsd-src/blob/9da2c05a748fd17757638e1a9e78215cdb8b80d0/sys/compat/linuxkpi/common/src/linux_rcu.c).

@@ -6,6 +6,10 @@
 
 ### v16：DPCPU 原始锁保护 / Raw DPCPU lock protection
 
+**实机仍卡死。** 已读取 2026-11-14 22:05:42 的 EFI 报告：v16 门禁及资源校验通过，stage 4 请求未返回，进度只保存了初始 0。没有新的内部定位证据；不能确认 PC 绕过点已执行。此次源码修正未解决故障，不安排同版重复测试。
+
+**V16 still freezes on hardware.** The EFI report at 22:05:42 passes the v16 gate and resource checks, but the stage-4 request does not complete and only initial progress=0 is saved. No new internal fault location or evidence that the PC bypass point ran. This source correction did not resolve the freeze; no repeat of the same build is requested.
+
 发现 `xg_dpcpu_block` 原始锁缺少持锁期间的中断保护，存在持锁者被抢占、禁止抢占的等待者持续空转的风险。V16 补齐保存/关闭/恢复中断，并把并发分配的失败副本释放移到锁外。保留 v15 的 PC start bypass，仅隔离锁修改；还没有实机证据证明这是卡死根因。[修改和验证记录 / Change and validation](GPU_DPCPU_LOCK_2026-11-14.md)。
 
 The DPCPU registry raw lock lacked interrupt protection against owner preemption. V16 adds save/disable/restore around ownership and disposes of a losing allocation outside the raw lock. V15's PC-start bypass remains to isolate this change. This is not yet a hardware-confirmed freeze diagnosis; see the linked validation record.
