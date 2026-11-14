@@ -46,3 +46,13 @@ The user reports a static verbose screen while volume-key presses still generate
 新增 gpu-display-capture.command，仅读取阶段/进度/驱动日志和进程列表，并记录 60 秒用户态心跳，不发起阶段请求、不改启动参数。状态和日志读取分开启动，避免日志锁阻塞时连独立心跳都无法保存。首次读取 60 秒后仍未完成会标记 pending，而不持续叠加读取进程。脚本已复制内部 EFI 并回读一致；未替换 V20 驱动，尚未取得该脚本的实机结果。
 
 The new gpu-display-capture.command reads stage/progress/log and process lists and records a 60-second userspace heartbeat. It does not request initialization or modify boot arguments. Separate background reads avoid making heartbeat capture wait on the log lock. Pending first reads are marked after 60 seconds instead of accumulating more readers. The script is copied to internal EFI with matching readback; the V20 driver is unchanged and capture results remain pending.
+
+## 自动采集安装准备 / Automatic capture installation preparation
+
+Windows 未发现可写 APFS 数据卷或 APFS 写入驱动，不能从此处直接安装 macOS LaunchDaemon。为避免盲操作，已在内部 EFI 仅移除 xegfx_bootstage=4，保留 V20 二进制、原有 -v 和其他参数，OpenCore 校验通过。备份：backups/before-autocapture-setup-20261114-162008。显示能否恢复仍待下一次开机确认。
+
+Windows exposes no writable APFS Data volume or APFS write driver, so the macOS LaunchDaemon cannot be installed directly here. To avoid blind interaction, only xegfx_bootstage=4 was removed from internal EFI; V20, -v and other arguments remain. OpenCore validation passes. Display recovery remains unverified.
+
+install-gpu-autocapture.command 已放入 EFI 并回读一致。用户在画面正常的 macOS 中运行一次，取得管理员权限后安装 /Library/LaunchDaemons/org.mubai.gpu-capture.plist 和 /Library/Application Support/MubaiGPUCapture/capture.zsh。成功加载采集服务后，安装器才把 xegfx_bootstage=4 加回 EFI 配置，配置修改前另存备份。服务每次开机尝试挂载 SYSTEM 并运行只读采集脚本，将心跳、进程、阶段和日志保存在 EFI。并非已安装到 macOS，尚需用户执行这一次可见安装。
+
+The installer is copied to EFI with matching readback. One visible macOS run with administrator authorization installs a LaunchDaemon and its launcher. Only after loading the capture service does it re-enable xegfx_bootstage=4 in EFI, backing up config first. At each boot the service attempts to mount SYSTEM and runs the read-only capture to EFI. The macOS service is not yet installed; one visible installer run remains necessary.

@@ -23,6 +23,7 @@ jobs:
           set -euo pipefail
           zsh -n EFI/Diagnostics/gpu-probe.command
           zsh -n EFI/Diagnostics/gpu-display-capture.command
+          zsh -n EFI/Diagnostics/install-gpu-autocapture.command
           zsh -n EFI/Diagnostics/collect.command
           mkdir source
           curl -fL --retry 3 https://codeload.github.com/InSnh-Gd/WTLIntelGfx/tar.gz/5ffc79fb9e53eb820899edd644b83681bea3aa39 | tar -xz --strip-components=1 -C source
