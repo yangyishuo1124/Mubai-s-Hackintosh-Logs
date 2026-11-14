@@ -6,7 +6,7 @@
  extern void xg_init_checkpoint(int, const char *);
 +extern int getenv_int(const char *, int *);
 +extern volatile int xg_lrc_fini_pending;
-+extern void DELAY(int);
++extern int pause_sbt(const char *, int64_t, int64_t, int);
  
  static void gt_fini(struct drm_device *drm, void *arg)
  {
@@ -37,7 +37,7 @@
 +			xg_printf("xegfx: LRC nop_q put begin\n");
 +			xe_exec_queue_put(nop_q);
 +			for (int w = 0; w < 500 && __sync_fetch_and_add(&xg_lrc_fini_pending, 0) > 0; w++)
-+				DELAY(1000);
++				pause_sbt("xglrc", 4294967LL, 0, 0);
 +			xg_printf("xegfx: LRC nop_q put returned\n");
 +		}
  put_exec_queue:
@@ -50,7 +50,7 @@
 +			xg_printf("xegfx: LRC q put begin\n");
 +			xe_exec_queue_put(q);
 +			for (int w = 0; w < 500 && __sync_fetch_and_add(&xg_lrc_fini_pending, 0) > 0; w++)
-+				DELAY(1000);
++				pause_sbt("xglrc", 4294967LL, 0, 0);
 +			xg_printf("xegfx: LRC q put returned\n");
 +		}
  		if (err)

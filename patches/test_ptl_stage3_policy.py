@@ -1,7 +1,7 @@
 from pathlib import Path
 import sys,tempfile,subprocess
 s=Path(sys.argv[1]).read_text()
-guard=s[s.index(' // B0A0 stage 5 is the current boundary.'):s.index('\n#endif\n\tgRunning = s;',s.index(' // B0A0 stage 5 is the current boundary.'))]
+guard=s[s.index(' // B0A0 stage 6 is the current boundary.'):s.index('\n#endif\n\tgRunning = s;',s.index(' // B0A0 stage 6 is the current boundary.'))]
 commit=s[s.index('  if (metadata_rc != 1)'):s.index('\n }\n /* FreeBSD',s.index('  if (metadata_rc != 1)'))]
 assert 'if (rc == 1 && gPtlMetadataBaseline) rc = xg_display_check();' in s
 assert 'ptl-stage4-guc-v4' in s
@@ -31,9 +31,9 @@ int main(){
  assert(stage(3)==1 && calls==1);
  assert(stage(4)==1 && calls==2);
  assert(stage(5)==1 && calls==3);
- assert(stage(6)==-EOPNOTSUPP && calls==3);
- assert(stage(7)==-EOPNOTSUPP && calls==3);
- gPtlMetadataBaseline=false;assert(stage(4)==1 && calls==4);
+ assert(stage(6)==1 && calls==4);
+ assert(stage(7)==-EOPNOTSUPP && calls==4);
+ gPtlMetadataBaseline=false;assert(stage(4)==1 && calls==5);
 }
 '''
 with tempfile.TemporaryDirectory() as d:
