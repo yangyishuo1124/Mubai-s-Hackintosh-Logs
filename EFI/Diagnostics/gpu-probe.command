@@ -211,8 +211,8 @@ fi
 printf '%s\n' '--- NMXAccel 状态检查 ---'
 ioreg -r -c NMXAccel -l || printf '%s\n' '[NMXAccel not matched yet]'
 
-printf '%s\n' '=== 注册 Framebuffer 呈现管道到 NMXAccel (debug.nvaccelfb=3) ==='
-sysctl -w debug.nvaccelfb=3 2>&1 || true
+printf '%s\n' '=== 注册 Framebuffer 呈现管道到 NMXAccel ==='
+sysctl -w debug.nvaccelfb=1 2>&1 || true
 
 if [[ -f "$base/GPU/metal/mtlprobe" ]]; then
     cp -f "$base/GPU/metal/mtlprobe" /tmp/mtlprobe
