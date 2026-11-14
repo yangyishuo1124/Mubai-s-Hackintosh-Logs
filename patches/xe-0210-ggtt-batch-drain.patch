@@ -1,0 +1,28 @@
+--- a/xe_ggtt.c
++++ b/xe_ggtt.c
+@@ -148,6 +148,9 @@
+ 	u16 pat_index = tile_to_xe(ggtt->tile)->pat.idx[XE_CACHE_WB];
+ 	u64 end = start + size - 1;
+ 	u64 scratch_pte;
++	struct xe_device *xe = tile_to_xe(ggtt->tile);
++	bool drain_batches = to_pci_dev(xe->drm.dev)->device == 0xb0a0;
++	unsigned int pending = 0;
+ 
+ 	xe_tile_assert(ggtt->tile, start < end);
+ 
+@@ -167,7 +170,14 @@
+ 			xg_printf("xegfx: GGTT fill offset=%llx\n", (unsigned long long)start);
+ 		ggtt->pt_ops->ggtt_set_pte(ggtt, start, scratch_pte);
+ 		start += XE_PAGE_SIZE;
+-	}
++		/* B0A0 diagnostic experiment: retain every PTE, drain posted writes. */
++		if (drain_batches && ++pending == 64) {
++			xe_mmio_read32(xe_root_tile_mmio(xe), VF_CAP_REG);
++			pending = 0;
++		}
++	}
++	if (drain_batches && pending)
++		xe_mmio_read32(xe_root_tile_mmio(xe), VF_CAP_REG);
+ }
+ 
+ static void ggtt_fini_early(struct drm_device *drm, void *arg)
