@@ -436,6 +436,13 @@
 				ylEAAA==
 				</data>
 			</dict>
+			<key>PciRoot(0x0)/Pci(0x2,0x0)</key>
+			<dict>
+				<key>VRAM,totalMB</key>
+				<integer>2048</integer>
+				<key>model</key>
+				<string>Intel Arc Graphics (PTL Xe2)</string>
+			</dict>
 		</dict>
 		<key>Delete</key>
 		<dict/>
@@ -1395,7 +1402,7 @@
 				AAAAAAAAAAAAAAAAAAA=
 				</data>
 				<key>boot-args</key>
-				<string>-v keepsyms=1 msgbuf=1048576 -no_compat_check -rtw89nowpa3 revpatch=cpuname revcpu=1 -amfipassbeta amfi_get_out_of_my_way=1 ipc_control_port_options=0 alcid=3 xegfx_bootstage=7 nvaccelfb=1 debug=0x100</string>
+				<string>-v keepsyms=1 msgbuf=1048576 -no_compat_check -rtw89nowpa3 revpatch=cpuname revcpu=1 -amfipassbeta amfi_get_out_of_my_way=1 ipc_control_port_options=0 alcid=3 xegfx_bootstage=4 nvaccelfb=1 debug=0x100</string>
 				<key>csr-active-config</key>
 				<data>
 				AwgAAA==
