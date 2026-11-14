@@ -102,7 +102,15 @@ if ! ioreg -r -c NMXAccel | grep -q NMXAccel; then
     kextload /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
     sleep 1
 fi
-sysctl -w debug.nvaccelfb=1 >/dev/null 2>&1 || true
+sysctl -w debug.xegfx_agdc=1 >/dev/null 2>&1 || true
+sleep 1
+sysctl -w debug.nvaccelfb=3 >/dev/null 2>&1 || true
+sleep 1
+if [[ -f "$here/ws-restart.request" ]]; then
+    mv "$here/ws-restart.request" "$here/reports/ws-restart-$(date +%Y%m%d-%H%M%S)-$$.attempted" 2>/dev/null || rm -f "$here/ws-restart.request"
+    killall -9 WindowServer 2>/dev/null || true
+    sleep 5
+fi
 
 # Consume the request BEFORE installation: a failed attempt never loops on boot.
 if [[ -f "$here/gpu-ui-install.request" && -f "$here/gpu-ui-install.command" ]]; then
@@ -141,8 +149,9 @@ else
     /usr/sbin/sysctl debug.xegfx_progress debug.xegfx_running debug.xegfx_stage > "$out/status-last.txt" 2>&1 &
 fi
 /bin/ps -axo pid,ppid,state,etime,comm > "$out/processes-last.txt" 2>&1
-/usr/bin/log show --last 5m --predicate 'process == "WindowServer" AND eventMessage CONTAINS "NVMTL"' > "$out/ws-nvmtl.txt" 2>&1 || true
 /usr/sbin/sysctl debug.nmxaccel_headless debug.nvaccelfb debug.nvaccel_heads_published debug.nvaccel_heads_registered debug.nvaccel_heads_piped debug.nvaccel_iop_ok_h4 debug.nvaccel_iop_fail debug.nvaccel_pipe_init debug.nvaccel_pipe_validate debug.nvaccel_pipe_perform > "$out/accel-sysctls.txt" 2>&1 || true
+/usr/sbin/sysctl debug.xegfx_agdc debug.xegfx_agdc_cmds debug.xegfx_agdc_refused debug.xegfx_agdc_maxfb debug.xegfx_agdc_fbcapex_asked debug.xegfx_agdc_fbcapex_served > "$out/agdc-sysctls.txt" 2>&1 || true
+/usr/bin/log show --last 3m --style compact --predicate 'process == "WindowServer" AND eventMessage CONTAINS "NVMTL"' > "$out/ws-nvmtl.txt" 2>&1 || true
 if [[ -f "$here/gpu-ui-capture.command" ]]; then
     /bin/zsh "$here/gpu-ui-capture.command" "$out/ui-last" &
 fi
