@@ -439,7 +439,7 @@
 			<key>PciRoot(0x0)/Pci(0x2,0x0)</key>
 			<dict>
 				<key>VRAM,totalMB</key>
-				<integer>2048</integer>
+				<integer>18432</integer>
 				<key>model</key>
 				<string>Intel Arc Graphics (PTL Xe2)</string>
 			</dict>
