@@ -39,13 +39,16 @@ if [[ "$stage" -lt 7 ]]; then
     sleep 1
 fi
 if ! ioreg -r -c NMXAccel | grep -q NMXAccel; then
-    rm -rf /tmp/XeGfxAGDC.kext /tmp/XeGfxAccel.kext
-    cp -R "$here/GPU/kexts/XeGfxAGDC.kext" /tmp/XeGfxAGDC.kext 2>/dev/null || true
-    cp -R "$here/GPU/kexts/XeGfxAccel.kext" /tmp/XeGfxAccel.kext 2>/dev/null || true
-    chown -R root:wheel /tmp/XeGfx*.kext 2>/dev/null || true
-    chmod -R 755 /tmp/XeGfx*.kext 2>/dev/null || true
-    kextload /tmp/XeGfxAGDC.kext 2>/dev/null || true
-    kextload /tmp/XeGfxAccel.kext 2>/dev/null || true
+    rm -rf /tmp/XeGfxAGDC.kext /tmp/XeGfxAccel.kext 2>/dev/null || true
+    if [[ ! -d /Library/Extensions/XeGfxAGDC.kext || ! -d /Library/Extensions/XeGfxAccel.kext ]]; then
+        rm -rf /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
+        cp -R "$here/GPU/kexts/XeGfxAGDC.kext" /Library/Extensions/XeGfxAGDC.kext 2>/dev/null || true
+        cp -R "$here/GPU/kexts/XeGfxAccel.kext" /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
+        chown -R root:wheel /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
+        chmod -R 755 /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
+    fi
+    kextload /Library/Extensions/XeGfxAGDC.kext 2>/dev/null || true
+    kextload /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
     sleep 1
 fi
 sysctl -w debug.nvaccelfb=1 >/dev/null 2>&1 || true

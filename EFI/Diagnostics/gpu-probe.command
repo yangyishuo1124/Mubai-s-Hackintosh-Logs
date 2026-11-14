@@ -159,15 +159,19 @@ chmod 644 /Library/GPUBundles/nvmtl-allow.txt /Library/GPUBundles/nvmtl/intel_ic
 
 printf '%s\n' '--- 检查与加载 NMXAccel ---'
 if ! ioreg -r -c NMXAccel | grep -q NMXAccel; then
-    printf '%s\n' '加载 NMXAccel 与 XeGfxAGDC 驱动...'
+    printf '%s\n' '安装并加载 NMXAccel 与 XeGfxAGDC 驱动到 /Library/Extensions/ ...'
     rm -rf /tmp/XeGfxAGDC.kext /tmp/XeGfxAccel.kext
-    cp -R "$base/GPU/kexts/XeGfxAGDC.kext" /tmp/XeGfxAGDC.kext
-    cp -R "$base/GPU/kexts/XeGfxAccel.kext" /tmp/XeGfxAccel.kext
-    chown -R root:wheel /tmp/XeGfx*.kext
-    chmod -R 755 /tmp/XeGfx*.kext
-    kextload /tmp/XeGfxAGDC.kext 2>&1 || true
-    kextload /tmp/XeGfxAccel.kext 2>&1 || true
+    rm -rf /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext
+    cp -R "$base/GPU/kexts/XeGfxAGDC.kext" /Library/Extensions/XeGfxAGDC.kext
+    cp -R "$base/GPU/kexts/XeGfxAccel.kext" /Library/Extensions/XeGfxAccel.kext
+    chown -R root:wheel /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext
+    chmod -R 755 /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext
+    kextload /Library/Extensions/XeGfxAGDC.kext 2>&1 || true
+    kextload /Library/Extensions/XeGfxAccel.kext 2>&1 || true
     sleep 1
+    if ! ioreg -r -c NMXAccel | grep -q NMXAccel; then
+        printf '%s\n' '[提示] 已将驱动安装到持久化目录 /Library/Extensions/，如果上方提示 requires a reboot，请重启电脑以使 AuxKC 生效！'
+    fi
 fi
 
 printf '%s\n' '--- NMXAccel 状态检查 ---'
