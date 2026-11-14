@@ -171,15 +171,12 @@ if [[ ! -f /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/lib
     chmod 755 /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/*.dylib 2>/dev/null || true
 fi
 
+rm -rf /Library/GPUBundles/NVMTLDriver.bundle/Contents/_CodeSignature 2>/dev/null || true
 cp -f "$base/GPU/vulkan/libdrm.2.dylib" /Library/GPUBundles/nvmtl/libdrm.2.dylib
 cp -f "$base/GPU/vulkan/libvulkan.1.dylib" /Library/GPUBundles/nvmtl/libvulkan.dylib
 cp -f "$base/GPU/vulkan/libvulkan_intel.dylib" /Library/GPUBundles/nvmtl/libvulkan_intel.dylib
 cp -f "$base/GPU/metal/libnvmtl_translate.dylib" /Library/GPUBundles/nvmtl/libnvmtl_translate.dylib
 chmod 755 /Library/GPUBundles/nvmtl/*.dylib
-/usr/bin/codesign -f -s - /Library/GPUBundles/nvmtl/*.dylib 2>/dev/null || true
-/usr/bin/codesign -f -s - /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/*.dylib 2>/dev/null || true
-/usr/bin/codesign -f -s - /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/NVMTLDriver 2>/dev/null || true
-/usr/bin/codesign -f -s - /Library/GPUBundles/NVMTLDriver.bundle 2>/dev/null || true
 
 cat > /Library/GPUBundles/nvmtl/intel_icd.json << 'EOF'
 {
@@ -249,14 +246,3 @@ sysctl -b debug.xegfx_log
 printf '%s\n' 'Boundary: stage 7 (xg_accel_claim) + userspace xe-uapi-probe + Mesa ANV Vulkan + Metal NVMTLDriver.'
 zsh "$base/collect.command"
 printf '%s\n' '探测结束。驱动由 EFI 配置开机加载。 / Probe finished; EFI controls boot loading.'
-
-if [[ -n "$(ioreg -r -c NMXAccel 2>/dev/null)" ]]; then
-    printf '%s\n' '=== [Phase 4] 开启 scanout 显示管道 (debug.nvaccelfb=3) 并重启 WindowServer ==='
-    sysctl -w debug.nvaccelfb=3 2>&1 | tee "$base/reports/nvaccelfb3-last.txt" || true
-    sleep 1
-    log show --last 15s --style compact --predicate 'process == "kernel"' 2>/dev/null | grep -E 'NMXAccel|NVDisplay|scanout|boot framebuffer|nvaccel' >> "$base/reports/nvaccelfb3-last.txt" || true
-    sync
-    printf '%s\n' '即将在 2 秒后重启 WindowServer（会回到登录界面，重新登录即可检验加速；若黑屏请强制重启）...'
-    sleep 2
-    killall -9 WindowServer 2>/dev/null || true
-fi

@@ -45,15 +45,12 @@ EOF
         fi
         chmod 755 /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/*.dylib 2>/dev/null || true
     fi
+    rm -rf /Library/GPUBundles/NVMTLDriver.bundle/Contents/_CodeSignature 2>/dev/null || true
     cp -f "$here/GPU/vulkan/libdrm.2.dylib" /Library/GPUBundles/nvmtl/libdrm.2.dylib 2>/dev/null || true
     cp -f "$here/GPU/vulkan/libvulkan.1.dylib" /Library/GPUBundles/nvmtl/libvulkan.dylib 2>/dev/null || true
     cp -f "$here/GPU/vulkan/libvulkan_intel.dylib" /Library/GPUBundles/nvmtl/libvulkan_intel.dylib 2>/dev/null || true
     cp -f "$here/GPU/metal/libnvmtl_translate.dylib" /Library/GPUBundles/nvmtl/libnvmtl_translate.dylib 2>/dev/null || true
     chmod 755 /Library/GPUBundles/nvmtl/*.dylib 2>/dev/null || true
-    /usr/bin/codesign -f -s - /Library/GPUBundles/nvmtl/*.dylib 2>/dev/null || true
-    /usr/bin/codesign -f -s - /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/*.dylib 2>/dev/null || true
-    /usr/bin/codesign -f -s - /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/NVMTLDriver 2>/dev/null || true
-    /usr/bin/codesign -f -s - /Library/GPUBundles/NVMTLDriver.bundle 2>/dev/null || true
     cat > /Library/GPUBundles/nvmtl/intel_icd.json << 'EOF'
 {
     "file_format_version": "1.0.1",
