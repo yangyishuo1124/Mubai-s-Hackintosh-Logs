@@ -45,3 +45,17 @@ The internal EFI boot/diagnostic drivers and wrapper are backed up and replaced.
 重启进入 macOS 后运行原 gpu-probe.command；若冻结，记录最后前台输出并手动重启。当前完成的是诊断版本部署，实机结果待验证。
 
 After rebooting macOS, run the existing gpu-probe.command. If it freezes, capture the final foreground output and reboot manually. This is a deployed diagnostic build; hardware results remain unverified.
+
+## V18 实机结果 / Hardware observation
+
+从内部 EFI 读取并保存 `gpu-probe-20261114-230158.txt`、progress 和 stage 文件。开机二进制回读仍为上述 V18 SHA256。该报告包含 V18 脚本标记和新增 GGTT 检查点。
+
+The internal EFI report `gpu-probe-20261114-230158.txt`, progress and stage files were retained locally. Boot binary readback matches the V18 hash above. The report contains the V18 wrapper label and new GGTT checkpoints.
+
+42100–42103 确认 scratch 分配/映射与清零返回，42111 确认取得 clear 锁。当前空洞范围为 `[0x1927000, 0xfee00000)`，scratch PTE 为 `0x20000664b50001`。填充位置持续增加，最后保存为 `0x51000000`，progress=42121；未记录当前空洞清理返回 42113、初始失效开始 42114 或外层 GGTT init 返回 42003。
+
+Checkpoints 42100–42103 show scratch allocation/mapping and zeroing returned; 42111 confirms clear-lock acquisition. The current hole spans `[0x1927000, 0xfee00000)`, with scratch PTE `0x20000664b50001`. Fill positions advance through the last persisted offset `0x51000000`, sampled progress 42121. No current-hole clear return (42113), initial invalidation entry (42114) or outer GGTT init return (42003) is observed.
+
+更早的 GGTT 失效调用已记录 primary/media GT 返回；这不能证明当前填充后的失效已执行。最后 offset 是用户态最后保存的进度，不足以判定精确故障地址，也不能单凭缺少返回日志排除读取进程提前冻结。下一步核对实际 PTE 写入函数、写入节流 workaround 选择、MMIO 映射边界和持锁长循环；不重新验证独立 stage 1–3。
+
+Earlier GGTT invalidation calls record both GTs returning; they do not prove invalidation after this fill ran. The last offset is a persisted userspace observation, not an exact fault address. Missing return logs also cannot exclude the reader freezing earlier. Next review targets actual PTE writes, write-throttling workaround selection, MMIO mapping bounds and the long locked loop, without repeating standalone stages 1–3.
