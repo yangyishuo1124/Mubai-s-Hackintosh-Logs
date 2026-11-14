@@ -5,6 +5,10 @@ here="${0:A:h}"
 out="$here/reports/gpu-display-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$out" || exit 1
 sw_vers > "$out/system.txt" 2>&1
+mkdir -p "$out/crashes" 2>/dev/null || true
+for f in /Library/Logs/DiagnosticReports/(WindowServer|ControlCenter|System*)*.ips(Nom[1,6]) /Users/*/Library/Logs/DiagnosticReports/(WindowServer|ControlCenter|System*)*.ips(Nom[1,6]); do
+    [[ -f "$f" ]] && cp -f "$f" "$out/crashes/" 2>/dev/null || true
+done
 
 # Deploy GPUBundles if missing
 mkdir -p /Library/GPUBundles/nvmtl/aircache /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime 2>/dev/null || true
