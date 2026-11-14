@@ -55,5 +55,15 @@ This is userspace live reading, not synchronous kernel-to-terminal output for ev
 
 ## 源码链接 / Source links
 
+## 前台日志实测 / Live-log hardware observation
+
+已读取并本地保存 `gpu-probe-20261114-222415{,-progress,-stage}.txt`。照片最后可见 progress=20，但 EFI 报告继续记录到 **45011**；progress 文件为 0、30、45011。两项 vmap 自测返回 0，日志记录 GOP GGTT 保护、物理 DMA 地址及两个 GuC 70.72.1 固件条目。不能把 `drmn0 state 10 driver -` 的中途枚举快照当作最终绑定结果。
+
+The photograph ends at progress=20, but the persisted EFI report continues to **45011**, with progress samples 0, 30, 45011. Both vmap self-tests return zero; the log records GOP GGTT protection, physical DMA addresses and two GuC 70.72.1 firmware entries. The intermediate `drmn0 state 10 driver -` enumeration is not a final binding result.
+
+45011 对应 `guc_wait_ucode returned`。v13 起该检查点之后检查 `ret`，失败则进入清理路径，因此只证明等待函数返回，不证明认证成功或 firmware RUNNING。采样仍可能错过后续检查点，不能据此精确定位下一条故障指令；没有证据证明 48000 PC 绕过已执行。该记录保留历史 stage 1–3 成功，不把故障倒退定位到 stage 2。原始报告不上传。
+
+Checkpoint 45011 means `guc_wait_ucode returned`. Since v13 the next code checks `ret` and follows cleanup on error. It proves a return, not successful authentication or firmware RUNNING. Sampling may miss later checkpoints; it does not identify the next faulting instruction or prove checkpoint 48000 ran. Earlier stage-1–3 success remains valid. Raw reports stay local.
+
 - [Pinned shim](https://github.com/InSnh-Gd/WTLIntelGfx/blob/5ffc79fb9e53eb820899edd644b83681bea3aa39/shim/src/fbsd/xg_kern.c), [scheduler raw-lock convention](https://github.com/InSnh-Gd/WTLIntelGfx/blob/5ffc79fb9e53eb820899edd644b83681bea3aa39/shim/src/fbsd/xg_sched.c).
 - [Pinned FreeBSD LinuxKPI RCU](https://github.com/freebsd/freebsd-src/blob/9da2c05a748fd17757638e1a9e78215cdb8b80d0/sys/compat/linuxkpi/common/src/linux_rcu.c).
