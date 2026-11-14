@@ -38,6 +38,16 @@ if [[ "$stage" -lt 7 ]]; then
     sysctl debug.xegfx_stage=7 >/dev/null 2>&1 || true
     sleep 1
 fi
+if ! ioreg -r -c NMXAccel | grep -q NMXAccel; then
+    rm -rf /tmp/XeGfxAGDC.kext /tmp/XeGfxAccel.kext
+    cp -R "/GPU/kexts/XeGfxAGDC.kext" /tmp/XeGfxAGDC.kext 2>/dev/null || true
+    cp -R "/GPU/kexts/XeGfxAccel.kext" /tmp/XeGfxAccel.kext 2>/dev/null || true
+    chown -R root:wheel /tmp/XeGfx*.kext 2>/dev/null || true
+    chmod -R 755 /tmp/XeGfx*.kext 2>/dev/null || true
+    kextload /tmp/XeGfxAGDC.kext 2>/dev/null || true
+    kextload /tmp/XeGfxAccel.kext 2>/dev/null || true
+    sleep 1
+fi
 sysctl -w debug.nvaccelfb=1 >/dev/null 2>&1 || true
 
 /usr/sbin/sysctl debug.xegfx_progress debug.xegfx_running debug.xegfx_stage > "$out/status-first.txt" 2>&1 &

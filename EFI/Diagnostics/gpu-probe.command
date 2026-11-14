@@ -157,13 +157,18 @@ EOF
 printf '*\n' > /Library/GPUBundles/nvmtl-allow.txt
 chmod 644 /Library/GPUBundles/nvmtl-allow.txt /Library/GPUBundles/nvmtl/intel_icd.json
 
-printf '%s\n' '--- 等待 NMXAccel 匹配 ---'
-for i in {1..10}; do
-    if ioreg -r -c NMXAccel | grep -q NMXAccel; then
-        break
-    fi
-    sleep 0.5
-done
+printf '%s\n' '--- 检查与加载 NMXAccel ---'
+if ! ioreg -r -c NMXAccel | grep -q NMXAccel; then
+    printf '%s\n' '加载 NMXAccel 与 XeGfxAGDC 驱动...'
+    rm -rf /tmp/XeGfxAGDC.kext /tmp/XeGfxAccel.kext
+    cp -R "/GPU/kexts/XeGfxAGDC.kext" /tmp/XeGfxAGDC.kext
+    cp -R "/GPU/kexts/XeGfxAccel.kext" /tmp/XeGfxAccel.kext
+    chown -R root:wheel /tmp/XeGfx*.kext
+    chmod -R 755 /tmp/XeGfx*.kext
+    kextload /tmp/XeGfxAGDC.kext 2>&1 || true
+    kextload /tmp/XeGfxAccel.kext 2>&1 || true
+    sleep 1
+fi
 
 printf '%s\n' '--- NMXAccel 状态检查 ---'
 ioreg -r -c NMXAccel -l || printf '%s\n' '[NMXAccel not matched yet]'
