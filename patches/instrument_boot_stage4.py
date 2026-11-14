@@ -47,7 +47,7 @@ xg_boot_initialize(void)
  gpu->release();
  xg_printf("XeGfx BOOT: GPU discovered; starting stages\n");
  strlcpy(xg_env, "compat.linuxkpi.xe_probe_display=0 compat.linuxkpi.xe_probe_skip_pc_start=1 compat.linuxkpi.xe_probe_skip_lrc_ggtt_invalidate=1", sizeof(xg_env));
- xg_printf("XeGfx BOOT V30: automatic stages 1-4; display=0 PC bypass=1 LRC ggtt_invalidate bypass=1 NVRAM trace=0\n");
+ xg_printf("XeGfx BOOT V31: automatic stages 1-4; display=0 PC bypass=1 LRC ggtt_invalidate bypass=1 Stage 5 unlocked NVRAM trace=0\n");
  int err = xg_request_watchdog_start();
  if (err) {
   xg_printf("XeGfx BOOT watchdog unavailable: %d; initialization stopped\n", err);

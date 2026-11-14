@@ -67,8 +67,8 @@
  	int rc = 1;
  
 +#ifdef XEGFX_KMD_XE
-+ // B0A0 stage 4 is the current boundary. Never submit execution tests yet.
-+ if (gPtlMetadataBaseline && s >= 5) {
++ // B0A0 stage 5 is the current boundary. Block stages 6+ before store/accel.
++ if (gPtlMetadataBaseline && s >= 6) {
 +  IOLog("XeGfx: B0A0 stage %d blocked before execution tests\n", s);
 +  return -EOPNOTSUPP;
 + }
