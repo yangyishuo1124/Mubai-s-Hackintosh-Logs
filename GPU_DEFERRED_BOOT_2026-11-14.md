@@ -23,3 +23,21 @@ Host tests exercise the generated helper for missing/delayed GPU, arguments, wat
 - 已写入内部 EFI 的启动与诊断驱动、探测包装和自动采集脚本，逐项回读一致，config.plist 未改动，ocvalidate 通过。/ Internal EFI boot/diagnostic driver and capture/probe scripts copied and read back; config unchanged and ocvalidate passed.
 - Backup: `backups/before-xe-deferred-boot-20261114-164507` (local workspace).
 - 尚未进行 V21 真机重启验证。/ V21 hardware reboot validation is pending.
+
+## V21 真机照片反馈 / Hardware photo result
+
+本次照片显示已进入 stage 4。`43011 migration init returned`、GuC 固件上传和 `45012 GuC RUNNING status committed`、`44085 xe_guc_enable_communication returned` 均可见；随后进入 `44036 xe_gt_record_default_lrcs begin`。后面多个 GGTT MMIO 屏障及主/媒体 GT TLB 失效有返回。照片最末行为 `42130 GGTT barrier MMIO read begin`，没有可见的对应返回。重复编号代表函数多次调用，并非固定线性阶段。
+
+The photo reaches stage 4: migration initialization returns, GuC upload reaches RUNNING, communication enabling returns, then default LRC recording begins (44036). Several later GGTT barriers and primary/media GT invalidations return. The final visible line is 42130, GGTT barrier MMIO read begin, without a visible matching return. Repeated checkpoint numbers represent repeated function calls, not a linear stage counter.
+
+该检查点在 xe_ggtt_invalidate 的 VF_CAP_REG 读取前；缓存源码定义偏移为 0x1901f8。同一读取先前已返回，不能仅凭照片认定寄存器错误或确定硬件根因。下一步应给默认 LRC 建立中的引擎、队列创建、GGTT 节点插入/移除与作业提交关联编号，核对 MMIO 访问和内存映射生命周期，而非继续对整个 stage 4 二分截断。
+
+This checkpoint precedes the VF_CAP_REG read in xe_ggtt_invalidate (offset 0x1901f8 in the cached source). Earlier reads returned, so the photo alone does not establish an invalid register or hardware root cause. Next instrumentation should correlate engine, queue creation, GGTT node insertion/removal and job submission during default LRC recording, alongside MMIO/mapping lifetime review.
+
+补充边界：虽然没有运行单独的 stage 5 执行测试，stage 4 内部的默认 LRC 记录本身包含 WA/NOP 作业提交；此前“无执行测试”的描述不能解释为 stage 4 完全不提交 GPU 命令。尚无图形加速成功证据。
+
+Scope clarification: no separate stage-5 execution test runs, but default LRC recording inside stage 4 itself submits WA/NOP jobs. Earlier wording about no execution test must not imply that stage 4 submits no GPU commands. Acceleration remains unproven.
+
+本次 Windows 读取 EFI 未发现比 V20 更新的 gpu-display 自动采集目录。照片是本次定位依据；不能从缺失目录判断全系统卡死或仅显示停止。
+
+Windows EFI inspection found no newer gpu-display capture directory than V20. This diagnosis uses the photo; missing captures do not distinguish a system-wide hang from a frozen display.
