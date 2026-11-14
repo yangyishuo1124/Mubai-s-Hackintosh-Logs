@@ -1,5 +1,5 @@
 name: Experimental Panther Lake Xe build
-# V22 correlates default LRC creation and GGTT invalidation callers.
+# V23 traces asynchronous GuC cleanup without changing ownership.
 on:
   push:
     paths:
@@ -47,6 +47,7 @@ jobs:
           echo 'ac42861c62b69f19923d9a69d971fb849921585a01924e14c0e8ac679d7cde81  third_party/linux-firmware/ptl_guc_70.bin' | shasum -a 256 -c -
           cp patches/xe-0208-guc-return-log.patch build/WTLIntelGfx/xkpi/xe/patches/0208-guc-return-log.patch
           cp patches/xe-0209-ggtt-checkpoints.patch build/WTLIntelGfx/xkpi/xe/patches/0209-ggtt-checkpoints.patch
+          cp patches/xe-0212-cleanup-trace.patch build/WTLIntelGfx/xkpi/xe/patches/0212-cleanup-trace.patch
           cp patches/xe-0211-lrc-correlation.patch build/WTLIntelGfx/xkpi/xe/patches/0211-lrc-correlation.patch
           cp patches/xe-0210-ggtt-batch-drain.patch build/WTLIntelGfx/xkpi/xe/patches/0210-ggtt-batch-drain.patch
           cp patches/xe-0207-pc-start-control.patch build/WTLIntelGfx/xkpi/xe/patches/0207-pc-start-control.patch
@@ -80,7 +81,7 @@ jobs:
           test -r /System/Library/KernelCollections/BootKernelExtensions.kc
           cd build/WTLIntelGfx
           python3 "$GITHUB_WORKSPACE/patches/test_ptl_gop_snapshot.py" shim/src/xnu/xg_kext.cpp
-          sed -i.bak "s/ptl-stage4-guc-v4/ptl-lrc-correlation-v22/g" "$GITHUB_WORKSPACE/patches/test_ptl_stage3_policy.py"
+          sed -i.bak "s/ptl-stage4-guc-v4/ptl-cleanup-trace-v23/g" "$GITHUB_WORKSPACE/patches/test_ptl_stage3_policy.py"
           python3 "$GITHUB_WORKSPACE/patches/test_ptl_stage3_policy.py" shim/src/xnu/xg_kext.cpp
           XEGFX_KMD=xe bash build/build_xegfx.sh 2>&1 | tee "$GITHUB_WORKSPACE/build/xe-build.log"
           python3 - <<'PY'

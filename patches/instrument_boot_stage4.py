@@ -47,7 +47,7 @@ xg_boot_initialize(void)
  gpu->release();
  xg_printf("XeGfx BOOT: GPU discovered; starting stages\n");
  strlcpy(xg_env, "compat.linuxkpi.xe_probe_display=0 compat.linuxkpi.xe_probe_skip_pc_start=1", sizeof(xg_env));
- xg_printf("XeGfx BOOT V22: automatic stages 1-4; display=0 PC bypass=1 NVRAM trace=0\n");
+ xg_printf("XeGfx BOOT V23: automatic stages 1-4; display=0 PC bypass=1 NVRAM trace=0\n");
  int err = xg_request_watchdog_start();
  if (err) {
   xg_printf("XeGfx BOOT watchdog unavailable: %d; initialization stopped\n", err);
