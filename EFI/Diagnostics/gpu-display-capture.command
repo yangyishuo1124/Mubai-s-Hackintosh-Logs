@@ -110,6 +110,7 @@ if [[ -f "$here/ws-restart.request" ]]; then
     /usr/bin/log stream --style compact --predicate 'process == "WindowServer" OR process == "loginwindow" OR sender == "XeGfxAccel" OR sender == "XeGfxAGDC" OR (sender == "kernel" AND eventMessage CONTAINS "xegfx") OR eventMessage CONTAINS "NVMTL"' > /tmp/ws-live.txt 2>&1 &
     stream_pid=$!
     sleep 1
+    launchctl setenv NVMTL_NO_SURFACE_HOST 1 >/dev/null 2>&1 || true
     killall -9 WindowServer 2>/dev/null || true
     for i in {1..20}; do
         sleep 2
