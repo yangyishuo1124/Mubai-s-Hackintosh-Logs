@@ -7,14 +7,43 @@ mkdir -p "$out" || exit 1
 sw_vers > "$out/system.txt" 2>&1
 
 # Deploy GPUBundles if missing
-mkdir -p /Library/GPUBundles/nvmtl/aircache /Library/GPUBundles/air-runtime 2>/dev/null || true
+mkdir -p /Library/GPUBundles/nvmtl/aircache /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime 2>/dev/null || true
 if [[ -d "$here/GPU/metal" ]]; then
-    cp -f "$here/GPU/metal/NVMTLDriver" /Library/GPUBundles/NVMTLDriver 2>/dev/null || true
-    chmod 755 /Library/GPUBundles/NVMTLDriver 2>/dev/null || true
-    if [[ -d "$here/GPU/metal/air-runtime" ]] && [[ ! -f /Library/GPUBundles/air-runtime/libLLVM.dylib || ! -f /Library/GPUBundles/air-runtime/libzstd.1.dylib ]]; then
-        cp -f "$here/GPU/metal/air-runtime/libLLVM.dylib" /Library/GPUBundles/air-runtime/libLLVM.dylib 2>/dev/null || true
-        cp -f "$here/GPU/metal/air-runtime/libzstd.1.dylib" /Library/GPUBundles/air-runtime/libzstd.1.dylib 2>/dev/null || true
-        chmod 755 /Library/GPUBundles/air-runtime/*.dylib 2>/dev/null || true
+    rm -f /Library/GPUBundles/NVMTLDriver 2>/dev/null || true
+    cat > /Library/GPUBundles/NVMTLDriver.bundle/Contents/Info.plist << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleExecutable</key>
+	<string>NVMTLDriver</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.nullmoth.NVMTLDriver</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>NVMTLDriver</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1</string>
+	<key>CFBundleVersion</key>
+	<string>0.1</string>
+</dict>
+</plist>
+EOF
+    chmod 644 /Library/GPUBundles/NVMTLDriver.bundle/Contents/Info.plist 2>/dev/null || true
+    cp -f "$here/GPU/metal/NVMTLDriver" /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/NVMTLDriver 2>/dev/null || true
+    chmod 755 /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/NVMTLDriver 2>/dev/null || true
+    if [[ ! -f /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/libLLVM.dylib ]]; then
+        if [[ -f /Library/GPUBundles/air-runtime/libLLVM.dylib ]]; then
+            mv -f /Library/GPUBundles/air-runtime/*.dylib /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/ 2>/dev/null || true
+            rmdir /Library/GPUBundles/air-runtime 2>/dev/null || true
+        elif [[ -d "$here/GPU/metal/air-runtime" ]]; then
+            cp -f "$here/GPU/metal/air-runtime/libLLVM.dylib" /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/libLLVM.dylib 2>/dev/null || true
+            cp -f "$here/GPU/metal/air-runtime/libzstd.1.dylib" /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/libzstd.1.dylib 2>/dev/null || true
+        fi
+        chmod 755 /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/*.dylib 2>/dev/null || true
     fi
     cp -f "$here/GPU/vulkan/libdrm.2.dylib" /Library/GPUBundles/nvmtl/libdrm.2.dylib 2>/dev/null || true
     cp -f "$here/GPU/vulkan/libvulkan.1.dylib" /Library/GPUBundles/nvmtl/libvulkan.dylib 2>/dev/null || true

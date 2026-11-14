@@ -133,13 +133,42 @@ EOF
 fi
 
 printf '%s\n' '=== [Phase 3] 部署 Metal 驱动插件并实测 Metal Compute & Draw (mtlprobe) ==='
-mkdir -p /Library/GPUBundles/nvmtl/aircache /Library/GPUBundles/air-runtime
-cp -f "$base/GPU/metal/NVMTLDriver" /Library/GPUBundles/NVMTLDriver
-chmod 755 /Library/GPUBundles/NVMTLDriver
-if [[ -d "$base/GPU/metal/air-runtime" ]] && [[ ! -f /Library/GPUBundles/air-runtime/libLLVM.dylib || ! -f /Library/GPUBundles/air-runtime/libzstd.1.dylib ]]; then
-    cp -f "$base/GPU/metal/air-runtime/libLLVM.dylib" /Library/GPUBundles/air-runtime/libLLVM.dylib
-    cp -f "$base/GPU/metal/air-runtime/libzstd.1.dylib" /Library/GPUBundles/air-runtime/libzstd.1.dylib
-    chmod 755 /Library/GPUBundles/air-runtime/*.dylib
+mkdir -p /Library/GPUBundles/nvmtl/aircache /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime
+rm -f /Library/GPUBundles/NVMTLDriver
+cat > /Library/GPUBundles/NVMTLDriver.bundle/Contents/Info.plist << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleExecutable</key>
+	<string>NVMTLDriver</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.nullmoth.NVMTLDriver</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>NVMTLDriver</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1</string>
+	<key>CFBundleVersion</key>
+	<string>0.1</string>
+</dict>
+</plist>
+EOF
+chmod 644 /Library/GPUBundles/NVMTLDriver.bundle/Contents/Info.plist
+cp -f "$base/GPU/metal/NVMTLDriver" /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/NVMTLDriver
+chmod 755 /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/NVMTLDriver
+if [[ ! -f /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/libLLVM.dylib ]]; then
+    if [[ -f /Library/GPUBundles/air-runtime/libLLVM.dylib ]]; then
+        mv -f /Library/GPUBundles/air-runtime/*.dylib /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/ 2>/dev/null || true
+        rmdir /Library/GPUBundles/air-runtime 2>/dev/null || true
+    elif [[ -d "$base/GPU/metal/air-runtime" ]]; then
+        cp -f "$base/GPU/metal/air-runtime/libLLVM.dylib" /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/libLLVM.dylib
+        cp -f "$base/GPU/metal/air-runtime/libzstd.1.dylib" /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/libzstd.1.dylib
+    fi
+    chmod 755 /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/*.dylib 2>/dev/null || true
 fi
 
 cp -f "$base/GPU/vulkan/libdrm.2.dylib" /Library/GPUBundles/nvmtl/libdrm.2.dylib
@@ -191,7 +220,7 @@ if [[ -f "$base/GPU/metal/mtlprobe" ]]; then
     rm -f /tmp/nvmtl.log
 
     printf '%s\n' '=== [3.1] mtlprobe (内置测试模式 NM_TEST_PLUGIN) ==='
-    env NM_TEST_PLUGIN=/Library/GPUBundles/NVMTLDriver \
+    env NM_TEST_PLUGIN=/Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/NVMTLDriver \
         NVMTL_LOG_PATH=/tmp/nvmtl.log \
         VK_LOADER_DEBUG=all \
         VK_DRIVER_FILES=/Library/GPUBundles/nvmtl/intel_icd.json \
