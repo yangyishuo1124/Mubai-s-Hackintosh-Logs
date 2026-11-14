@@ -107,9 +107,11 @@ sysctl -w debug.nvaccelfb=3 >/dev/null 2>&1 || true
 sleep 1
 if [[ -f "$here/ws-restart.request" ]]; then
     mv "$here/ws-restart.request" "$here/reports/ws-restart-$(date +%Y%m%d-%H%M%S)-$$.attempted" 2>/dev/null || rm -f "$here/ws-restart.request"
+    ws_ts="$(date '+%Y-%m-%d %H:%M:%S')"
     killall -9 WindowServer 2>/dev/null || true
     sleep 8
-    /usr/bin/log show --last 1m --style compact --predicate 'process == "WindowServer" OR sender == "XeGfxAccel" OR sender == "XeGfxAGDC"' > "$out/ws-after-restart.txt" 2>&1 || true
+    /usr/sbin/sysctl debug.nmxaccel_headless debug.nvaccelfb debug.nvaccel_iop debug.nvaccel_iop_ok_h4 debug.nvaccel_iop_fail debug.nvaccel_pipe_init debug.nvaccel_pipe_validate debug.nvaccel_pipe_perform debug.nvaccel_pipe_complete debug.xegfx_agdc debug.xegfx_agdc_cmds > "$out/accel-after-restart.txt" 2>&1 || true
+    /usr/bin/log show --start "$ws_ts" --style compact --predicate 'process == "WindowServer" OR sender == "XeGfxAccel" OR sender == "XeGfxAGDC"' > "$out/ws-after-restart.txt" 2>&1 || true
 fi
 
 # Consume the request BEFORE installation: a failed attempt never loops on boot.
