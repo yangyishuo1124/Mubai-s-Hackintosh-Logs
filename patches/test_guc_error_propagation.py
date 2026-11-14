@@ -12,6 +12,7 @@ void xe_guc_pc_raise_unslice(void*p){}
 void guc_write_params(struct xe_guc*g){}
 void guc_prepare_xfer(struct xe_guc*g){}
 void xg_init_checkpoint(int i,const char*s){}
+int xg_printf(const char *fmt, ...){return 0;}
 int guc_xfer_rsa(struct xe_guc*g){return rsa_err;}
 int xe_uc_fw_upload(void*p,int a,int b){upload_calls++;return upload_err;}
 int guc_wait_ucode(struct xe_guc*g){wait_calls++;return wait_err;}

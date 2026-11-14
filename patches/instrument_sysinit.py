@@ -5,10 +5,14 @@ p=root/'shim/src/xnu/xg_kext.cpp';s=p.read_text();mark='static void\nxg_trace_fi
 assert s.count(mark)==1
 helper='''
 /* Debug checkpoints persist synchronously, without holding the log lock over NVRAM I/O. */
+extern "C" int xg_printf(const char *, ...);
+
 extern "C" void
 xg_init_checkpoint(int progress, const char *label)
 {
- if (!gTraceOn) { xg_progress = progress; return; }
+ xg_progress = progress;
+ xg_printf("[checkpoint %d] %s\\n", progress, label);
+ if (!gTraceOn) return;
  char line[160];
  snprintf(line, sizeof(line), "checkpoint %d %s", progress, label);
  IOInterruptState flags = IOSimpleLockLockDisableInterrupt(gLogLock);

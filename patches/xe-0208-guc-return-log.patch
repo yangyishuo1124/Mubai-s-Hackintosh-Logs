@@ -1,0 +1,33 @@
+--- a/xe_guc.c
++++ b/xe_guc.c
+@@ -1045,6 +1045,8 @@
+ 	return load_done == 1 ? 0 : (load_done < 0 ? load_done : -ETIMEDOUT);
+ }
+ 
++extern int xg_printf(const char *, ...);
++
+ static int __xe_guc_upload(struct xe_guc *guc)
+ {
+ 	int ret;
+@@ -1087,15 +1089,21 @@
+ 	/* Wait for authentication */
+ 	xg_init_checkpoint(45010, "guc_wait_ucode begin");
+ 	ret = guc_wait_ucode(guc);
++	xg_printf("xegfx: GuC %p guc_wait_ucode ret=%d\n", guc, ret);
+ 	xg_init_checkpoint(45011, "guc_wait_ucode returned");
+ 	if (ret)
+ 		goto out;
+ 
++	xg_printf("xegfx: GuC %p marking firmware RUNNING\n", guc);
+ 	xe_uc_fw_change_status(&guc->fw, XE_UC_FIRMWARE_RUNNING);
++	xg_init_checkpoint(45012, "GuC RUNNING status committed");
+ 	return 0;
+ 
+ out:
++	xg_printf("xegfx: GuC %p upload failure ret=%d; marking LOAD_FAIL\n", guc, ret);
++	xg_init_checkpoint(45013, "GuC LOAD_FAIL status begin");
+ 	xe_uc_fw_change_status(&guc->fw, XE_UC_FIRMWARE_LOAD_FAIL);
++	xg_init_checkpoint(45014, "GuC LOAD_FAIL status committed");
+ 	return ret;
+ }
+ 
