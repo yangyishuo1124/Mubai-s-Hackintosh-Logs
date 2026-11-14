@@ -165,9 +165,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Homebrew LLVM, SPIRV-LLVM-Translator, Meson, Ninja
+      - name: Install Homebrew LLVM, SPIRV-LLVM-Translator, SPIRV-Tools, Meson, Ninja
         run: |
-          brew install meson ninja pkg-config llvm spirv-llvm-translator
+          brew install meson ninja pkg-config llvm spirv-llvm-translator spirv-tools
           pip3 install --break-system-packages mako pyyaml packaging
 
       - name: Clone WTLIntelGfx, libdrm, and Mesa
@@ -202,9 +202,10 @@ jobs:
           X="$HOME/src/xe-userland"
           LLVM_PREFIX="$(brew --prefix llvm)"
           SPIRV_PREFIX="$(brew --prefix spirv-llvm-translator)"
+          SPIRV_TOOLS_PREFIX="$(brew --prefix spirv-tools)"
           LLVM_CONFIG="$LLVM_PREFIX/bin/llvm-config"
           LLVM_LIB="$($LLVM_CONFIG --libdir)"
-          export PKG_CONFIG_PATH="$SPIRV_PREFIX/lib/pkgconfig:$LLVM_LIB/pkgconfig:${PKG_CONFIG_PATH:-}"
+          export PKG_CONFIG_PATH="$SPIRV_PREFIX/lib/pkgconfig:$SPIRV_TOOLS_PREFIX/lib/pkgconfig:$LLVM_LIB/pkgconfig:/opt/homebrew/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
 
           cat > "$X/native-llvm.ini" << EOF
           [binaries]
@@ -214,10 +215,10 @@ jobs:
 
           meson setup "$X/mesa/build-host" "$X/mesa" --native-file "$X/native-llvm.ini" \
             --prefix="$X/host" -Dbuildtype=release \
-            -Dc_args="-I$LLVM_PREFIX/include -I$SPIRV_PREFIX/include" \
-            -Dcpp_args="-I$LLVM_PREFIX/include -I$SPIRV_PREFIX/include" \
-            -Dc_link_args="-L$LLVM_LIB -Wl,-rpath,$LLVM_LIB" \
-            -Dcpp_link_args="-L$LLVM_LIB -Wl,-rpath,$LLVM_LIB" \
+            -Dc_args="-I$LLVM_PREFIX/include -I$SPIRV_PREFIX/include -I$SPIRV_TOOLS_PREFIX/include" \
+            -Dcpp_args="-I$LLVM_PREFIX/include -I$SPIRV_PREFIX/include -I$SPIRV_TOOLS_PREFIX/include" \
+            -Dc_link_args="-L$LLVM_LIB -L$SPIRV_TOOLS_PREFIX/lib -Wl,-rpath,$LLVM_LIB" \
+            -Dcpp_link_args="-L$LLVM_LIB -L$SPIRV_TOOLS_PREFIX/lib -Wl,-rpath,$LLVM_LIB" \
             -Dmesa-clc=enabled -Dinstall-mesa-clc=true -Dllvm=enabled -Dshared-llvm=enabled \
             -Dvulkan-drivers= -Dgallium-drivers= -Dplatforms= -Dopengl=false -Dgles1=disabled -Dgles2=disabled \
             -Degl=disabled -Dglx=disabled -Dglvnd=disabled -Dvulkan-layers= -Dtools= \
