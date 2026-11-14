@@ -245,3 +245,14 @@ sysctl -b debug.xegfx_log
 printf '%s\n' 'Boundary: stage 7 (xg_accel_claim) + userspace xe-uapi-probe + Mesa ANV Vulkan + Metal NVMTLDriver.'
 zsh "$base/collect.command"
 printf '%s\n' '探测结束。驱动由 EFI 配置开机加载。 / Probe finished; EFI controls boot loading.'
+
+if ioreg -r -c NMXAccel | grep -q NMXAccel; then
+    printf '%s\n' '=== [Phase 4] 开启 scanout 显示管道 (debug.nvaccelfb=3) 并重启 WindowServer ==='
+    sysctl -w debug.nvaccelfb=3 2>&1 | tee "$base/reports/nvaccelfb3-last.txt" || true
+    sleep 1
+    log show --last 15s --style compact --predicate 'process == "kernel"' 2>/dev/null | grep -E 'NMXAccel|NVDisplay|scanout|boot framebuffer|nvaccel' >> "$base/reports/nvaccelfb3-last.txt" || true
+    sync
+    printf '%s\n' '即将在 2 秒后重启 WindowServer（会回到登录界面，重新登录即可检验加速；若黑屏请强制重启）...'
+    sleep 2
+    killall WindowServer 2>/dev/null || true
+fi
