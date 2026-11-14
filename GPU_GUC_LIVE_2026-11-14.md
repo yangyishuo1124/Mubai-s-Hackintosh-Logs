@@ -47,3 +47,5 @@ Both GuC instances log wait ret=0 and checkpoint 45012 after RUNNING status comm
 已核对 `xe_ggtt_init`：内部包含 scratch BO 分配/映射、scratch 清零、持锁遍历空洞并填充 GGTT、失效屏障及两个 GT 的 TLB 失效、清理动作注册。42002 尚不能区分这些步骤，也不能证明 GOP 被覆盖。当前 GOP 在 allocator 外，日志中的保护节点为 0+0 并不自动意味着保护失败。下一次诊断应覆盖上述函数内部，而不跳过 GGTT 或重新测试独立 stage 1–3。打印改变时序的可能性仍保留；本次较早的末尾位置不否定此前更深的 PC 观察。
 
 Source review shows that GGTT init includes scratch allocation/mapping, scratch zeroing, locked hole filling, invalidation barriers/TLB invalidation for both GTs and cleanup registration. Checkpoint 42002 does not distinguish these operations or prove GOP corruption. A zero-sized GOP allocator reservation does not itself indicate failure when GOP is outside the allocator range. Further diagnostics should cover this function, preserving its operations and the single stage-4 request. Timing changes from logging remain possible; this run does not invalidate earlier deeper PC observations.
+
+下一版已部署：[V18 GGTT 内部诊断 / V18 GGTT internal diagnostics](GPU_GGTT_LIVE_2026-11-14.md)。实机结果待验证 / Hardware results pending.

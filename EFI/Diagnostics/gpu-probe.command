@@ -22,7 +22,7 @@ fi
 
 # Refuse an older boot-loaded binary even if the files on EFI were replaced.
 policy="$(ioreg -r -c XeGfxResident -l)"
-if [[ "$policy" != *'"XeGfxProbePolicy" = "ptl-guc-live-v17"'* ]]; then
+if [[ "$policy" != *'"XeGfxProbePolicy" = "ptl-ggtt-live-v18"'* ]]; then
     print '当前加载的仍是旧版驱动，停止探测，请重启后再运行。'
     print 'Loaded driver lacks the stage-4 policy; reboot before probing.'
     zsh "$base/collect.command"
@@ -34,8 +34,8 @@ stage="$(sysctl -n debug.xegfx_stage)"
 # Controlled comparison: no NVRAM persistence in the initializer or timer.
 # Keep checkpoints in memory; an independent process records progress to EFI.
 sysctl debug.xegfx_trace=0
-print 'V17 实时检查点与 GuC 返回值；保留 PC 启动绕过，返回不代表完整 stage 4 通过。'
-print 'V17 live checkpoints and GuC return values; PC start bypass retained; not a normal stage-4 pass.'
+print 'V18 GGTT 分配、填充与 TLB 实时检查点；保留 PC 启动绕过，返回不代表完整 stage 4 通过。'
+print 'V18 live GGTT allocation, fill and TLB checkpoints; PC start bypass retained; not a normal stage-4 pass.'
 sysctl debug.xegfx_env='compat.linuxkpi.xe_probe_display=0 compat.linuxkpi.xe_probe_skip_pc_start=1'
 sysctl debug.xegfx_wdog=60
 progress_out="${out%.txt}-progress.txt"
