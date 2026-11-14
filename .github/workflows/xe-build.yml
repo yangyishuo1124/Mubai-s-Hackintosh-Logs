@@ -47,6 +47,7 @@ jobs:
           echo 'ac42861c62b69f19923d9a69d971fb849921585a01924e14c0e8ac679d7cde81  third_party/linux-firmware/ptl_guc_70.bin' | shasum -a 256 -c -
           cp patches/xe-0208-guc-return-log.patch build/WTLIntelGfx/xkpi/xe/patches/0208-guc-return-log.patch
           cp patches/xe-0209-ggtt-checkpoints.patch build/WTLIntelGfx/xkpi/xe/patches/0209-ggtt-checkpoints.patch
+          cp patches/xe-0216-lrc-ggtt-remove-isolate.patch build/WTLIntelGfx/xkpi/xe/patches/0216-lrc-ggtt-remove-isolate.patch
           cp patches/xe-0215-lrc-bo-put-isolate.patch build/WTLIntelGfx/xkpi/xe/patches/0215-lrc-bo-put-isolate.patch
           cp patches/xe-0214-lrc-put-isolate.patch build/WTLIntelGfx/xkpi/xe/patches/0214-lrc-put-isolate.patch
           cp patches/xe-0213-lrc-cleanup-isolate.patch build/WTLIntelGfx/xkpi/xe/patches/0213-lrc-cleanup-isolate.patch

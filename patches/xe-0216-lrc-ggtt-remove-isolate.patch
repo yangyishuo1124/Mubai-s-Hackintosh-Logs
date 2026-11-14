@@ -1,0 +1,32 @@
+diff --git a/xe_bo.c b/xe_bo.c
+index 1111111..2222222 100644
+--- a/xe_bo.c
++++ b/xe_bo.c
+@@ -28,6 +28,9 @@
+ #include "xe_trace_bo.h"
+ #include "xe_ttm_stolen_mgr.h"
+ #include "xe_vm.h"
++
++extern int getenv_int(const char *, int *);
++extern int xg_printf(const char *, ...);
+ 
+ const char *const xe_mem_type_to_name[TTM_NUM_MEM_TYPES]  = {
+ 	[XE_PL_SYSTEM] = "system",
+@@ -1214,8 +1217,15 @@ static void xe_ttm_bo_destroy(struct ttm_buffer_object *ttm_bo)
+ 	xe_assert(xe, list_empty(&ttm_bo->base.gpuva.list));
+ 
+ 	for_each_tile(tile, xe, id)
+-		if (bo->ggtt_node[id] && bo->ggtt_node[id]->base.size)
+-			xe_ggtt_remove_bo(tile->mem.ggtt, bo);
++		if (bo->ggtt_node[id] && bo->ggtt_node[id]->base.size) {
++			int skip_ggtt_remove = 0;
++			if (getenv_int("compat.linuxkpi.xe_probe_skip_lrc_ggtt_remove", &skip_ggtt_remove) &&
++			    skip_ggtt_remove == 1) {
++				xg_printf("xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=%p tile=%u\n", bo, id);
++			} else {
++				xe_ggtt_remove_bo(tile->mem.ggtt, bo);
++			}
++		}
+ 
+ #ifdef CONFIG_PROC_FS
+ 	if (bo->client)
