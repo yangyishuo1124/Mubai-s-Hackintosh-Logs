@@ -42,9 +42,12 @@ jobs:
             tar -xzf "$archive" --strip-components=1 -C "$3"
           }
           fetch InSnh-Gd/WTLIntelGfx 5ffc79fb9e53eb820899edd644b83681bea3aa39 "$GITHUB_WORKSPACE/build/WTLIntelGfx"
-          fetch watchthelight-labs/WTLKcAbi 99808a2dcd645b971eaa19a65ca9e94682892ddb "$HOME/src/kcabi"
           fetch torvalds/linux 38fec10eb60d687e30c8c6b5420d86e8149f7557 "$HOME/src/xe-src/linux"
           fetch freebsd/drm-kmod c16de0f9fa "$HOME/src/xe-src/drm-kmod"
+          if [ "${{ github.event.inputs.uapi_only }}" = "true" ]; then
+            exit 0
+          fi
+          fetch watchthelight-labs/WTLKcAbi 99808a2dcd645b971eaa19a65ca9e94682892ddb "$HOME/src/kcabi"
           fetch freebsd/freebsd-src 9da2c05a748fd17757638e1a9e78215cdb8b80d0 "$HOME/src/xe-src/freebsd"
           mkdir -p "$HOME/src/xe-src/linux-firmware/xe"
           cp third_party/linux-firmware/ptl_guc_70.bin "$HOME/src/xe-src/linux-firmware/xe/"
@@ -95,24 +98,11 @@ jobs:
           cd build/WTLIntelGfx
           mkdir -p out/uapi_inc/drm
           cat > out/uapi_inc/drm/drm_os_freebsd.h << 'EOF'
-          #include <stdint.h>
-          #include <sys/ioccom.h>
-          #include <sys/types.h>
           #ifndef __user
           #define __user
           #endif
-          typedef int8_t   __s8;
-          typedef uint8_t  __u8;
-          typedef int16_t  __s16;
-          typedef uint16_t __u16;
-          typedef int32_t  __s32;
-          typedef uint32_t __u32;
-          typedef int64_t  __s64;
-          typedef uint64_t __u64;
-          typedef size_t   __kernel_size_t;
-          typedef unsigned int drm_handle_t;
           EOF
-          xcrun clang -arch x86_64 -mmacosx-version-min=15.0 -O2 -Wall -Iout/uapi_inc -I"$HOME/src/xe-src/drm-kmod/include/uapi" -I"$HOME/src/xe-src/drm-kmod/include/uapi/drm" "$GITHUB_WORKSPACE/patches/xe_uapi_probe.c" -o out/xe-uapi-probe
+          xcrun clang -arch x86_64 -mmacosx-version-min=15.0 -O2 -Wall -Iout/uapi_inc -I"$HOME/src/xe-src/drm-kmod/include/uapi" -I"$HOME/src/xe-src/drm-kmod/include/uapi/drm" -I"$HOME/src/xe-src/linux/include/uapi" -I"$HOME/src/xe-src/linux/include/uapi/drm" "$GITHUB_WORKSPACE/patches/xe_uapi_probe.c" -o out/xe-uapi-probe
           codesign -s - --force out/xe-uapi-probe
           lipo out/xe-uapi-probe -verify_arch x86_64
           if [ "${{ github.event.inputs.uapi_only }}" = "true" ]; then
