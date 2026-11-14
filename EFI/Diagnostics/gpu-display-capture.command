@@ -111,6 +111,7 @@ if [[ -f "$here/ws-restart.request" ]]; then
     stream_pid=$!
     sleep 1
     launchctl setenv NVMTL_NO_SURFACE_HOST 1 >/dev/null 2>&1 || true
+    launchctl setenv NVMTL_NO_NOCOPY 1 >/dev/null 2>&1 || true
     killall -9 WindowServer 2>/dev/null || true
     for i in {1..35}; do
         sleep 2
