@@ -7,10 +7,15 @@ mkdir -p "$out" || exit 1
 sw_vers > "$out/system.txt" 2>&1
 
 # Deploy GPUBundles if missing
-mkdir -p /Library/GPUBundles/nvmtl/aircache 2>/dev/null || true
+mkdir -p /Library/GPUBundles/nvmtl/aircache /Library/GPUBundles/air-runtime 2>/dev/null || true
 if [[ -d "$here/GPU/metal" ]]; then
     cp -f "$here/GPU/metal/NVMTLDriver" /Library/GPUBundles/NVMTLDriver 2>/dev/null || true
     chmod 755 /Library/GPUBundles/NVMTLDriver 2>/dev/null || true
+    if [[ -d "$here/GPU/metal/air-runtime" ]] && [[ ! -f /Library/GPUBundles/air-runtime/libLLVM.dylib || ! -f /Library/GPUBundles/air-runtime/libzstd.1.dylib ]]; then
+        cp -f "$here/GPU/metal/air-runtime/libLLVM.dylib" /Library/GPUBundles/air-runtime/libLLVM.dylib 2>/dev/null || true
+        cp -f "$here/GPU/metal/air-runtime/libzstd.1.dylib" /Library/GPUBundles/air-runtime/libzstd.1.dylib 2>/dev/null || true
+        chmod 755 /Library/GPUBundles/air-runtime/*.dylib 2>/dev/null || true
+    fi
     cp -f "$here/GPU/vulkan/libdrm.2.dylib" /Library/GPUBundles/nvmtl/libdrm.2.dylib 2>/dev/null || true
     cp -f "$here/GPU/vulkan/libvulkan.1.dylib" /Library/GPUBundles/nvmtl/libvulkan.dylib 2>/dev/null || true
     cp -f "$here/GPU/vulkan/libvulkan_intel.dylib" /Library/GPUBundles/nvmtl/libvulkan_intel.dylib 2>/dev/null || true

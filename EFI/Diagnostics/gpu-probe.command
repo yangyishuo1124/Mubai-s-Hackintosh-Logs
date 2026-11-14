@@ -133,9 +133,14 @@ EOF
 fi
 
 printf '%s\n' '=== [Phase 3] 部署 Metal 驱动插件并实测 Metal Compute & Draw (mtlprobe) ==='
-mkdir -p /Library/GPUBundles/nvmtl/aircache
+mkdir -p /Library/GPUBundles/nvmtl/aircache /Library/GPUBundles/air-runtime
 cp -f "$base/GPU/metal/NVMTLDriver" /Library/GPUBundles/NVMTLDriver
 chmod 755 /Library/GPUBundles/NVMTLDriver
+if [[ -d "$base/GPU/metal/air-runtime" ]] && [[ ! -f /Library/GPUBundles/air-runtime/libLLVM.dylib || ! -f /Library/GPUBundles/air-runtime/libzstd.1.dylib ]]; then
+    cp -f "$base/GPU/metal/air-runtime/libLLVM.dylib" /Library/GPUBundles/air-runtime/libLLVM.dylib
+    cp -f "$base/GPU/metal/air-runtime/libzstd.1.dylib" /Library/GPUBundles/air-runtime/libzstd.1.dylib
+    chmod 755 /Library/GPUBundles/air-runtime/*.dylib
+fi
 
 cp -f "$base/GPU/vulkan/libdrm.2.dylib" /Library/GPUBundles/nvmtl/libdrm.2.dylib
 cp -f "$base/GPU/vulkan/libvulkan.1.dylib" /Library/GPUBundles/nvmtl/libvulkan.dylib
