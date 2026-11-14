@@ -39,20 +39,48 @@ print 'V16 DPCPU lock fix; PC start bypass retained; a return is not a normal st
 sysctl debug.xegfx_env='compat.linuxkpi.xe_probe_display=0 compat.linuxkpi.xe_probe_skip_pc_start=1'
 sysctl debug.xegfx_wdog=60
 progress_out="${out%.txt}-progress.txt"
-print '本次关闭 NVRAM 追踪；后台保存进度，60 秒 watchdog 保留。'
-print 'NVRAM trace disabled; background progress logging and 60s watchdog retained.'
-print "Progress file: $progress_out"
-(
-    for (( sample=0; sample<90; sample++ )); do
-        value="$(sysctl -n debug.xegfx_progress 2>&1)" || break
-        print -r -- "$(date '+%Y-%m-%d %H:%M:%S') progress=$value" >> "$progress_out"
-        sync
-        sleep 1
-    done
-) &
-monitor_pid=$!
-trap 'kill "$monitor_pid" 2>/dev/null || true' EXIT
-sysctl debug.xegfx_stage=4
+stage_out="${out%.txt}-stage.txt"
+print '前台实时显示驱动日志与进度；NVRAM 追踪保持关闭。'
+print 'Live driver log and progress below; NVRAM tracing remains disabled.'
+# Read and show the log BEFORE submitting the blocking stage request.
+previous="$(sysctl -b debug.xegfx_log)"
+print -r -- "$previous"
+last_progress="$(sysctl -n debug.xegfx_progress)"
+print -r -- "[progress=$last_progress] stage 4 request follows"
+print -r -- "$(date '+%Y-%m-%d %H:%M:%S') progress=$last_progress" >> "$progress_out"
+# The initializer may block forever. Keep the terminal reader in the foreground.
+sysctl debug.xegfx_stage=4 > "$stage_out" 2>&1 &
+stage_pid=$!
+while true; do
+    if snapshot="$(sysctl -b debug.xegfx_log 2>&1)"; then
+        if [[ "$snapshot" != "$previous" ]]; then
+            if [[ "$snapshot" == "$previous"* ]]; then
+                print -r -- "${snapshot#"$previous"}"
+            else
+                print '[driver log rotated; current snapshot follows]'
+                print -r -- "$snapshot"
+            fi
+            previous="$snapshot"
+        fi
+    else
+        print -r -- "[log read failed] $snapshot"
+        break
+    fi
+    if value="$(sysctl -n debug.xegfx_progress 2>&1)"; then
+        if [[ "$value" != "$last_progress" ]]; then
+            print -r -- "[progress=$value]"
+            print -r -- "$(date '+%Y-%m-%d %H:%M:%S') progress=$value" >> "$progress_out"
+            last_progress="$value"
+        fi
+    else
+        print -r -- "[progress read failed] $value"
+        break
+    fi
+    kill -0 "$stage_pid" 2>/dev/null || break
+    sleep 0.1
+done
+cat "$stage_out"
+wait "$stage_pid"
 sysctl debug.xegfx_stage
 print '阶段结果数组（索引对应阶段号） / Signed results indexed by stage:'
 sysctl -b debug.xegfx_results | od -An -v -t d4
