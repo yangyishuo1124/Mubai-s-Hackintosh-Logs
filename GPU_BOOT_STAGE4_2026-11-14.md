@@ -36,3 +36,13 @@ Internal EFI boot/diagnostic binaries and wrapper are backed up and replaced; th
 下一步直接重启 macOS，拍摄卡住时的跑码画面；无需桌面命令。当前仅证明构建和安装，尚未验证实机启动入口、输出可见性或 GPU 初始化成功。
 
 Next, reboot macOS directly and photograph the last verbose-boot screen if it freezes. No desktop command is needed. Build and installation are verified; actual boot execution, output visibility and GPU initialization remain unverified.
+
+## V20 实机：音量键仍发声、画面不刷新 / Hardware observation
+
+用户报告开机后画面停留在普通系统跑码，音量键仍产生新的声音。照片可见区域未出现 XeGfx BOOT 或阶段边界。输入/音频链路仍响应，不支持将其描述为整机完全锁死；尚不能确定 Xe 初始化阶段是否完成、其线程是否单独阻塞、或显示交接是否失败。照片末尾的 NVMe/ACM 消息不是已确认的故障点。
+
+The user reports a static verbose screen while volume-key presses still generate new sounds. The visible photo contains no XeGfx BOOT/stage boundary. Input/audio responsiveness argues against a complete system lockup; neither Xe stage completion, a separately blocked initializer nor display handoff failure is established. The last NVMe/ACM line is not a confirmed fault site.
+
+新增 gpu-display-capture.command，仅读取阶段/进度/驱动日志和进程列表，并记录 60 秒用户态心跳，不发起阶段请求、不改启动参数。状态和日志读取分开启动，避免日志锁阻塞时连独立心跳都无法保存。首次读取 60 秒后仍未完成会标记 pending，而不持续叠加读取进程。脚本已复制内部 EFI 并回读一致；未替换 V20 驱动，尚未取得该脚本的实机结果。
+
+The new gpu-display-capture.command reads stage/progress/log and process lists and records a 60-second userspace heartbeat. It does not request initialization or modify boot arguments. Separate background reads avoid making heartbeat capture wait on the log lock. Pending first reads are marked after 60 seconds instead of accumulating more readers. The script is copied to internal EFI with matching readback; the V20 driver is unchanged and capture results remain pending.
