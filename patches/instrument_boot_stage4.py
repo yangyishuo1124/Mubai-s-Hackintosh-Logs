@@ -12,7 +12,7 @@ queue=r'''
 		gBootInitCall = thread_call_allocate(xg_boot_fire, nullptr);
 		if (gBootInitCall) {
 			uint64_t deadline;
-			clock_interval_to_deadline(250, NSEC_PER_MSEC, &deadline);
+			clock_interval_to_deadline(3000, NSEC_PER_MSEC, &deadline);
 			thread_call_enter_delayed(gBootInitCall, deadline);
 		} else xg_printf("XeGfx BOOT: failed to allocate deferred initializer\n");
 	}
@@ -45,7 +45,6 @@ xg_boot_initialize(void)
   return;
  }
  gpu->release();
- IOSleep(3000);
  xg_printf("XeGfx BOOT: GPU discovered; starting stages\n");
  strlcpy(xg_env, "compat.linuxkpi.xe_probe_display=0 compat.linuxkpi.xe_probe_skip_pc_start=1 compat.linuxkpi.xe_probe_skip_lrc_ggtt_remove=1", sizeof(xg_env));
  xg_printf("XeGfx BOOT V33: automatic stages 1-4 (after 3s delay); display=0 PC bypass=1 LRC ggtt_remove bypass=1 sync_drain=1 Stage 6 store unlocked\n");
