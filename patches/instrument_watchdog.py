@@ -56,6 +56,6 @@ anchor='\tIOLockUnlock(gStageLock);'
 f=f.replace(anchor,anchor+'\n\tgDedicatedActive = 0;\n\tif (gResident) gResident->setProperty("XeGfxRequestWatchdogArmed", false);')
 s=s[:a]+f+s[b:]
 s=s.replace('if (gStage > 0)\n\t\treturn KERN_FAILURE;', 'if (gStage > 0 || gDedicatedClaim)\n\t\treturn KERN_FAILURE;')
-s=s.replace('ptl-stage4-trace-v10','ptl-ggtt-drain-v19')
+s=s.replace('ptl-stage4-trace-v10','ptl-boot-stage4-v20')
 p.write_text(s)
 print('Request watchdog covers stage-lock acquisition and stages 1-4, with readiness handshake.')
