@@ -1,0 +1,52 @@
+--- a/xe_gt.c
++++ b/xe_gt.c
+@@ -61,6 +61,7 @@
+ #include "xe_wopcm.h"
+ 
+ extern void xg_init_checkpoint(int, const char *);
++extern int getenv_int(const char *, int *);
+ 
+ static void gt_fini(struct drm_device *drm, void *arg)
+ {
+@@ -286,7 +287,10 @@
+ 	struct xe_hw_engine *hwe;
+ 	enum xe_hw_engine_id id;
+ 	int err = 0;
++	int skip_cleanup = 0;
+ 
++	if (getenv_int("compat.linuxkpi.xe_probe_skip_lrc_cleanup", &skip_cleanup) && skip_cleanup == 1)
++		xg_printf("xegfx: DIAGNOSTIC LRC cleanup skipped for gt=%u\n", (unsigned)gt->info.id);
+ 	for_each_hw_engine(hwe, gt, id) {
+ 		struct xe_exec_queue *q, *nop_q;
+ 		void *default_lrc;
+@@ -366,16 +370,24 @@
+ 				   xe_lrc_pphwsp_offset(q->lrc[0]),
+ 				   xe_gt_lrc_size(gt, hwe->class));
+ 
+ 		xg_printf("xegfx: LRC snapshot returned\n");
+ 		gt->default_lrc[hwe->class] = default_lrc;
+ put_nop_q:
+-		xg_printf("xegfx: LRC nop_q put begin\n");
+-		xe_exec_queue_put(nop_q);
+-		xg_printf("xegfx: LRC nop_q put returned\n");
++		if (skip_cleanup == 1) {
++			xg_printf("xegfx: LRC nop_q put SKIPPED\n");
++		} else {
++			xg_printf("xegfx: LRC nop_q put begin\n");
++			xe_exec_queue_put(nop_q);
++			xg_printf("xegfx: LRC nop_q put returned\n");
++		}
+ put_exec_queue:
+-		xg_printf("xegfx: LRC q put begin\n");
+-		xe_exec_queue_put(q);
+-		xg_printf("xegfx: LRC q put returned\n");
++		if (skip_cleanup == 1) {
++			xg_printf("xegfx: LRC q put SKIPPED\n");
++		} else {
++			xg_printf("xegfx: LRC q put begin\n");
++			xe_exec_queue_put(q);
++			xg_printf("xegfx: LRC q put returned\n");
++		}
+ 		if (err)
+ 			break;
+ 	}
