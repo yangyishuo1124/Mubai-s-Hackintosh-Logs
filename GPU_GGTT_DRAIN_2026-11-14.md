@@ -46,3 +46,17 @@ Internal EFI boot/diagnostic drivers and wrapper are backed up and replaced. Bot
 实机结果待验证。重启 macOS 后运行原 gpu-probe.command；脚本要求开机实际加载 V19，单次请求 stage 4 并显示日志。若再次挂死，报告仍用于比较是否完成 GGTT 清理，而不将最后可见 offset 当作精确故障地址。
 
 Hardware result pending. Reboot macOS and run the existing gpu-probe.command; it requires a boot-loaded V19 driver, requests stage 4 once and streams logs. If it hangs again, compare whether GGTT clear returns; the last visible offset remains only an observation.
+
+## V19 实机仍挂死 / Hardware hang persists
+
+已读取并本地保存 EFI 报告 `gpu-probe-20261114-232845.txt` 和 stage 文件；二进制回读与 V19 SHA256 相同。本次照片及报告最后为 progress=42121，但保存的日志内容最后仍在 31009（driver manager installed）。未保存任何本次 scratch 分配/清零/填充日志或填充 offset。与 V18 的 0x51000000 不能直接比较。
+
+The EFI report `gpu-probe-20261114-232845.txt` and stage file are retained locally; boot binary readback matches V19. Both photo and report sample progress=42121, while the last saved log line is checkpoint 31009 (driver manager installed). No current scratch/fill messages or fill offsets are persisted. This cannot be directly compared with V18's 0x51000000.
+
+分批排空实验没有消除用户观察到的挂死。当前证据不足以区分 PTE 写入、批次屏障、日志输出或读取进程提前停滞，不能将 42121 解释为某个特定 offset，也不能认定屏障已执行或失败。
+
+The batching experiment does not eliminate the observed hang. Evidence does not distinguish a PTE write, batch barrier, logging or a stalled reader. Checkpoint 42121 is not an address and does not establish whether a barrier ran or failed.
+
+源码审查发现 xg_init_checkpoint 在调用 xg_printf 前更新全局 progress；xg_vprintf 先在 gLogLock 下复制缓冲区，释放锁后调用内核 printf。用户态日志与进度是分开读取的，报告因此不是原子快照。下一项调查应审查日志/调度路径，不继续按最后 offset 细分地址。此处只记录审查发现，尚未证明 printf 或日志锁导致挂死；本轮未替换驱动。
+
+Source review shows xg_init_checkpoint updates global progress before xg_printf. xg_vprintf copies into the buffer under gLogLock, releases it, then invokes kernel printf. Userspace reads log and progress separately, so the report is not an atomic snapshot. Further review should examine logging/scheduling rather than bisecting the last offset. Neither printf nor the log lock is proven causal; no driver replacement was made in this observation turn.
