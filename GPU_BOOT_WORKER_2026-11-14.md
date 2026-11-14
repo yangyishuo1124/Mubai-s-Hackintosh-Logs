@@ -31,3 +31,13 @@ No LRC, cleanup, GGTT or IRQ operation is bypassed; stage 5 is not added; PC byp
 CI 编译并执行真实提取的启动 helper、worker/callback 和 watchdog 测试：创建失败、回调只分发、句柄释放、一次初始化与线程结束、5s 心跳、正常返回与 >60s 超时；继续执行原有构建与回归检查。部署信息待构建完成补充。
 
 CI compiles and executes tests extracted from the actual helper, worker/callback and watchdog: creation failure, dispatch-only callback, handle release, single initialization and termination, 5s heartbeat, normal completion and >60s timeout; existing build/regression checks remain. Deployment details will follow the completed build.
+
+## 部署记录 / Deployment record
+
+- Source: `eea81130`; [build 43584717747](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43584717747), artifact `14109574579`.
+- 编译、原有回归、新增实际 worker/callback 与 watchdog 行为测试全部通过。/ Compilation, existing regressions and actual worker/callback/watchdog behavior tests passed.
+- Driver SHA-256: `8a94e7c94f1d60961b5395d659fad81329082e3f435fb660a9c873b777005ce9`.
+- 启动与诊断 kext 已复制到内部 EFI 并逐字节回读；config.plist 与启动 kext Info.plist 保留，ocvalidate 1.0.8 通过。/ Boot and diagnostic kexts copied to internal EFI and read back; config and boot kext Info.plist preserved; ocvalidate 1.0.8 passed.
+- Local backup: `backups/before-xe-worker-heartbeat-20261114-182423`.
+- 自动采集与 debug=0x100 保留。未执行真机启动，不能宣布停屏修复。/ Automatic capture and debug=0x100 retained. Hardware boot is not yet tested; no stall-fix claim.
+- 独立验证工作流改为下载本次构建 43584717747；之前固定的旧构建不能用作 V24 二进制验证。/ The separate verification workflow now downloads this exact build; its previously fixed older artifact cannot validate the V24 binary.
