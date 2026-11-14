@@ -1,14 +1,16 @@
 --- a/xe_gt.c
 +++ b/xe_gt.c
-@@ -61,6 +61,7 @@
+@@ -61,6 +61,9 @@
  #include "xe_wopcm.h"
  
  extern void xg_init_checkpoint(int, const char *);
 +extern int getenv_int(const char *, int *);
++extern volatile int xg_lrc_fini_pending;
++extern void DELAY(int);
  
  static void gt_fini(struct drm_device *drm, void *arg)
  {
-@@ -286,7 +287,10 @@
+@@ -286,7 +289,10 @@
  	struct xe_hw_engine *hwe;
  	enum xe_hw_engine_id id;
  	int err = 0;
@@ -19,7 +21,7 @@
  	for_each_hw_engine(hwe, gt, id) {
  		struct xe_exec_queue *q, *nop_q;
  		void *default_lrc;
-@@ -366,16 +370,24 @@
+@@ -366,16 +372,28 @@
  				   xe_lrc_pphwsp_offset(q->lrc[0]),
  				   xe_gt_lrc_size(gt, hwe->class));
  
@@ -34,6 +36,8 @@
 +		} else {
 +			xg_printf("xegfx: LRC nop_q put begin\n");
 +			xe_exec_queue_put(nop_q);
++			for (int w = 0; w < 500 && __sync_fetch_and_add(&xg_lrc_fini_pending, 0) > 0; w++)
++				DELAY(1000);
 +			xg_printf("xegfx: LRC nop_q put returned\n");
 +		}
  put_exec_queue:
@@ -45,6 +49,8 @@
 +		} else {
 +			xg_printf("xegfx: LRC q put begin\n");
 +			xe_exec_queue_put(q);
++			for (int w = 0; w < 500 && __sync_fetch_and_add(&xg_lrc_fini_pending, 0) > 0; w++)
++				DELAY(1000);
 +			xg_printf("xegfx: LRC q put returned\n");
 +		}
  		if (err)
