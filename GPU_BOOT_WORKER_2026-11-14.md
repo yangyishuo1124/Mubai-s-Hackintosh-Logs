@@ -41,3 +41,5 @@ CI compiles and executes tests extracted from the actual helper, worker/callback
 - Local backup: `backups/before-xe-worker-heartbeat-20261114-182423`.
 - 自动采集与 debug=0x100 保留。未执行真机启动，不能宣布停屏修复。/ Automatic capture and debug=0x100 retained. Hardware boot is not yet tested; no stall-fix claim.
 - 独立验证工作流改为下载本次构建 43584717747；之前固定的旧构建不能用作 V24 二进制验证。/ The separate verification workflow now downloads this exact build; its previously fixed older artifact cannot validate the V24 binary.
+
+- [Exact-build verification 43585189019](https://github.com/yangyishuo1124/Mubai-s-Hackintosh-Logs/actions/runs/43585189019) passed: artifact 43584717747 downloaded; architecture, signature, KPI imports and host regressions passed. / 本次构建的架构、签名、内核接口引用和主机回归检查通过。
