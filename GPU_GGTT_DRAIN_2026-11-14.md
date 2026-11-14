@@ -60,3 +60,5 @@ The batching experiment does not eliminate the observed hang. Evidence does not 
 源码审查发现 xg_init_checkpoint 在调用 xg_printf 前更新全局 progress；xg_vprintf 先在 gLogLock 下复制缓冲区，释放锁后调用内核 printf。用户态日志与进度是分开读取的，报告因此不是原子快照。下一项调查应审查日志/调度路径，不继续按最后 offset 细分地址。此处只记录审查发现，尚未证明 printf 或日志锁导致挂死；本轮未替换驱动。
 
 Source review shows xg_init_checkpoint updates global progress before xg_printf. xg_vprintf copies into the buffer under gLogLock, releases it, then invokes kernel printf. Userspace reads log and progress separately, so the report is not an atomic snapshot. Further review should examine logging/scheduling rather than bisecting the last offset. Neither printf nor the log lock is proven causal; no driver replacement was made in this observation turn.
+
+当前 / Current: [V20 boot stage 4](GPU_BOOT_STAGE4_2026-11-14.md).
