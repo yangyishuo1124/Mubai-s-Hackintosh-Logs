@@ -1,0 +1,28 @@
+diff --git a/xe_lrc.c b/xe_lrc.c
+index bbb9ffb..8455e8e 100644
+--- a/xe_lrc.c
++++ b/xe_lrc.c
+@@ -27,6 +27,9 @@
+ #include "xe_sriov.h"
+ #include "xe_trace_lrc.h"
+ #include "xe_vm.h"
++
++extern int getenv_int(const char *, int *);
++extern int xg_printf(const char *, ...);
+ #include "xe_wa.h"
+ 
+ #define LRC_VALID				BIT_ULL(0)
+@@ -876,6 +879,13 @@ static void xe_lrc_finish(struct xe_lrc *lrc)
+ 	xe_bo_lock(lrc->bo, false);
+ 	xe_bo_unpin(lrc->bo);
+ 	xe_bo_unlock(lrc->bo);
++	{
++		int skip_bo_put = 0;
++		if (getenv_int("compat.linuxkpi.xe_probe_skip_lrc_bo_put", &skip_bo_put) && skip_bo_put == 1) {
++			xg_printf("xegfx: CLEAN xe_lrc_finish bo_put SKIPPED bo=%p\n", lrc->bo);
++			return;
++		}
++	}
+ 	xe_bo_put(lrc->bo);
+ }
+ 
