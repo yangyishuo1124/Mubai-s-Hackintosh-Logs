@@ -56,3 +56,17 @@ Windows exposes no writable APFS Data volume or APFS write driver, so the macOS 
 install-gpu-autocapture.command 已放入 EFI 并回读一致。用户在画面正常的 macOS 中运行一次，取得管理员权限后安装 /Library/LaunchDaemons/org.mubai.gpu-capture.plist 和 /Library/Application Support/MubaiGPUCapture/capture.zsh。成功加载采集服务后，安装器才把 xegfx_bootstage=4 加回 EFI 配置，配置修改前另存备份。服务每次开机尝试挂载 SYSTEM 并运行只读采集脚本，将心跳、进程、阶段和日志保存在 EFI。并非已安装到 macOS，尚需用户执行这一次可见安装。
 
 The installer is copied to EFI with matching readback. One visible macOS run with administrator authorization installs a LaunchDaemon and its launcher. Only after loading the capture service does it re-enable xegfx_bootstage=4 in EFI, backing up config first. At each boot the service attempts to mount SYSTEM and runs the read-only capture to EFI. The macOS service is not yet installed; one visible installer run remains necessary.
+
+## 自动采集结果：stage 2 未找到 GPU / Automatic capture: GPU not found at stage 2
+
+已读取并保存 EFI gpu-display-20261115-002735。首次状态为 stage=1、running=0、progress=20；首尾驱动日志一致：stage 1 返回 1，stage 2 返回 -19，初始化退出，completed stage=1。最终状态文件仅保存了 progress/running，未据此推断新的 completed stage。60 秒心跳完整，进程列表包含 WindowServer 和 loginwindow；不支持将本次描述为整机锁死或 stage 4/GGTT 失败。
+
+EFI capture gpu-display-20261115-002735 is retained locally. Initial state is stage=1, running=0, progress=20. Both logs show stage 1 returning 1, stage 2 returning -19 and boot initialization exiting at completed stage 1. The final status file contains only progress/running; no new completed-stage value is inferred from it. A full 60-second heartbeat and WindowServer/loginwindow processes establish continued userspace execution, not stage-4/GGTT failure or a complete system lockup.
+
+核对 xg_probe：progress=20、GPU 为空时直接返回 -19，尚未进入 progress=21 的 GPU 配置读取。本次开机同步初始化未等到 GPU 可见，应调整为服务回调返回后异步等待 GPU 枚举，再调用 stages 1–4；这修正启动入口，不表示此前 GGTT/PC 问题已解决，也不证明显示静止完全由此造成。
+
+Source review identifies the stage-2 path: with a null GPU, xg_probe returns -19 before progress 21/configuration reads. Boot initialization must defer until after service start and wait asynchronously for GPU discovery. This addresses the startup entry, not earlier GGTT/PC failures, and does not by itself prove the entire cause of the static display.
+
+自动采集服务已实际运行；用户无需重复安装。将安装器启用后的 boot-args 精确读回同步到仓库，其他配置内容通过解析对比确认一致。本轮未替换二进制或修改硬盘上的配置。
+
+The capture service has actually run; reinstalling it is unnecessary. The installer's enabled boot arguments are synced from exact EFI readback after parsed comparison confirms other configuration contents match. No driver binary or on-disk configuration is modified in this observation turn.
