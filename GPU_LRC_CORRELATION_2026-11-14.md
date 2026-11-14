@@ -19,3 +19,17 @@ Original MMIO reads, TLB invalidations, PTE writes, locks and error handling rem
 - Internal EFI boot/diagnostic kext and probe wrapper updated and read back. Configuration unchanged; ocvalidate passed.
 - 内部 EFI 已写入并回读一致，启动配置未改动，已通过检查。备份 / Backup: `backups/before-xe-lrc-correlation-20261114-171142` (local workspace).
 - 真机验证待进行 / Hardware reboot validation pending.
+
+## V22 照片结果 / Photo result
+
+照片 1794647893857.jpg 显示 vcs0 (class=1, instance=0) 的 q/nop_q 创建返回；对应 GGTT map、MMIO barrier、主/媒体 GT TLB invalidate 均返回。emit_wa_job(gt,q)、emit_nop_job(gt,nop_q)、emit_nop_job(gt,q) 返回 rc=0，snapshot 返回；最后可见 `LRC nop_q put returned`。
+
+Photo 1794647893857.jpg shows vcs0 (class 1, instance 0) queue creation and associated GGTT mapping/barriers/primary and media invalidation returning. WA and both NOP helper calls return zero, the snapshot returns, and the final visible message is `LRC nop_q put returned`.
+
+下一条代码应先打印 `LRC q put begin`，再调用 xe_exec_queue_put(q)。照片缺少此前置日志，因此不能确定是 q 释放函数内部卡死，也不能再将本次最后可见状态称为 VF_CAP_REG 读取卡死。日志增加可能改变了时序。下一调查重点为队列清理触发的并发工作及日志路径，而不是跳过已返回的 MMIO 读取。
+
+The next statement logs `LRC q put begin` before calling xe_exec_queue_put(q). That message is absent, so this photo cannot locate the stall inside the main queue release or establish a VF_CAP_REG read hang. Added logging may have changed timing. Investigation should cover cleanup-triggered concurrent work and logging rather than bypassing MMIO reads that returned.
+
+对照固定版本 Linux xe_exec_queue.c：destroy 会调用 q->ops->fini(q)，最终 fini 包含 LRC 引用释放及队列内存释放。是否在移植层异步触发及对应锁行为仍需检查，尚无根因结论。源码参考 / Pinned source: https://github.com/torvalds/linux/blob/38fec10eb60d687e30c8c6b5420d86e8149f7557/drivers/gpu/drm/xe/xe_exec_queue.c
+
+Pinned Linux queue destruction invokes q->ops->fini(q); finalization releases LRC references and queue memory. Port-specific scheduling and lock behavior remain to be audited; no root cause is established. Zero helper return codes do not prove working acceleration. 本次 EFI 未发现新增自动采集目录，驱动未改动。No new EFI capture directory was found; the driver is unchanged this turn.
