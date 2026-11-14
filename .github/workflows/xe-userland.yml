@@ -1,0 +1,312 @@
+name: Build Panther Lake Xe Userland & Metal Stack
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "all, fast, or mesa"
+        required: false
+        default: "all"
+
+jobs:
+  fast-stack:
+    if: ${{ github.event.inputs.target == '' || github.event.inputs.target == 'all' || github.event.inputs.target == 'fast' }}
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          brew install meson ninja pkg-config glslang
+          rustup target add x86_64-apple-darwin
+
+      - name: Clone WTLIntelGfx and dependencies
+        run: |
+          mkdir -p "$HOME/src/deps" "$HOME/src/xe-userland" build
+          git clone https://github.com/watchthelight-labs/WTLIntelGfx.git build/WTLIntelGfx
+          git -C build/WTLIntelGfx checkout 83cb008d0989d530a1f3c82928ab08f8533a1d9e
+
+          git clone --depth 1 --branch 615.78.08 https://github.com/NVIDIA/open-gpu-kernel-modules.git "$HOME/src/deps/open-gpu-615.78.08"
+          git clone --depth 1 --branch v1.4.328 https://github.com/KhronosGroup/Vulkan-Headers.git "$HOME/src/deps/Vulkan-Headers"
+          cp -R "$HOME/src/deps/Vulkan-Headers" "$HOME/src/xe-userland/Vulkan-Headers"
+          git clone --depth 1 --branch v1.4.328 https://github.com/KhronosGroup/Vulkan-Loader.git "$HOME/src/xe-userland/Vulkan-Loader"
+
+          git clone https://gitlab.freedesktop.org/mesa/drm.git "$HOME/src/xe-userland/drm"
+          git -C "$HOME/src/xe-userland/drm" checkout b97cbde15c5c3abfe44d78e8f57139e50f612fec
+          patch -d "$HOME/src/xe-userland/drm" -p1 < build/WTLIntelGfx/userland/patches/libdrm-macos.patch
+          patch -d "$HOME/src/xe-userland/drm" -p1 < build/WTLIntelGfx/userland/patches/libdrm-xegfx.patch
+
+      - name: Build libdrm (x86_64) and Vulkan-Loader (x86_64)
+        run: |
+          X="$HOME/src/xe-userland"
+          SDK="$(xcrun --sdk macosx --show-sdk-path)"
+          cat > "$X/x86_64-darwin.ini" << EOF
+          [binaries]
+          c = ['xcrun', 'clang', '-arch', 'x86_64']
+          cpp = ['xcrun', 'clang++', '-arch', 'x86_64']
+          objc = ['xcrun', 'clang', '-arch', 'x86_64']
+          objcpp = ['xcrun', 'clang++', '-arch', 'x86_64']
+          ar = 'ar'
+          strip = 'strip'
+          pkgconfig = 'pkg-config'
+
+          [host_machine]
+          system = 'darwin'
+          cpu_family = 'x86_64'
+          cpu = 'x86_64'
+          endian = 'little'
+          EOF
+
+          meson setup "$X/drm/build" "$X/drm" --cross-file "$X/x86_64-darwin.ini" \
+            --prefix="$X/prefix" --libdir=lib -Dbuildtype=release \
+            -Dc_args="-mmacosx-version-min=14.4" -Dc_link_args="-mmacosx-version-min=14.4" \
+            -Dintel=disabled -Damdgpu=disabled -Dradeon=disabled -Dnouveau=disabled -Dvmwgfx=disabled \
+            -Domap=disabled -Dexynos=disabled -Dtegra=disabled -Dvc4=disabled -Detnaviv=disabled \
+            -Dcairo-tests=disabled -Dman-pages=disabled -Dvalgrind=disabled -Dtests=false -Dinstall-test-programs=false
+          ninja -C "$X/drm/build"
+          meson install -C "$X/drm/build"
+          lipo "$X/prefix/lib/libdrm.2.dylib" -verify_arch x86_64
+
+          L="$X/loader-prefix"
+          cmake -S "$X/Vulkan-Headers" -B "$X/Vulkan-Headers/build" -G Ninja -DCMAKE_INSTALL_PREFIX="$L"
+          cmake --install "$X/Vulkan-Headers/build"
+          cmake -S "$X/Vulkan-Loader" -B "$X/Vulkan-Loader/build" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$L" \
+            -DCMAKE_OSX_ARCHITECTURES=x86_64 -DCMAKE_OSX_DEPLOYMENT_TARGET=14.4 \
+            -DVULKAN_HEADERS_INSTALL_DIR="$L" -DCMAKE_PREFIX_PATH="$L" \
+            -DBUILD_TESTS=OFF -DCMAKE_OSX_SYSROOT="$SDK"
+          ninja -C "$X/Vulkan-Loader/build"
+          cmake --install "$X/Vulkan-Loader/build"
+          lipo "$L/lib/libvulkan.1.dylib" -verify_arch x86_64
+
+      - name: Build Vulkan & DRM test tools (drmlist, vkprobe, vkdraw, vkcoh, mtlprobe)
+        run: |
+          X="$HOME/src/xe-userland"
+          L="$X/loader-prefix"
+          T="$PWD/build/WTLIntelGfx/userland/tools"
+          OUT="$PWD/out-userland"
+          mkdir -p "$OUT/bin" "$OUT/lib" "$OUT/kexts" "$OUT/plugin"
+
+          cp -f "$X/prefix/lib/libdrm.2.dylib" "$OUT/lib/"
+          cp -f "$L/lib/libvulkan.1.dylib" "$OUT/lib/"
+          ln -sf libvulkan.1.dylib "$OUT/lib/libvulkan.dylib"
+
+          cd "$T"
+          glslangValidator -V --target-env vulkan1.3 fill.comp -o fill.spv
+          xxd -i -n fill_spv fill.spv > fill_spv.h
+          glslangValidator -V --target-env vulkan1.3 tri.vert -o tri.vert.spv
+          glslangValidator -V --target-env vulkan1.3 tri.frag -o tri.frag.spv
+          {
+            xxd -i -n tri_vert_spv tri.vert.spv
+            xxd -i -n tri_frag_spv tri.frag.spv
+          } > tri_spv.h
+
+          xcrun clang -arch x86_64 -mmacosx-version-min=14.4 -O2 -Wall \
+            -I"$X/prefix/include" -I"$X/prefix/include/libdrm" \
+            drmlist.c -L"$X/prefix/lib" -ldrm -Wl,-rpath,@executable_path/../lib -o "$OUT/bin/drmlist"
+
+          for tool in vkprobe vkdraw vkcoh; do
+            xcrun clang -arch x86_64 -mmacosx-version-min=14.4 -O2 -Wall \
+              -I"$T" -I"$L/include" "$tool.c" \
+              -L"$L/lib" -lvulkan -Wl,-rpath,@executable_path/../lib -o "$OUT/bin/$tool"
+          done
+
+          xcrun clang -arch x86_64 -mmacosx-version-min=14.4 -O2 -fobjc-arc \
+            mtlprobe.m -framework Foundation -framework Metal -framework IOKit \
+            -o "$OUT/bin/mtlprobe"
+
+          for b in drmlist vkprobe vkdraw vkcoh mtlprobe; do
+            codesign -s - --force "$OUT/bin/$b"
+            lipo "$OUT/bin/$b" -verify_arch x86_64
+          done
+
+      - name: Build Kexts (XeGfxAccel, XeGfxIntelFB, XeGfxAGDC, NMIntelFB) and Metal Plugin + Translator
+        run: |
+          R="$PWD/build/WTLIntelGfx"
+          OUT="$PWD/out-userland"
+          SDK="$(xcrun --sdk macosx --show-sdk-path)"
+          export SDKROOT="$SDK"
+          export OUTROOT="$OUT/kexts"
+          export XEGFX_OUT="$OUT"
+
+          bash "$R/build/build_xegfxaccel.sh"
+          bash "$R/build/build_xegfxintelfb.sh"
+          bash "$R/build/build_xegfxagdc.sh"
+          bash "$R/build/build_nmintelfb.sh"
+          bash "$R/build/build_plugin.sh"
+
+          cd "$R/translator"
+          cargo build --release --target x86_64-apple-darwin --manifest-path wrapper/Cargo.toml --target-dir "$OUT/xlate-target"
+          cp "$OUT/xlate-target/x86_64-apple-darwin/release/libnvmtl_translate.dylib" "$OUT/plugin/libnvmtl_translate.dylib"
+          strip -S "$OUT/plugin/libnvmtl_translate.dylib"
+          install_name_tool -id @rpath/libnvmtl_translate.dylib "$OUT/plugin/libnvmtl_translate.dylib"
+          codesign -f -s - "$OUT/plugin/libnvmtl_translate.dylib"
+          lipo "$OUT/plugin/libnvmtl_translate.dylib" -verify_arch x86_64
+          lipo "$OUT/plugin/NVMTLDriver" -verify_arch x86_64
+          rm -rf "$OUT/xlate-target"
+
+      - name: Upload fast-stack artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PantherLake-Xe-fast-stack
+          path: |
+            out-userland/bin/*
+            out-userland/lib/*
+            out-userland/plugin/*
+            out-userland/kexts/**
+
+  mesa-anv:
+    if: ${{ github.event.inputs.target == '' || github.event.inputs.target == 'all' || github.event.inputs.target == 'mesa' }}
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Homebrew LLVM, SPIRV-LLVM-Translator, Meson, Ninja
+        run: |
+          brew install meson ninja pkg-config llvm spirv-llvm-translator
+          pip3 install --break-system-packages mako pyyaml packaging
+
+      - name: Clone WTLIntelGfx, libdrm, and Mesa
+        run: |
+          mkdir -p "$HOME/src/xe-userland/sdk-pc" build
+          git clone https://github.com/watchthelight-labs/WTLIntelGfx.git build/WTLIntelGfx
+          git -C build/WTLIntelGfx checkout 83cb008d0989d530a1f3c82928ab08f8533a1d9e
+
+          git clone https://gitlab.freedesktop.org/mesa/drm.git "$HOME/src/xe-userland/drm"
+          git -C "$HOME/src/xe-userland/drm" checkout b97cbde15c5c3abfe44d78e8f57139e50f612fec
+          patch -d "$HOME/src/xe-userland/drm" -p1 < build/WTLIntelGfx/userland/patches/libdrm-macos.patch
+          patch -d "$HOME/src/xe-userland/drm" -p1 < build/WTLIntelGfx/userland/patches/libdrm-xegfx.patch
+
+          mkdir -p "$HOME/src/xe-userland/mesa"
+          git -C "$HOME/src/xe-userland/mesa" init
+          git -C "$HOME/src/xe-userland/mesa" remote add origin https://gitlab.freedesktop.org/mesa/mesa.git
+          git -C "$HOME/src/xe-userland/mesa" fetch --depth 1 origin bffd91947efc1932da99aca69fc540d6d4201b0c
+          git -C "$HOME/src/xe-userland/mesa" checkout FETCH_HEAD
+          patch -d "$HOME/src/xe-userland/mesa" -p1 < build/WTLIntelGfx/userland/patches/mesa-macos.patch
+          patch -d "$HOME/src/xe-userland/mesa" -p1 < build/WTLIntelGfx/userland/patches/mesa-xegfx.patch
+
+      - name: Cache Mesa host tools (mesa_clc + vtn_bindgen2)
+        id: cache-clc
+        uses: actions/cache@v4
+        with:
+          path: ~/src/xe-userland/host
+          key: mesa-host-clc-bffd91947ef-v1
+
+      - name: Build Mesa host tools (mesa_clc + vtn_bindgen2)
+        if: steps.cache-clc.outputs.cache-hit != 'true'
+        run: |
+          X="$HOME/src/xe-userland"
+          LLVM_PREFIX="$(brew --prefix llvm)"
+          SPIRV_PREFIX="$(brew --prefix spirv-llvm-translator)"
+          LLVM_CONFIG="$LLVM_PREFIX/bin/llvm-config"
+          LLVM_LIB="$($LLVM_CONFIG --libdir)"
+          export PKG_CONFIG_PATH="$SPIRV_PREFIX/lib/pkgconfig:$LLVM_LIB/pkgconfig:${PKG_CONFIG_PATH:-}"
+
+          cat > "$X/native-llvm.ini" << EOF
+          [binaries]
+          llvm-config = '$LLVM_CONFIG'
+          cmake = 'false'
+          EOF
+
+          meson setup "$X/mesa/build-host" "$X/mesa" --native-file "$X/native-llvm.ini" \
+            --prefix="$X/host" -Dbuildtype=release \
+            -Dc_args="-I$LLVM_PREFIX/include -I$SPIRV_PREFIX/include" \
+            -Dcpp_args="-I$LLVM_PREFIX/include -I$SPIRV_PREFIX/include" \
+            -Dc_link_args="-L$LLVM_LIB -Wl,-rpath,$LLVM_LIB" \
+            -Dcpp_link_args="-L$LLVM_LIB -Wl,-rpath,$LLVM_LIB" \
+            -Dmesa-clc=enabled -Dinstall-mesa-clc=true -Dllvm=enabled -Dshared-llvm=enabled \
+            -Dvulkan-drivers= -Dgallium-drivers= -Dplatforms= -Dopengl=false -Dgles1=disabled -Dgles2=disabled \
+            -Degl=disabled -Dglx=disabled -Dglvnd=disabled -Dvulkan-layers= -Dtools= \
+            -Dbuild-tests=false -Dexpat=disabled -Dzstd=disabled -Dlibunwind=disabled -Dlmsensors=disabled \
+            -Dvalgrind=disabled -Dxlib-lease=disabled -Dgallium-rusticl=false
+          ninja -C "$X/mesa/build-host"
+          meson install -C "$X/mesa/build-host"
+          "$X/host/bin/mesa_clc" --help >/dev/null
+
+      - name: Build libdrm (x86_64) and Mesa ANV (x86_64)
+        run: |
+          X="$HOME/src/xe-userland"
+          export PATH="$X/host/bin:$PATH"
+
+          cat > "$X/sdk-pc/expat.pc" << 'EOF'
+          Name: expat
+          Version: 2.7.1
+          Libs: -lexpat
+          Cflags:
+          EOF
+
+          cat > "$X/x86_64-darwin.ini" << 'EOF'
+          [binaries]
+          c = ['xcrun', 'clang', '-arch', 'x86_64']
+          cpp = ['xcrun', 'clang++', '-arch', 'x86_64']
+          objc = ['xcrun', 'clang', '-arch', 'x86_64']
+          objcpp = ['xcrun', 'clang++', '-arch', 'x86_64']
+          ar = 'ar'
+          strip = 'strip'
+          pkgconfig = 'pkg-config'
+          cmake = 'false'
+          llvm-config = 'false'
+
+          [host_machine]
+          system = 'darwin'
+          cpu_family = 'x86_64'
+          cpu = 'x86_64'
+          endian = 'little'
+          EOF
+
+          cat > "$X/native-target.ini" << 'EOF'
+          [binaries]
+          c = ['xcrun', 'clang']
+          cpp = ['xcrun', 'clang++']
+          ar = 'ar'
+          strip = 'strip'
+          cmake = 'false'
+          llvm-config = 'false'
+          EOF
+
+          export PKG_CONFIG_LIBDIR="$X/prefix/lib/pkgconfig:$X/sdk-pc"
+          meson setup "$X/drm/build" "$X/drm" --cross-file "$X/x86_64-darwin.ini" \
+            --prefix="$X/prefix" --libdir=lib -Dbuildtype=release \
+            -Dc_args="-mmacosx-version-min=14.4" -Dc_link_args="-mmacosx-version-min=14.4" \
+            -Dintel=disabled -Damdgpu=disabled -Dradeon=disabled -Dnouveau=disabled -Dvmwgfx=disabled \
+            -Domap=disabled -Dexynos=disabled -Dtegra=disabled -Dvc4=disabled -Detnaviv=disabled \
+            -Dcairo-tests=disabled -Dman-pages=disabled -Dvalgrind=disabled -Dtests=false -Dinstall-test-programs=false
+          ninja -C "$X/drm/build"
+          meson install -C "$X/drm/build"
+
+          meson setup "$X/mesa/build" "$X/mesa" \
+            --cross-file "$X/x86_64-darwin.ini" --native-file "$X/native-target.ini" \
+            --prefix="$X/prefix" --libdir=lib \
+            -Dbuildtype=release -Db_ndebug=true \
+            -Dc_args="-mmacosx-version-min=14.4" -Dcpp_args="-mmacosx-version-min=14.4" -Dobjc_args="-mmacosx-version-min=14.4" \
+            -Dc_link_args="-mmacosx-version-min=14.4" -Dcpp_link_args="-mmacosx-version-min=14.4" \
+            -Dvulkan-drivers=intel -Dgallium-drivers= -Dplatforms= -Dtools=drm-shim -Dllvm=disabled \
+            -Dmesa-clc=system -Dprecomp-compiler=auto \
+            -Dopengl=false -Dgles1=disabled -Dgles2=disabled -Degl=disabled -Dglx=disabled -Dglvnd=disabled -Dgbm=disabled \
+            -Dvulkan-layers= -Dbuild-tests=false -Dexpat=enabled -Dzstd=disabled -Dlibunwind=disabled -Dlmsensors=disabled \
+            -Dvalgrind=disabled -Dxlib-lease=disabled -Dgallium-rusticl=false -Dvideo-codecs=
+          ninja -C "$X/mesa/build"
+          meson install -C "$X/mesa/build"
+
+          lipo "$X/prefix/lib/libvulkan_intel.dylib" -verify_arch x86_64
+          lipo "$X/prefix/lib/libdrm.2.dylib" -verify_arch x86_64
+          install_name_tool -id "@rpath/libdrm.2.dylib" "$X/prefix/lib/libdrm.2.dylib"
+          install_name_tool -id "@rpath/libvulkan_intel.dylib" \
+            -change "$X/prefix/lib/libdrm.2.dylib" "@rpath/libdrm.2.dylib" \
+            "$X/prefix/lib/libvulkan_intel.dylib"
+          codesign -s - --force "$X/prefix/lib/libdrm.2.dylib" "$X/prefix/lib/libvulkan_intel.dylib"
+
+          mkdir -p out-mesa
+          cp -f "$X/prefix/lib/libvulkan_intel.dylib" out-mesa/
+          cp -f "$X/prefix/lib/libdrm.2.dylib" out-mesa/
+          cp -f "$X/prefix/share/vulkan/icd.d/intel_icd.x86_64.json" out-mesa/
+
+      - name: Upload mesa-anv artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PantherLake-Xe-mesa-anv
+          path: out-mesa/*

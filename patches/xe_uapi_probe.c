@@ -381,7 +381,8 @@ int main(void)
 	struct drm_xe_vm_destroy vmd = { .vm_id = vmc.vm_id };
 	xioctl(fd, DRM_IOCTL_XE_VM_DESTROY, &vmd);
 	usleep(20000);
+	uint32_t total_engines = engs->num_engines;
 	close(fd);
 	free(engs);
-	return ok_engines == engs->num_engines ? 0 : 2;
+	return ok_engines == total_engines ? 0 : 2;
 }
