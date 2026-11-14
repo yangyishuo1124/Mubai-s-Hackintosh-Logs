@@ -59,3 +59,5 @@ Checkpoints 42100–42103 show scratch allocation/mapping and zeroing returned; 
 更早的 GGTT 失效调用已记录 primary/media GT 返回；这不能证明当前填充后的失效已执行。最后 offset 是用户态最后保存的进度，不足以判定精确故障地址，也不能单凭缺少返回日志排除读取进程提前冻结。下一步核对实际 PTE 写入函数、写入节流 workaround 选择、MMIO 映射边界和持锁长循环；不重新验证独立 stage 1–3。
 
 Earlier GGTT invalidation calls record both GTs returning; they do not prove invalidation after this fill ran. The last offset is a persisted userspace observation, not an exact fault address. Missing return logs also cannot exclude the reader freezing earlier. Next review targets actual PTE writes, write-throttling workaround selection, MMIO mapping bounds and the long locked loop, without repeating standalone stages 1–3.
+
+下一实验 / Next experiment: [V19 batch drain](GPU_GGTT_DRAIN_2026-11-14.md).
