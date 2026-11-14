@@ -41,3 +41,6 @@ Scope clarification: no separate stage-5 execution test runs, but default LRC re
 本次 Windows 读取 EFI 未发现比 V20 更新的 gpu-display 自动采集目录。照片是本次定位依据；不能从缺失目录判断全系统卡死或仅显示停止。
 
 Windows EFI inspection found no newer gpu-display capture directory than V20. This diagnosis uses the photo; missing captures do not distinguish a system-wide hang from a frozen display.
+
+
+后续版本 / Follow-up: [V22 LRC/GGTT correlation](GPU_LRC_CORRELATION_2026-11-14.md).
