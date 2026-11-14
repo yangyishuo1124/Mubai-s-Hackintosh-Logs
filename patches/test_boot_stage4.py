@@ -1,10 +1,16 @@
 from pathlib import Path
 import sys,tempfile,subprocess
-s=Path(sys.argv[1]).read_text();a=s.index('static void\nxg_boot_initialize(void)\n{');b=s.index('static void\nxg_boot_fire(',a)
+s=Path(sys.argv[1]).read_text();a=s.index('static void\nxg_boot_initialize(void)\n{');b=s.index('static void\nxg_boot_worker(',a)
 fn=s[a:b]
 start=s[s.index('bool\nXeGfxResident::start'):s.index('OSDefineMetaClassAndStructors')]
 assert 'thread_call_enter_delayed' in start and 'xg_boot_initialize();' not in start
 assert '|| gBootInitCall)' in s
+worker=s[b:s.index('static int\nxegfx_stage_sysctl(',b)]
+assert worker.count('xg_boot_initialize();') == 1
+assert worker.index('xg_boot_initialize();') < worker.index('static void\nxg_boot_fire(')
+assert 'kernel_thread_start(xg_boot_worker, nullptr, &worker)' in worker
+assert 'thread_deallocate(worker)' in worker
+
 code=r'''
 #include <assert.h>
 #include <string.h>
@@ -40,3 +46,31 @@ with tempfile.TemporaryDirectory() as d:
  subprocess.run(['c++','-Werror',str(p/'test.cpp'),'-o',str(p/'test')],check=True)
  subprocess.run([str(p/'test')],check=True)
 print('Actual boot helper: absent/zero/unsupported argument, deferred scheduling, GPU discovery timeout/delay, watchdog failure, stage failure and 1-4 success pass; no stage 5.')
+
+worker_test=r"""
+#include <assert.h>
+#include <stdexcept>
+typedef int wait_result_t; typedef void* thread_call_param_t; typedef int kern_return_t; typedef void* thread_t;
+#define THREAD_NULL nullptr
+#define KERN_SUCCESS 0
+static int initialized,created,released,terminated,create_error; static void (*entry)(void*,wait_result_t);
+void xg_boot_initialize(){initialized++;}
+int xg_printf(const char*,...){return 0;}
+void* current_thread(){return (void*)1;}
+void thread_terminate(void*){terminated++; throw std::runtime_error("terminated");}
+void panic(const char*){assert(false);}
+int kernel_thread_start(void (*f)(void*,wait_result_t),void*,void**p){created++; if(create_error)return create_error; entry=f; *p=(void*)2; return 0;}
+void thread_deallocate(void*p){assert(p==(void*)2);released++;}
+"""+worker+r"""
+int main(){
+ create_error=12; xg_boot_fire(nullptr,nullptr); assert(created==1&&!initialized&&!released&&!entry);
+ create_error=0; xg_boot_fire(nullptr,nullptr); assert(created==2&&!initialized&&released==1&&entry);
+ try{entry(nullptr,0);}catch(const std::runtime_error&){}
+ assert(initialized==1&&terminated==1);
+}
+"""
+with tempfile.TemporaryDirectory() as d:
+ p=Path(d);(p/'worker.cpp').write_text(worker_test)
+ subprocess.run(['c++','-Werror',str(p/'worker.cpp'),'-o',str(p/'worker')],check=True)
+ subprocess.run([str(p/'worker')],check=True)
+print('Actual worker/callback: callback only dispatches; failure executes no stages; handle released; worker initializes once then terminates.')

@@ -47,7 +47,7 @@ xg_boot_initialize(void)
  gpu->release();
  xg_printf("XeGfx BOOT: GPU discovered; starting stages\n");
  strlcpy(xg_env, "compat.linuxkpi.xe_probe_display=0 compat.linuxkpi.xe_probe_skip_pc_start=1", sizeof(xg_env));
- xg_printf("XeGfx BOOT V23: automatic stages 1-4; display=0 PC bypass=1 NVRAM trace=0\n");
+ xg_printf("XeGfx BOOT V24: automatic stages 1-4; display=0 PC bypass=1 NVRAM trace=0\n");
  int err = xg_request_watchdog_start();
  if (err) {
   xg_printf("XeGfx BOOT watchdog unavailable: %d; initialization stopped\n", err);
@@ -71,9 +71,25 @@ xg_boot_initialize(void)
 '''
 callback=r'''
 static void
+xg_boot_worker(void *, wait_result_t)
+{
+ xg_printf("XeGfx BOOT: dedicated initializer thread entered\n");
+ xg_boot_initialize();
+ xg_printf("XeGfx BOOT: dedicated initializer thread exiting\n");
+ thread_terminate(current_thread());
+ panic("XeGfx boot worker termination returned");
+}
+
+static void
 xg_boot_fire(thread_call_param_t, thread_call_param_t)
 {
- xg_boot_initialize();
+ thread_t worker = THREAD_NULL;
+ kern_return_t kr = kernel_thread_start(xg_boot_worker, nullptr, &worker);
+ if (kr != KERN_SUCCESS) {
+  xg_printf("XeGfx BOOT: initializer thread creation failed kr=%d; no stages executed\n", kr);
+  return;
+ }
+ thread_deallocate(worker);
 }
 
 '''.replace('\n+', '\n')

@@ -9,11 +9,16 @@ static volatile UInt32 gDedicatedClaim, gDedicatedReady, gDedicatedActive;
 static void
 xg_dedicated_watchdog(void *, wait_result_t)
 {
- uint64_t start = mach_absolute_time(), ns;
+ uint64_t start = mach_absolute_time(), ns, next = 5000000000ull;
  OSCompareAndSwap(0, 1, &gDedicatedReady);
  while (gDedicatedActive) {
   IOSleep(100);
   absolutetime_to_nanoseconds(mach_absolute_time() - start, &ns);
+  if (gDedicatedActive && ns >= next) {
+   xg_printf("XeGfx HEARTBEAT elapsed_ms=%llu running=%d completed=%d progress=%d irqs=%u handled=%u max_spin_us=%llu long_spins=%u\n",
+     ns / 1000000ull, gRunning, gStage, xg_progress, xg_pci_irqs, xg_pci_handled, xg_spin_max_us, xg_spin_long);
+   next = ns + 5000000000ull;
+  }
   if (gDedicatedActive && ns > 60000000000ull)
    panic("XeGfx request watchdog: running_stage %d completed_stage %d progress %d irqs %u handled %u max_spin_us %llu long_spins %u",
      gRunning, gStage, xg_progress, xg_pci_irqs, xg_pci_handled, xg_spin_max_us, xg_spin_long);
@@ -56,6 +61,6 @@ anchor='\tIOLockUnlock(gStageLock);'
 f=f.replace(anchor,anchor+'\n\tgDedicatedActive = 0;\n\tif (gResident) gResident->setProperty("XeGfxRequestWatchdogArmed", false);')
 s=s[:a]+f+s[b:]
 s=s.replace('if (gStage > 0)\n\t\treturn KERN_FAILURE;', 'if (gStage > 0 || gDedicatedClaim)\n\t\treturn KERN_FAILURE;')
-s=s.replace('ptl-stage4-trace-v10','ptl-cleanup-trace-v23')
+s=s.replace('ptl-stage4-trace-v10','ptl-worker-heartbeat-v24')
 p.write_text(s)
 print('Request watchdog covers stage-lock acquisition and stages 1-4, with readiness handshake.')
