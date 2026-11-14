@@ -1,14 +1,15 @@
 --- a/xe_gt.c
 +++ b/xe_gt.c
-@@ -296,6 +296,7 @@
+@@ -296,6 +296,8 @@
  		if (gt->default_lrc[hwe->class])
  			continue;
  
++		extern volatile int xg_lrc_fini_pending; extern void DELAY(int);
 +		xg_printf("xegfx: LRC engine=%s class=%u instance=%u begin\n", hwe->name, (unsigned)hwe->class, (unsigned)hwe->logical_instance);
  		xe_reg_sr_init(&hwe->reg_lrc, hwe->name, xe);
  		xe_wa_process_lrc(hwe);
  		xe_hw_engine_setup_default_lrc_state(hwe);
-@@ -307,8 +308,10 @@
+@@ -307,8 +309,10 @@
  		if (!default_lrc)
  			return -ENOMEM;
  
@@ -19,7 +20,7 @@
  		if (IS_ERR(q)) {
  			err = PTR_ERR(q);
  			xe_gt_err(gt, "hwe %s: xe_exec_queue_create failed (%pe)\n",
-@@ -317,15 +320,19 @@
+@@ -317,15 +321,19 @@
  		}
  
  		/* Prime golden LRC with known good state */
@@ -39,7 +40,7 @@
  		if (IS_ERR(nop_q)) {
  			err = PTR_ERR(nop_q);
  			xe_gt_err(gt, "hwe %s: nop xe_exec_queue_create failed (%pe)\n",
-@@ -334,7 +341,9 @@
+@@ -334,7 +342,9 @@
  		}
  
  		/* Switch to different LRC */
@@ -49,7 +50,7 @@
  		if (err) {
  			xe_gt_err(gt, "hwe %s: nop emit_nop_job failed (%pe) guc_id=%u\n",
  				  hwe->name, ERR_PTR(err), nop_q->guc->id);
-@@ -342,23 +351,31 @@
+@@ -342,23 +352,35 @@
  		}
  
  		/* Reload golden LRC to record the effect of any indirect W/A */
@@ -73,10 +74,14 @@
  put_nop_q:
 +		xg_printf("xegfx: LRC nop_q put begin\n");
  		xe_exec_queue_put(nop_q);
++		for (int w = 0; w < 500 && __sync_fetch_and_add(&xg_lrc_fini_pending, 0) > 0; w++)
++			DELAY(1000);
 +		xg_printf("xegfx: LRC nop_q put returned\n");
  put_exec_queue:
 +		xg_printf("xegfx: LRC q put begin\n");
  		xe_exec_queue_put(q);
++		for (int w = 0; w < 500 && __sync_fetch_and_add(&xg_lrc_fini_pending, 0) > 0; w++)
++			DELAY(1000);
 +		xg_printf("xegfx: LRC q put returned\n");
  		if (err)
  			break;

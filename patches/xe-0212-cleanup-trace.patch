@@ -1,14 +1,15 @@
 --- a/xe_guc_submit.c
 +++ b/xe_guc_submit.c
-@@ -4,6 +4,7 @@
+@@ -4,6 +4,8 @@
   */
  
  #include "xe_guc_submit.h"
 +extern int xg_printf(const char *, ...);
++volatile int xg_lrc_fini_pending = 0;
  
  #include <linux/bitfield.h>
  #include <linux/bitmap.h>
-@@ -1243,20 +1244,38 @@
+@@ -1243,20 +1245,39 @@
  	struct xe_exec_queue *q = ge->q;
  	struct xe_guc *guc = exec_queue_to_guc(q);
  
@@ -44,11 +45,12 @@
 +	xg_printf("xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin\n");
  	xe_pm_runtime_put(guc_to_xe(guc));
 +	xg_printf("xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned\n");
++	__sync_fetch_and_sub(&xg_lrc_fini_pending, 1);
 +	xg_printf("xegfx: CLEAN __guc_exec_queue_fini_async returned\n");
  }
  
  static void guc_exec_queue_fini_async(struct xe_exec_queue *q)
-@@ -1290,6 +1309,7 @@
+@@ -1290,6 +1311,7 @@
  	struct xe_exec_queue *q = msg->private_data;
  	struct xe_guc *guc = exec_queue_to_guc(q);
  
@@ -56,7 +58,7 @@
  	xe_gt_assert(guc_to_gt(guc), !(q->flags & EXEC_QUEUE_FLAG_PERMANENT));
  	trace_xe_exec_queue_cleanup_entity(q);
  
-@@ -1297,6 +1317,7 @@
+@@ -1297,6 +1319,7 @@
  		disable_scheduling_deregister(guc, q);
  	else
  		__guc_exec_queue_fini(guc, q);
@@ -64,11 +66,12 @@
  }
  
  static bool guc_exec_queue_allowed_to_change_state(struct xe_exec_queue *q)
-@@ -1532,10 +1553,12 @@
+@@ -1532,10 +1555,13 @@
  {
  	struct xe_sched_msg *msg = q->guc->static_msgs + STATIC_MSG_CLEANUP;
  
 +	xg_printf("xegfx: CLEAN guc_exec_queue_fini q=%p begin\n", q);
++	__sync_fetch_and_add(&xg_lrc_fini_pending, 1);
  	if (!(q->flags & EXEC_QUEUE_FLAG_PERMANENT) && !exec_queue_wedged(q))
  		guc_exec_queue_add_msg(q, msg, CLEANUP);
  	else
