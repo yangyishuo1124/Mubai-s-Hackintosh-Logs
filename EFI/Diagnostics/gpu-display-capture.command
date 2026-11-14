@@ -6,7 +6,7 @@ out="$here/reports/gpu-display-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$out" || exit 1
 sw_vers > "$out/system.txt" 2>&1
 mkdir -p "$out/crashes" 2>/dev/null || true
-for f in /Library/Logs/DiagnosticReports/(WindowServer|ControlCenter|System*)*.ips(Nom[1,6]) /Users/*/Library/Logs/DiagnosticReports/(WindowServer|ControlCenter|System*)*.ips(Nom[1,6]); do
+for f in /Library/Logs/DiagnosticReports/(WindowServer|ControlCenter|System*|panic*)*.(ips|panic)(Nom[1,8]) /Users/*/Library/Logs/DiagnosticReports/(WindowServer|ControlCenter|System*)*.ips(Nom[1,6]); do
     [[ -f "$f" ]] && cp -f "$f" "$out/crashes/" 2>/dev/null || true
 done
 
