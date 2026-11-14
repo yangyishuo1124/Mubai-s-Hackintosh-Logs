@@ -1,5 +1,5 @@
 name: Experimental Panther Lake Xe build
-# V20 enables opt-in initialization at IOService start, through stage 4 only.
+# V21 defers boot initialization until the GPU is enumerated.
 on:
   push:
     paths:
@@ -79,7 +79,7 @@ jobs:
           test -r /System/Library/KernelCollections/BootKernelExtensions.kc
           cd build/WTLIntelGfx
           python3 "$GITHUB_WORKSPACE/patches/test_ptl_gop_snapshot.py" shim/src/xnu/xg_kext.cpp
-          sed -i.bak "s/ptl-stage4-guc-v4/ptl-boot-stage4-v20/g" "$GITHUB_WORKSPACE/patches/test_ptl_stage3_policy.py"
+          sed -i.bak "s/ptl-stage4-guc-v4/ptl-deferred-boot-v21/g" "$GITHUB_WORKSPACE/patches/test_ptl_stage3_policy.py"
           python3 "$GITHUB_WORKSPACE/patches/test_ptl_stage3_policy.py" shim/src/xnu/xg_kext.cpp
           XEGFX_KMD=xe bash build/build_xegfx.sh 2>&1 | tee "$GITHUB_WORKSPACE/build/xe-build.log"
           python3 - <<'PY'
