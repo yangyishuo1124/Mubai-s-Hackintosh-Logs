@@ -1,0 +1,111 @@
+--- a/xe_ggtt.c
++++ b/xe_ggtt.c
+@@ -30,6 +30,9 @@
+ #include "xe_sriov.h"
+ #include "xe_wa.h"
+ #include "xe_wopcm.h"
++
++extern int xg_printf(const char *, ...);
++extern void xg_init_checkpoint(int, const char *);
+ 
+ /**
+  * DOC: Global Graphics Translation Table (GGTT)
+@@ -148,13 +151,20 @@
+ 
+ 	xe_tile_assert(ggtt->tile, start < end);
+ 
++	xg_init_checkpoint(42120, "GGTT scratch PTE encode begin");
+ 	if (ggtt->scratch)
+ 		scratch_pte = ggtt->pt_ops->pte_encode_bo(ggtt->scratch, 0,
+ 							  pat_index);
+ 	else
+ 		scratch_pte = 0;
+ 
++	xg_init_checkpoint(42121, "GGTT scratch PTE encode returned");
++	xg_printf("xegfx: GGTT fill start=%llx end=%llx pte=%llx\n",
++		  (unsigned long long)start, (unsigned long long)end,
++		  (unsigned long long)scratch_pte);
+ 	while (start < end) {
++		if (!(start & ((16ULL << 20) - 1)))
++			xg_printf("xegfx: GGTT fill offset=%llx\n", (unsigned long long)start);
+ 		ggtt->pt_ops->ggtt_set_pte(ggtt, start, scratch_pte);
+ 		start += XE_PAGE_SIZE;
+ 	}
+@@ -275,12 +285,21 @@
+ 	u64 start, end;
+ 
+ 	/* Display may have allocated inside ggtt, so be careful with clearing here */
++	xg_init_checkpoint(42110, "GGTT clear lock begin");
+ 	mutex_lock(&ggtt->lock);
+-	drm_mm_for_each_hole(hole, &ggtt->mm, start, end)
++	xg_init_checkpoint(42111, "GGTT clear lock acquired");
++	drm_mm_for_each_hole(hole, &ggtt->mm, start, end) {
++		xg_printf("xegfx: GGTT hole start=%llx end=%llx\n",
++			  (unsigned long long)start, (unsigned long long)end);
++		xg_init_checkpoint(42112, "GGTT hole clear begin");
+ 		xe_ggtt_clear(ggtt, start, end - start);
+-
++		xg_init_checkpoint(42113, "GGTT hole clear returned");
++	}
++	xg_init_checkpoint(42114, "GGTT initial invalidate begin");
+ 	xe_ggtt_invalidate(ggtt);
++	xg_init_checkpoint(42115, "GGTT initial invalidate returned");
+ 	mutex_unlock(&ggtt->lock);
++	xg_init_checkpoint(42116, "GGTT clear lock released");
+ }
+ 
+ static void ggtt_node_remove(struct xe_ggtt_node *node)
+@@ -371,17 +390,25 @@
+ 	else
+ 		flags |= XE_BO_FLAG_VRAM_IF_DGFX(ggtt->tile);
+ 
++	xg_init_checkpoint(42100, "GGTT scratch allocation begin");
+ 	ggtt->scratch = xe_managed_bo_create_pin_map(xe, ggtt->tile, XE_PAGE_SIZE, flags);
++	xg_init_checkpoint(42101, "GGTT scratch allocation returned");
+ 	if (IS_ERR(ggtt->scratch)) {
+ 		err = PTR_ERR(ggtt->scratch);
+ 		goto err;
+ 	}
+ 
++	xg_init_checkpoint(42102, "GGTT scratch memset begin");
+ 	xe_map_memset(xe, &ggtt->scratch->vmap, 0, 0, ggtt->scratch->size);
++	xg_init_checkpoint(42103, "GGTT scratch memset returned");
+ 
+ 	xe_ggtt_initial_clear(ggtt);
+ 
+-	return devm_add_action_or_reset(xe->drm.dev, ggtt_fini, ggtt);
++	xg_init_checkpoint(42104, "GGTT cleanup action registration begin");
++	err = devm_add_action_or_reset(xe->drm.dev, ggtt_fini, ggtt);
++	xg_printf("xegfx: GGTT cleanup action ret=%d\n", err);
++	xg_init_checkpoint(42105, "GGTT cleanup action registration returned");
++	return err;
+ err:
+ 	ggtt->scratch = NULL;
+ 	return err;
+@@ -394,7 +421,9 @@
+ 	if (!gt)
+ 		return;
+ 
++	xg_printf("xegfx: GGTT GT %p TLB invalidate begin\n", gt);
+ 	err = xe_gt_tlb_invalidation_ggtt(gt);
++	xg_printf("xegfx: GGTT GT %p TLB invalidate ret=%d\n", gt, err);
+ 	if (err)
+ 		drm_warn(&gt_to_xe(gt)->drm, "xe_gt_tlb_invalidation_ggtt error=%d", err);
+ }
+@@ -409,11 +438,16 @@
+ 	 * vs. correct GGTT page. Not particularly a hot code path so blindly
+ 	 * do a mmio read here which results in GuC reading correct GGTT page.
+ 	 */
++	xg_init_checkpoint(42130, "GGTT barrier MMIO read begin");
+ 	xe_mmio_read32(xe_root_tile_mmio(xe), VF_CAP_REG);
++	xg_init_checkpoint(42131, "GGTT barrier MMIO read returned");
+ 
+ 	/* Each GT in a tile has its own TLB to cache GGTT lookups */
++	xg_init_checkpoint(42132, "GGTT primary GT invalidate begin");
+ 	ggtt_invalidate_gt_tlb(ggtt->tile->primary_gt);
++	xg_init_checkpoint(42133, "GGTT primary GT invalidate returned");
+ 	ggtt_invalidate_gt_tlb(ggtt->tile->media_gt);
++	xg_init_checkpoint(42134, "GGTT media GT invalidate returned");
+ }
+ 
+ static void xe_ggtt_dump_node(struct xe_ggtt *ggtt,
