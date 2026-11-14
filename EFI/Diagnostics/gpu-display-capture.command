@@ -107,7 +107,7 @@ sysctl -w debug.nvaccelfb=4 >/dev/null 2>&1 || true
 sleep 1
 if [[ -f "$here/ws-restart.request" ]]; then
     mv "$here/ws-restart.request" "$here/reports/ws-restart-$(date +%Y%m%d-%H%M%S)-$$.attempted" 2>/dev/null || rm -f "$here/ws-restart.request"
-    /usr/bin/log stream --style compact --predicate 'process == "WindowServer" OR process == "loginwindow" OR sender == "XeGfxAccel" OR sender == "XeGfxAGDC" OR eventMessage CONTAINS "NVMTL"' > /tmp/ws-live.txt 2>&1 &
+    /usr/bin/log stream --style compact --predicate 'process == "WindowServer" OR process == "loginwindow" OR sender == "XeGfx" OR sender == "XeGfxAccel" OR sender == "XeGfxAGDC" OR eventMessage CONTAINS "NVMTL"' > /tmp/ws-live.txt 2>&1 &
     stream_pid=$!
     sleep 1
     killall -9 WindowServer 2>/dev/null || true
