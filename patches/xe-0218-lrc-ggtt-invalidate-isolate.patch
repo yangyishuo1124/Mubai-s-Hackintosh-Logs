@@ -1,0 +1,22 @@
+diff --git a/xe_ggtt.c b/xe_ggtt.c
+index 1111111..2222222 100644
+--- a/xe_ggtt.c
++++ b/xe_ggtt.c
+@@ -700,6 +700,15 @@ void xe_ggtt_remove_bo(struct xe_ggtt *ggtt, struct xe_bo *bo)
+ 	/* This BO is not currently in the GGTT */
+ 	xe_tile_assert(ggtt->tile, bo->ggtt_node[tile_id]->base.size == bo->size);
+ 
+-	xe_ggtt_node_remove(bo->ggtt_node[tile_id],
+-			    bo->flags & XE_BO_FLAG_GGTT_INVALIDATE);
++	{
++		extern int getenv_int(const char *, int *);
++		int skip_inv = 0;
++		bool inv = bo->flags & XE_BO_FLAG_GGTT_INVALIDATE;
++		if (getenv_int("compat.linuxkpi.xe_probe_skip_lrc_ggtt_invalidate", &skip_inv) &&
++		    skip_inv == 1) {
++			xg_printf("xegfx: CLEAN xe_ggtt_remove_bo invalidate SKIPPED bo=%p\n", bo);
++			inv = false;
++		}
++		xe_ggtt_node_remove(bo->ggtt_node[tile_id], inv);
++	}
+ }
