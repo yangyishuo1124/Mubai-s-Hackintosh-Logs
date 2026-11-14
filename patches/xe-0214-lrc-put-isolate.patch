@@ -1,0 +1,26 @@
+diff --git a/xe_exec_queue.c b/xe_exec_queue.c
+index 7e1abbb..6a2362a 100644
+--- a/xe_exec_queue.c
++++ b/xe_exec_queue.c
+@@ -26,6 +26,9 @@
+ #include "xe_trace.h"
+ #include "xe_vm.h"
+ 
++extern int getenv_int(const char *, int *);
++extern int xg_printf(const char *, ...);
++
+ enum xe_exec_queue_sched_prop {
+ 	XE_EXEC_QUEUE_JOB_TIMEOUT = 0,
+ 	XE_EXEC_QUEUE_TIMESLICE = 1,
+@@ -272,6 +275,11 @@ void xe_exec_queue_fini(struct xe_exec_queue *q)
+ 	if (q->xef && atomic_dec_and_test(&q->xef->exec_queue.pending_removal))
+ 		wake_up_var(&q->xef->exec_queue.pending_removal);
+ 
++	int skip_lrc_put = 0;
++	if (getenv_int("compat.linuxkpi.xe_probe_skip_lrc_put", &skip_lrc_put) && skip_lrc_put == 1) {
++		xg_printf("xegfx: CLEAN xe_lrc_put SKIPPED q=%p\n", q);
++		return;
++	}
+ 	for (i = 0; i < q->width; ++i)
+ 		xe_lrc_put(q->lrc[i]);
+ 
