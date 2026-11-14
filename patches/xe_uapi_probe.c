@@ -142,12 +142,12 @@ int main(void)
 	       (unsigned long long)cfg->info[DRM_XE_QUERY_CONFIG_MAX_EXEC_QUEUE_PRIORITY]);
 	free(cfg);
 
-	struct drm_xe_query_gt_list *gts = xe_query_alloc(fd, DRM_XE_DEVICE_QUERY_GTS, NULL);
+	struct drm_xe_query_gt_list *gts = xe_query_alloc(fd, DRM_XE_DEVICE_QUERY_GT_LIST, NULL);
 	if (!gts) {
 		close(fd);
 		return 1;
 	}
-	printf("DRM_XE_DEVICE_QUERY_GTS: num_gt=%u\n", gts->num_gt);
+	printf("DRM_XE_DEVICE_QUERY_GT_LIST: num_gt=%u\n", gts->num_gt);
 	for (uint32_t i = 0; i < gts->num_gt; i++) {
 		printf("  GT[%u]: type=%u tile_id=%u gt_id=%u ref_clock=%u near_mem=0x%llx\n",
 		       i, gts->gt_list[i].type, gts->gt_list[i].tile_id, gts->gt_list[i].gt_id,
