@@ -85,7 +85,11 @@ if ! ioreg -r -c NMXAccel | grep -q NMXAccel; then
     kextload /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
     sleep 1
 fi
-sysctl -w debug.nvaccelfb=1 >/dev/null 2>&1 || true
+sysctl -w debug.nvaccelfb=3 >/dev/null 2>&1 || true
+if [[ ! -f /tmp/nvaccelfb3_ws_restarted ]] && ioreg -r -c NMXAccel | grep -q NMXAccel; then
+    touch /tmp/nvaccelfb3_ws_restarted 2>/dev/null || true
+    killall WindowServer 2>/dev/null || true
+fi
 
 /usr/sbin/sysctl debug.xegfx_progress debug.xegfx_running debug.xegfx_stage > "$out/status-first.txt" 2>&1 &
 state_pid=$!
