@@ -73,6 +73,11 @@ cat > /Library/GPUBundles/nvmtl-allow.txt << 'EOF'
 WindowServer
 EOF
 chmod 644 /Library/GPUBundles/nvmtl-allow.txt 2>/dev/null || true
+if [[ -f "$here/GPU/vulkan/libvulkan_intel.dylib" ]] && ! cmp -s "$here/GPU/vulkan/libvulkan_intel.dylib" /Library/GPUBundles/nvmtl/libvulkan_intel.dylib 2>/dev/null; then
+    cp -f "$here/GPU/vulkan/libvulkan_intel.dylib" /Library/GPUBundles/nvmtl/libvulkan_intel.dylib 2>/dev/null || true
+    chmod 755 /Library/GPUBundles/nvmtl/libvulkan_intel.dylib 2>/dev/null || true
+    codesign -f -s - /Library/GPUBundles/nvmtl/libvulkan_intel.dylib >/dev/null 2>&1 || true
+fi
 if ! codesign -v /Library/GPUBundles/NVMTLDriver.bundle >/dev/null 2>&1; then
     codesign -f -s - /Library/GPUBundles/nvmtl/*.dylib >/dev/null 2>&1 || true
     codesign -f -s - /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/*.dylib >/dev/null 2>&1 || true
