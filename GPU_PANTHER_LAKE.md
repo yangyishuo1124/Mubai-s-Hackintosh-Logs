@@ -4,6 +4,12 @@
 
 ## 当前结论 / Current conclusion
 
+### v17：GuC 返回值定位 / GuC return-path diagnostics
+
+前台日志已经从初始进度推进到 `45011`，但该检查点仅表示 `guc_wait_ucode` 返回。V17 增加返回值、RUNNING/LOAD_FAIL 分支及内部检查点名称输出；保留 v16 的初始化控制条件。这是针对最新证据的诊断增强，不是已经验证的卡死修复。[构建、部署与解释 / Build, deployment and interpretation](GPU_GUC_LIVE_2026-11-14.md)。
+
+The live log reaches 45011, which only means the GuC wait function returned. V17 logs its result, status branch and checkpoint labels while preserving V16's control conditions. This is a targeted diagnostic change, not a hardware-confirmed freeze fix.
+
 ### v16：DPCPU 原始锁保护 / Raw DPCPU lock protection
 
 **实机仍卡死。** 已读取 2026-11-14 22:05:42 的 EFI 报告：v16 门禁及资源校验通过，stage 4 请求未返回，进度只保存了初始 0。没有新的内部定位证据；不能确认 PC 绕过点已执行。此次源码修正未解决故障，不安排同版重复测试。
