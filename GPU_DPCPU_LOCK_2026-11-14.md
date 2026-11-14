@@ -33,8 +33,6 @@ The boot and diagnostic drivers on the internal SYSTEM EFI have been backed up a
 
 Hardware reboot testing is pending. Run the existing `gpu-probe.command` after booting macOS; it still requests stage 4 once, with NVRAM tracing off and the PC-start bypass retained. Source-level tests do not establish hardware success or prove the lock was the freeze cause.
 
-## 来源 / Sources
-
 ## 实机结果：仍卡死 / Hardware outcome: still freezes
 
 用户反馈 v16 仍卡死。已从内部 EFI 读取并在本地保留 `gpu-probe-20261114-220542.txt` 及对应 progress 文件：资源校验通过，包装脚本通过 v16 策略门禁，环境明确记录 display=0、skip_pc_start=1、trace=0、watchdog=60。stage 请求只留下 `debug.xegfx_stage: 0`，未完整返回；progress 文件仅有 `2026-11-14 22:05:42 progress=0`。EFI 开机二进制回读 SHA256 仍为上述 v16 值。临时 EFI 盘符已移除。
@@ -44,6 +42,16 @@ The user reports another freeze. The EFI probe dated 20261114-220542 passes reso
 DPCPU 修改未消除本机故障，不能报告为已修复。初始进度不是故障定位，不能否定历史 stage 1–3 通过及 stage 4 内部记录；也不能证明 48000 PC 绕过点已执行，或排除全部 PC 相关路径。本轮没有新内部堆栈或寄存器证据，保持现有驱动，不要求重复运行同一实验。
 
 The DPCPU change did not resolve the machine freeze. An initial progress sample is not a fault location and does not invalidate earlier stage-1–3 success or internal stage-4 observations. It does not prove checkpoint 48000 was reached or exclude all PC paths. No new internal stack/register evidence was captured. No replacement driver or repeat of the same experiment is requested this round.
+
+## 前台日志 / Foreground diagnostics
+
+原包装脚本在阻塞的 stage 4 请求返回后才读取驱动日志。现改成先显示现有日志，再后台发起一次 stage 4，前台每 100ms 读取新增日志和变化的 progress，直接输出到终端及原有报告；日志环形缓冲发生轮转时输出当前快照。取消原每秒 `sync` 的后台监视器，保持 NVRAM 追踪关闭。驱动仍为 v16，未新增驱动修复，也不把日志读取视为 GPU 成功。
+
+Previously the wrapper read the driver log only after the blocking stage request returned. It now shows the existing log, submits stage 4 once in the background and reads new log content/progress every 100ms in the foreground. Terminal output continues to the existing report. A rotated log triggers a fresh snapshot. The old background monitor's per-second sync is removed; NVRAM tracing remains off and the driver stays at v16.
+
+这是用户态实时读取，不是内核每条指令同步刷屏。瞬间冻结、日志锁阻塞或显示停止刷新都可能使最后几条未显示；关闭 NVRAM 追踪时的内部 checkpoint 仍主要由 progress 数值表示。照片中的最后一行只能缩小范围，不能单独证明下一条指令就是根因。
+
+This is userspace live reading, not synchronous kernel-to-terminal output for every instruction. A sudden freeze, blocked log lock or stopped display may prevent the final messages from appearing. With NVRAM tracing off, internal checkpoints are primarily represented by progress numbers. The last visible line narrows the search but is not proof of the exact faulting instruction.
 
 ## 源码链接 / Source links
 
