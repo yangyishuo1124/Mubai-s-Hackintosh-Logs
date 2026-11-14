@@ -165,9 +165,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Homebrew LLVM, SPIRV-LLVM-Translator, SPIRV-Tools, Meson, Ninja
+      - name: Install Homebrew LLVM, SPIRV-LLVM-Translator, SPIRV-Tools, Glslang, Meson, Ninja
         run: |
-          brew install meson ninja pkg-config llvm spirv-llvm-translator spirv-tools
+          brew install meson ninja pkg-config llvm spirv-llvm-translator spirv-tools glslang
           pip3 install --break-system-packages mako pyyaml packaging
 
       - name: Clone WTLIntelGfx, libdrm, and Mesa
