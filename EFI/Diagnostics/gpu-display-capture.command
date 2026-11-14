@@ -104,6 +104,7 @@ if ! ioreg -r -c NMXAccel | grep -q NMXAccel; then
 fi
 sysctl -w debug.xegfx_agdc=1 >/dev/null 2>&1 || true
 sleep 1
+sysctl -w debug.nvaccel_iop=1 >/dev/null 2>&1 || true
 sysctl -w debug.nvaccelfb=3 >/dev/null 2>&1 || true
 sleep 1
 if [[ -f "$here/ws-restart.request" ]]; then
