@@ -8,7 +8,7 @@ code=r'''
 static int arg,found,gStage,gResult[8],xg_progress,gDedicatedActive,wd_error,calls,fail,locked;
 static void *gStageLock;static char xg_env[512];
 bool PE_parse_boot_argn(const char*,void*p,int){*(int*)p=arg;return found;}
-void strlcpy(char*d,const char*s,unsigned long n){assert(strlen(s)<n);strcpy(d,s);}
+size_t strlcpy(char*d,const char*s,size_t n){assert(strlen(s)<n);strcpy(d,s);return strlen(s);}
 int xg_printf(const char*,...){return 0;}
 int xg_request_watchdog_start(){gDedicatedActive=!wd_error;return wd_error;}
 void IOLockLock(void*){assert(!locked);locked=1;}
