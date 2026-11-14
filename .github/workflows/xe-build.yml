@@ -98,6 +98,9 @@ jobs:
           #include <stdint.h>
           #include <sys/ioccom.h>
           #include <sys/types.h>
+          #ifndef __user
+          #define __user
+          #endif
           typedef int8_t   __s8;
           typedef uint8_t  __u8;
           typedef int16_t  __s16;
