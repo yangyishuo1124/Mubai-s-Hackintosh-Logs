@@ -189,8 +189,17 @@ cat > /Library/GPUBundles/nvmtl/intel_icd.json << 'EOF'
 }
 EOF
 
-printf '*\n' > /Library/GPUBundles/nvmtl-allow.txt
+cat > /Library/GPUBundles/nvmtl-allow.txt << 'EOF'
+-ControlCenter
+-System Settings
+-System Information
+-com.apple.dock.extra
+*
+EOF
 chmod 644 /Library/GPUBundles/nvmtl-allow.txt /Library/GPUBundles/nvmtl/intel_icd.json
+codesign -f -s - /Library/GPUBundles/nvmtl/*.dylib >/dev/null 2>&1 || true
+codesign -f -s - /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/*.dylib >/dev/null 2>&1 || true
+codesign -f -s - /Library/GPUBundles/NVMTLDriver.bundle >/dev/null 2>&1 || true
 
 printf '%s\n' '--- 检查与加载 NMXAccel ---'
 if [[ -z "$(ioreg -r -c NMXAccel 2>/dev/null)" ]]; then

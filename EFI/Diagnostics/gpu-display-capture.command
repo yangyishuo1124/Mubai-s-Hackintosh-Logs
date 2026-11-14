@@ -65,8 +65,20 @@ EOF
     }
 }
 EOF
-    printf '*\n' > /Library/GPUBundles/nvmtl-allow.txt 2>/dev/null || true
-    chmod 644 /Library/GPUBundles/nvmtl-allow.txt /Library/GPUBundles/nvmtl/intel_icd.json 2>/dev/null || true
+    chmod 644 /Library/GPUBundles/nvmtl/intel_icd.json 2>/dev/null || true
+fi
+cat > /Library/GPUBundles/nvmtl-allow.txt << 'EOF'
+-ControlCenter
+-System Settings
+-System Information
+-com.apple.dock.extra
+*
+EOF
+chmod 644 /Library/GPUBundles/nvmtl-allow.txt 2>/dev/null || true
+if ! codesign -v /Library/GPUBundles/NVMTLDriver.bundle >/dev/null 2>&1; then
+    codesign -f -s - /Library/GPUBundles/nvmtl/*.dylib >/dev/null 2>&1 || true
+    codesign -f -s - /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/*.dylib >/dev/null 2>&1 || true
+    codesign -f -s - /Library/GPUBundles/NVMTLDriver.bundle >/dev/null 2>&1 || true
 fi
 
 # Automatic background Stage 7 acceleration claim & Framebuffer binding at boot
@@ -129,6 +141,8 @@ else
     /usr/sbin/sysctl debug.xegfx_progress debug.xegfx_running debug.xegfx_stage > "$out/status-last.txt" 2>&1 &
 fi
 /bin/ps -axo pid,ppid,state,etime,comm > "$out/processes-last.txt" 2>&1
+/usr/bin/log show --last 5m --predicate 'process == "WindowServer" AND eventMessage CONTAINS "NVMTL"' > "$out/ws-nvmtl.txt" 2>&1 || true
+/usr/sbin/sysctl debug.nmxaccel_headless debug.nvaccelfb debug.nvaccel_heads_published debug.nvaccel_heads_registered debug.nvaccel_heads_piped debug.nvaccel_iop_ok_h4 debug.nvaccel_iop_fail debug.nvaccel_pipe_init debug.nvaccel_pipe_validate debug.nvaccel_pipe_perform > "$out/accel-sysctls.txt" 2>&1 || true
 if [[ -f "$here/gpu-ui-capture.command" ]]; then
     /bin/zsh "$here/gpu-ui-capture.command" "$out/ui-last" &
 fi
