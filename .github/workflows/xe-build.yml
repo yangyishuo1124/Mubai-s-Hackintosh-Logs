@@ -101,6 +101,9 @@ jobs:
           python3 harness/test_xe_stages.py 2>&1 | tee "$GITHUB_WORKSPACE/build/xe-tests.log"
           lipo out/XeGfx.kext/Contents/MacOS/XeGfx -verify_arch x86_64
           codesign --verify --verbose out/XeGfx.kext
+          xcrun clang -arch x86_64 -mmacosx-version-min=15.0 -O2 -Wall -I"$HOME/src/xe-src/drm-kmod/include/uapi" -I"$HOME/src/xe-src/drm-kmod/include/uapi/drm" "$GITHUB_WORKSPACE/patches/xe_uapi_probe.c" -o out/xe-uapi-probe
+          codesign -s - --force out/xe-uapi-probe
+          lipo out/xe-uapi-probe -verify_arch x86_64
           python3 "$GITHUB_WORKSPACE/patches/test_allocator_checkpoints.py" out/xe-src/xe_ttm_vram_mgr.c
           python3 "$GITHUB_WORKSPACE/patches/test_guc_error_propagation.py" out/xe-src/xe_guc.c out/xe-src/xe_guc_pc.c
           python3 "$GITHUB_WORKSPACE/patches/test_ggtt_init_flow.py" out/xe-src/xe_ggtt.c
@@ -129,4 +132,5 @@ jobs:
             build/WTLIntelGfx/out/*.log
             build/WTLIntelGfx/out/link/ld.txt
             build/WTLIntelGfx/out/XeGfx.kext
+            build/WTLIntelGfx/out/xe-uapi-probe
           retention-days: 14

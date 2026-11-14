@@ -47,7 +47,7 @@ xg_boot_initialize(void)
  gpu->release();
  xg_printf("XeGfx BOOT: GPU discovered; starting stages\n");
  strlcpy(xg_env, "compat.linuxkpi.xe_probe_display=0 compat.linuxkpi.xe_probe_skip_pc_start=1 compat.linuxkpi.xe_probe_skip_lrc_ggtt_remove=1", sizeof(xg_env));
- xg_printf("XeGfx BOOT V33: automatic stages 1-4 (after 3s delay); display=0 PC bypass=1 LRC ggtt_remove bypass=1 sync_drain=1 Stage 6 store unlocked\n");
+ xg_printf("XeGfx BOOT V34: automatic stages 1-4 (after 3s delay); display=0 PC bypass=1 LRC ggtt_remove bypass=1 sync_drain=1 Stage 7 unlocked\n");
  int err = xg_request_watchdog_start();
  if (err) {
   xg_printf("XeGfx BOOT watchdog unavailable: %d; initialization stopped\n", err);
@@ -126,6 +126,25 @@ new_store = '''#ifdef XEGFX_KMD_XE
 #else'''
 assert s.count(old_store) == 1
 s = s.replace(old_store, new_store)
+
+old_accel = '''#ifdef XEGFX_KMD_XE
+ IOLog("XeGfx: stage 7 accelerator claim not implemented for xe (M1)\\n");
+ return -ENOTSUP;
+#else'''
+new_accel = '''#ifdef XEGFX_KMD_XE
+ IOPCIDevice *gpu = xg_find_igpu();
+ if (gpu == nullptr)
+  return -19;
+ gpu->setProperty("nmxgpu-claimed", kOSBooleanTrue);
+ gpu->registerService();
+ gpu->release();
+ if (gResident)
+  gResident->setProperty("XeGfxAccelClaimed", kOSBooleanTrue);
+ IOLog("XeGfx: stage 7 accelerator claim published (nmxgpu-claimed=true)\\n");
+ return 1;
+#else'''
+assert s.count(old_accel) == 1
+s = s.replace(old_accel, new_accel)
 p.write_text(s)
 
 root = Path(sys.argv[1])
