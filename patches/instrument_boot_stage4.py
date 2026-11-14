@@ -3,7 +3,7 @@ import sys
 p=Path(sys.argv[1])/'shim/src/xnu/xg_kext.cpp';s=p.read_text()
 assert '#include <pexpert/pexpert.h>' not in s
 s=s.replace('#include <mach/kmod.h>','#include <mach/kmod.h>\n#include <pexpert/pexpert.h>')
-s=s.replace('bool\nXeGfxResident::start', 'static void xg_boot_initialize(void);\n\nbool\nXeGfxResident::start',1)
+s=s.replace('bool\nXeGfxResident::start', 'extern "C" int xg_printf(const char *, ...);\nstatic void xg_boot_initialize(void);\n\nbool\nXeGfxResident::start',1)
 anchor='\tgResident = this;'
 assert s.count(anchor)==1
 s=s.replace(anchor,anchor+'\n\txg_boot_initialize();',1)

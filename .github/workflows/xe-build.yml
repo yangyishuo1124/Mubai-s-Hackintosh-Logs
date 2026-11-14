@@ -1,5 +1,5 @@
 name: Experimental Panther Lake Xe build
-# V16 protects the raw DPCPU registry lock against owner preemption.
+# V20 enables opt-in initialization at IOService start, through stage 4 only.
 on:
   push:
     paths:
