@@ -1,0 +1,27 @@
+diff --git a/xe_ggtt.c b/xe_ggtt.c
+index 1111111..2222222 100644
+--- a/xe_ggtt.c
++++ b/xe_ggtt.c
+@@ -292,8 +292,18 @@ static void ggtt_node_remove(struct xe_ggtt_node *node)
+ 
+ 	bound = drm_dev_enter(&xe->drm, &idx);
+ 
+ 	mutex_lock(&ggtt->lock);
+-	if (bound)
+-		xe_ggtt_clear(ggtt, node->base.start, node->base.size);
++	if (bound) {
++		extern int getenv_int(const char *, int *);
++		int skip_clear = 0;
++		if (getenv_int("compat.linuxkpi.xe_probe_skip_lrc_ggtt_clear", &skip_clear) &&
++		    skip_clear == 1) {
++			xg_printf("xegfx: CLEAN ggtt_node_remove clear SKIPPED start=%llx size=%llx inv=%d\n",
++				  (unsigned long long)node->base.start,
++				  (unsigned long long)node->base.size,
++				  node->invalidate_on_remove);
++		} else {
++			xe_ggtt_clear(ggtt, node->base.start, node->base.size);
++		}
++	}
+ 	drm_mm_remove_node(&node->base);
+ 	node->base.size = 0;
+ 	mutex_unlock(&ggtt->lock);
