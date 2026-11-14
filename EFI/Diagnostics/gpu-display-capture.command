@@ -103,7 +103,7 @@ fi
 sysctl -w debug.xegfx_agdc=1 >/dev/null 2>&1 || true
 sleep 1
 sysctl -w debug.nvaccel_iop=1 >/dev/null 2>&1 || true
-sysctl -w debug.nvaccelfb=3 >/dev/null 2>&1 || true
+sysctl -w debug.nvaccelfb=4 >/dev/null 2>&1 || true
 sleep 1
 if [[ -f "$here/ws-restart.request" ]]; then
     mv "$here/ws-restart.request" "$here/reports/ws-restart-$(date +%Y%m%d-%H%M%S)-$$.attempted" 2>/dev/null || rm -f "$here/ws-restart.request"
