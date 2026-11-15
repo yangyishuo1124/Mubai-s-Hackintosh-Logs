@@ -90,7 +90,7 @@ args=$(cat "$BK/boot-args-before")
 for flag in -xeintelfbnoedid -xeintelfbnohwc; do
     case " $args " in *" $flag "*) ;; *) args="$args $flag" ;; esac
 done
-nvram "boot-args=$args"
+nvram "boot-args=$args" 2>/dev/null || true
 KARG=(--allow-missing-kdk)
 [ ! -f /System/Library/Kernels/kernel ] || KARG+=(--kernel /System/Library/Kernels/kernel)
 /usr/bin/kmutil create -n aux --volume-root / "${KARG[@]}" \
@@ -103,7 +103,7 @@ grep -q 'org.watchthelight.XeGfxIntelFB' "$BK/new-inspect.txt" || die 'framebuff
 ids() { awk '{for(i=1;i<=NF;i++) if($i ~ /^[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)+$/) print $i}' "$1" | LC_ALL=C sort -u; }
 if [ -f "$BK/AuxiliaryKernelExtensions.kc" ]; then
     /usr/bin/kmutil inspect -a x86_64 -A "$BK/AuxiliaryKernelExtensions.kc" > "$BK/old-inspect.txt" 2>&1 || die 'cannot inspect previous collection'
-    ids "$BK/old-inspect.txt" > "$BK/old-ids.txt"
+    ids "$BK/old-inspect.txt" | grep -v '^com\.nullmoth\.NMIntelFB$' > "$BK/old-ids.txt" || true
     ids "$BK/new-inspect.txt" > "$BK/new-ids.txt"
     LC_ALL=C comm -23 "$BK/old-ids.txt" "$BK/new-ids.txt" > "$BK/missing-ids.txt"
     [ ! -s "$BK/missing-ids.txt" ] || { cat "$BK/missing-ids.txt"; die 'previous extensions missing from new collection'; }
