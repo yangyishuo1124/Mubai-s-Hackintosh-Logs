@@ -1652,7 +1652,7 @@
 				<key>revcpu</key>
 				<integer>1</integer>
 				<key>revcpuname</key>
-				<string>Intel Core Ultra 7 356H</string>
+				<string>Core Ultra 7 356H</string>
 				<key>revpatch</key>
 				<string>cpuname</string>
 				<key>rtc-blacklist</key>
@@ -1764,7 +1764,7 @@
 			<key>MaxBIOSVersion</key>
 			<false/>
 			<key>ProcessorType</key>
-			<integer>0</integer>
+			<integer>3841</integer>
 			<key>ROM</key>
 			<data>
 			ESIzRFVm
