@@ -1,0 +1,35 @@
+name: Build XeGfxIntelFB (VBL + eDP Backlight)
+on:
+  push:
+    paths:
+      - '.github/workflows/xegfxintelfb-build.yml'
+      - 'patches/patch_xegfxintelfb.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: macos-15-intel
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch WTLIntelGfx and build XeGfxIntelFB.kext
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p build/WTLIntelGfx
+          curl -fL --retry 3 --retry-delay 10 "https://codeload.github.com/InSnh-Gd/WTLIntelGfx/tar.gz/5ffc79fb9e53eb820899edd644b83681bea3aa39" -o wtl.tar.gz
+          tar -xzf wtl.tar.gz --strip-components=1 -C build/WTLIntelGfx
+          python3 patches/patch_xegfxintelfb.py build/WTLIntelGfx/kexts/XeGfxIntelFB/intelfb.cpp
+          export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
+          export OUTROOT="$GITHUB_WORKSPACE/out"
+          bash build/WTLIntelGfx/build/build_xegfxintelfb.sh
+          lipo out/XeGfxIntelFB/XeGfxIntelFB.kext/Contents/MacOS/XeGfxIntelFB -verify_arch x86_64
+          codesign --verify --verbose out/XeGfxIntelFB/XeGfxIntelFB.kext
+      - uses: actions/upload-artifact@v4
+        with:
+          name: XeGfxIntelFB-build
+          path: out/XeGfxIntelFB/XeGfxIntelFB.kext
+          retention-days: 14
