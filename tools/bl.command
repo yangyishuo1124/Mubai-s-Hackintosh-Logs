@@ -9,9 +9,12 @@ mkdir -p "/Volumes/SYSTEM/EFI/Diagnostics/reports"
   /usr/bin/log show --style compact --predicate 'eventMessage contains "XeGfxIntelFB"' --last 1h 2>&1
   echo "=== IOREG PNLF ==="
   /usr/sbin/ioreg -r -n PNLF 2>&1
-  echo "=== IOREG AppleBacklightDisplay / IODisplayConnect ==="
+  echo "=== IOREG AppleBacklightDisplay / AppleDisplay / IODisplayConnect ==="
   /usr/sbin/ioreg -r -c AppleBacklightDisplay 2>&1
-  /usr/sbin/ioreg -r -c IODisplayConnect -d 2 2>&1
+  /usr/sbin/ioreg -l -w0 -c AppleDisplay 2>&1
+  /usr/sbin/ioreg -l -w0 -c IODisplayConnect 2>&1
+  echo "=== IOGRAPHICSFAMILY INFO.PLIST ==="
+  /usr/bin/plutil -p /System/Library/Extensions/IOGraphicsFamily.kext/Contents/Info.plist 2>&1 | /usr/bin/grep -A 35 -E "AppleBacklightDisplay|AppleDisplay" 2>&1
   echo "=== APPLEBACKLIGHT INFO.PLIST ==="
   /usr/bin/plutil -p /System/Library/Extensions/AppleBacklight.kext/Contents/Info.plist 2>&1
   echo "=== IOREG XeGfxIntelFramebuffer ==="

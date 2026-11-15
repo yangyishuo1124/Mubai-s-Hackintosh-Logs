@@ -301,10 +301,36 @@ attr_code = """    IOReturn getAttributeForConnection(IOIndex ci, IOSelect attr,
     }"""
 s = s.replace(anchor4, attr_code, 1)
 
-# 5. Drop kDisplayModeValidForHiResFlag so macOS doesn't lock the single GOP mode to 2x (1280x800)
+# 5. Drop kDisplayModeValidForHiResFlag and physical imageWidth/imageHeight so macOS uses native 1x (2560x1600) instead of 2x (1280x800)
+img_size_line = "        if (fEdidLen && fEdid[21] && fEdid[22]) { info->imageWidth = fEdid[21] * 10; info->imageHeight = fEdid[22] * 10; }"
+assert img_size_line in s, "img_size_line missing"
+s = s.replace(img_size_line, "        // leave imageWidth/imageHeight unset so WindowServer stays at 1x native 2560x1600", 1)
+
 hires_line = "        info->flags |= kDisplayModeValidForHiResFlag;"
 assert hires_line in s, "hires_line missing"
 s = s.replace(hires_line, "        info->flags &= ~kDisplayModeValidForHiResFlag;", 1)
+
+# 6. Log IOFramebuffer::getAttribute() queries (excluding kIOHardwareCursorAttribute) to see what AppleBacklightDisplay / IOPM query
+get_attr_anchor = """    IOReturn getAttribute(IOSelect attr, uintptr_t *value) override {
+        if (attr == kIOHardwareCursorAttribute) { if (value) *value = fCurReady; return kIOReturnSuccess; }
+        return IONDRVFramebuffer::getAttribute(attr, value);
+    }"""
+assert get_attr_anchor in s, "get_attr_anchor missing"
+
+get_attr_log = """    IOReturn getAttribute(IOSelect attr, uintptr_t *value) override {
+        if (attr == kIOHardwareCursorAttribute) { if (value) *value = fCurReady; return kIOReturnSuccess; }
+        IOReturn r = IONDRVFramebuffer::getAttribute(attr, value);
+        static unsigned nAttrLog = 0;
+        if (nAttrLog < 40) {
+            nAttrLog++;
+            XIFBLOG("getAttr('%c%c%c%c'/%08x) -> %08x val=%lx",
+                    (char)((attr >> 24) & 0xff), (char)((attr >> 16) & 0xff),
+                    (char)((attr >> 8) & 0xff), (char)(attr & 0xff), (unsigned)attr, (unsigned)r,
+                    value ? (unsigned long)*value : 0ul);
+        }
+        return r;
+    }"""
+s = s.replace(get_attr_anchor, get_attr_log, 1)
 
 p.write_text(s)
 print("Patched", p)
