@@ -275,15 +275,18 @@ attr_code = """    IOReturn getAttributeForConnection(IOIndex ci, IOSelect attr,
         if (fBlReady && attr == 0x70636e74u /* 'pcnt' */) {
             uintptr_t cnt = 0;
             IOReturn r = IONDRVFramebuffer::getAttributeForConnection(ci, attr, &cnt);
-            if (r == kIOReturnSuccess && value) *value = cnt + 1;
-            return r;
+            XIFBLOG("getAttrConn(%d, 'pcnt') base r=%08x cnt=%lu", (int)ci, (unsigned)r, (unsigned long)cnt);
+            if (value) *value = (r == kIOReturnSuccess) ? (cnt + 1) : 5;
+            return kIOReturnSuccess;
         }
         if (fBlReady && attr == 0x7061726du /* 'parm' */ && value && *value == 4) {
             *value = 0x626b6c74u; /* 'bklt' */
+            XIFBLOG("getAttrConn(%d, 'parm' idx=4) -> 'bklt'", (int)ci);
             return kIOReturnSuccess;
         }
         if (fBlReady && attr == 0x626b6c74u /* 'bklt' */) {
             if (value) *value = fBlLevel;
+            XIFBLOG("getAttrConn(%d, 'bklt') -> %u", (int)ci, (unsigned)fBlLevel);
             return kIOReturnSuccess;
         }
         IOReturn r = IONDRVFramebuffer::getAttributeForConnection(ci, attr, value);
@@ -299,6 +302,7 @@ attr_code = """    IOReturn getAttributeForConnection(IOIndex ci, IOSelect attr,
     }
     IOReturn setAttributeForConnection(IOIndex ci, IOSelect attr, uintptr_t value) override {
         if (fBlReady && attr == 0x626b6c74u /* 'bklt' */) {
+            XIFBLOG("setAttrConn(%d, 'bklt', %lu)", (int)ci, (unsigned long)value);
             return blSet((uint32_t)value) ? kIOReturnSuccess : kIOReturnIOError;
         }
         return IONDRVFramebuffer::setAttributeForConnection(ci, attr, value);
