@@ -279,10 +279,21 @@ attr_code = """    IOReturn getAttributeForConnection(IOIndex ci, IOSelect attr,
             if (value) *value = (r == kIOReturnSuccess) ? (cnt + 1) : 5;
             return kIOReturnSuccess;
         }
-        if (fBlReady && attr == 0x7061726du /* 'parm' */ && value && *value == 4) {
-            *value = 0x626b6c74u; /* 'bklt' */
-            XIFBLOG("getAttrConn(%d, 'parm' idx=4) -> 'bklt'", (int)ci);
-            return kIOReturnSuccess;
+        if (fBlReady && attr == 0x7061726du /* 'parm' */ && value) {
+            IOReturn r = IONDRVFramebuffer::getAttributeForConnection(ci, attr, value);
+            if (r == kIOReturnSuccess) {
+                uint32_t *p32 = (uint32_t *)value;
+                XIFBLOG("getAttrConn(%d, 'parm') p32=[%08x,%08x,%08x,%08x,%08x] u64=[%lx,%lx,%lx,%lx,%lx]",
+                        (int)ci, p32[0], p32[1], p32[2], p32[3], p32[4],
+                        (unsigned long)value[0], (unsigned long)value[1], (unsigned long)value[2],
+                        (unsigned long)value[3], (unsigned long)value[4]);
+                if (p32[0] == 0x72677363u && p32[1] == 0x67677363u) {
+                    p32[4] = 0x626b6c74u; /* 'bklt' */
+                } else if (value[0] == 0x72677363u && value[1] == 0x67677363u) {
+                    value[4] = 0x626b6c74u; /* 'bklt' */
+                }
+            }
+            return r;
         }
         if (fBlReady && attr == 0x626b6c74u /* 'bklt' */) {
             if (value) *value = fBlLevel;
