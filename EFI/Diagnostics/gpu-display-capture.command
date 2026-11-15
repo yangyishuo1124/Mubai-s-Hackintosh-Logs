@@ -112,8 +112,11 @@ sysctl -w debug.nvaccel_iop=1 >/dev/null 2>&1 || true
 sysctl -w debug.nvaccelfb=4 >/dev/null 2>&1 || true
 sleep 1
 if ! ioreg -r -c NMIntelFB | grep -q NMIntelFB; then
-    # Trigger System Settings approval prompt if not yet approved, and temporarily reduce transparency so desktop is usable to approve it
-    kextload /Library/Extensions/NMIntelFB.kext > "$out/nmintelfb-load.txt" 2>&1 || true
+    # Trigger System Settings approval prompt if not yet approved, or rebuild AuxKC if approved so it loads at boot before IONDRVFramebuffer
+    if kextload /Library/Extensions/NMIntelFB.kext > "$out/nmintelfb-load.txt" 2>&1; then
+        kmutil install --volume-root / --update-all > "$out/kmutil-auxkc.txt" 2>&1 || true
+        kmutil inspect --aux-collection > "$out/kmutil-inspect.txt" 2>&1 || true
+    fi
     defaults write /Library/Preferences/com.apple.universalaccess reduceTransparency -bool true 2>/dev/null || true
     defaults write /Library/Preferences/com.apple.universalaccess reduceMotion -bool true 2>/dev/null || true
     for uhome in /Users/*(N); do
