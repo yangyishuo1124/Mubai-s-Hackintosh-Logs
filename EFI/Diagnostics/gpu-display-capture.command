@@ -74,11 +74,7 @@ cat > /Library/GPUBundles/nvmtl-allow.txt << 'EOF'
 EOF
 chmod 644 /Library/GPUBundles/nvmtl-allow.txt 2>/dev/null || true
 
-mkdir -p /Library/GPUBundles/nvmtl 2>/dev/null || true
-cat > /Library/GPUBundles/nvmtl/nvrm610.conf << 'EOF'
-NVMTL_XE_UNIFIED=1
-EOF
-chmod 644 /Library/GPUBundles/nvmtl/nvrm610.conf 2>/dev/null || true
+rm -f /Library/GPUBundles/nvmtl/nvrm610.conf 2>/dev/null || true
 if [[ -f "$here/GPU/vulkan/libvulkan_intel.dylib" ]] && ! cmp -s "$here/GPU/vulkan/libvulkan_intel.dylib" /Library/GPUBundles/nvmtl/libvulkan_intel.dylib 2>/dev/null; then
     cp -f "$here/GPU/vulkan/libvulkan_intel.dylib" /Library/GPUBundles/nvmtl/libvulkan_intel.dylib 2>/dev/null || true
     chmod 755 /Library/GPUBundles/nvmtl/libvulkan_intel.dylib 2>/dev/null || true
