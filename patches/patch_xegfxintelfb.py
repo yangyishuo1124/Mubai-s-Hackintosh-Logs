@@ -21,6 +21,7 @@ assert anchor1 in s, "anchor1 missing"
 
 aux_dpcd_code = r"""#include <IOKit/graphics/IODisplay.h>
 #include <IOKit/pwr_mgt/IOPM.h>
+#include <libkern/libkern.h>
 
 // Native eDP AUX DPCD read/write (cmd 0x9 = read, 0x8 = write) for panel backlight (0x300..0x359, 0x700..0x737)
 static int xifbAuxDpcd(uint8_t cmd, uint32_t addr, const uint8_t *wdata, uint8_t len, uint8_t *rdata)
@@ -85,6 +86,8 @@ fb_cls_anchor = "class XeGfxIntelFramebuffer : public IONDRVFramebuffer {"
 assert fb_cls_anchor in s, "fb_cls_anchor missing"
 bl_handler_decl = r"""class XeGfxIntelFramebuffer;
 
+static void xifbUpdateParamValue(IODisplay *display, const char *keyStr, SInt32 val);
+
 class XeGfxBacklightHandler : public IODisplayParameterHandler {
     OSDeclareDefaultStructors(XeGfxBacklightHandler)
 public:
@@ -125,7 +128,7 @@ members_code = r"""    friend class XeGfxBacklightHandler;
         if (me->fStopping) return;
         uint64_t now = mach_absolute_time();
         me->fVblLastTime = now;
-        if (me->fVblEnabled && me->fVbl.proc) {
+        if (!me->fDisplayAsleep && me->fVblEnabled && me->fVbl.proc) {
             me->fVbl.proc(me->fVbl.target, me->fVbl.ref);
             me->fVblCalls++;
         }
@@ -152,13 +155,90 @@ members_code = r"""    friend class XeGfxBacklightHandler;
     }
 
     // Backlight control: Intel HDR TCON DPCD (0x340..0x359), VESA eDP DPCD (0x700..0x737), SoC PWM fallback
+    IOPCIDevice *fPci = nullptr;
     bool fBlReady = false, fBlHdr = false, fBl16Bit = false, fBlPwm = false, fDisplayAsleep = false;
-    uint32_t fBlLevel = 0x10000u, fBlHwMax = 65535u, fBlPwmBase = 0, fBlPwmFreq = 0;
+    uint32_t fBlLevel = 0x10000u, fBlSaveLevel = 0x10000u, fBlHwMax = 65535u, fBlPwmBase = 0, fBlPwmFreq = 0;
     uint32_t fBlHdrMin = 0, fBlHdrMax = 512;
     uint8_t fBlPwmBits = 0;
     XeGfxBacklightHandler *fBlHandler = nullptr;
     IOLock *fBlLock = nullptr;
+    thread_call_t fBlSaveTimer = nullptr;
     static constexpr uint32_t kBlMax = 0x10000u;
+    static constexpr uint32_t kBlMinFloor = 0x400u;
+
+    static void nvramSetStr(const char *key, const char *str) {
+        if (!key || !str) return;
+        IORegistryEntry *o = IORegistryEntry::fromPath("/options", gIODTPlane);
+        if (!o) return;
+        if (OSData *d = OSData::withBytes(str, (unsigned)strlen(str))) {
+            o->setProperty(key, d);
+            d->release();
+        }
+        o->release();
+    }
+    static bool nvramReadU32(const char *key, uint32_t *out) {
+        IORegistryEntry *o = IORegistryEntry::fromPath("/options", gIODTPlane);
+        if (!o) return false;
+        OSObject *v = o->copyProperty(key);
+        OSData *d = OSDynamicCast(OSData, v);
+        bool ok = false;
+        if (d && d->getLength() == sizeof(uint32_t)) {
+            bcopy(d->getBytesNoCopy(), out, sizeof(uint32_t));
+            ok = true;
+        }
+        if (v) v->release();
+        o->release();
+        return ok;
+    }
+    static void nvramWriteU32(const char *key, uint32_t val) {
+        IORegistryEntry *o = IORegistryEntry::fromPath("/options", gIODTPlane);
+        if (!o) return;
+        if (OSData *d = OSData::withBytes(&val, sizeof(val))) {
+            o->setProperty(key, d);
+            d->release();
+        }
+        o->release();
+    }
+    static void blSaveFire(thread_call_param_t p0, thread_call_param_t) {
+        XeGfxIntelFramebuffer *me = (XeGfxIntelFramebuffer *)p0;
+        if (me->fStopping) return;
+        nvramWriteU32("xeintelfb-bl", me->fBlSaveLevel);
+    }
+    void scheduleBlSave(uint32_t level) {
+        if (level > kBlMax) level = kBlMax;
+        fBlSaveLevel = level;
+        if (!fBlSaveTimer) fBlSaveTimer = thread_call_allocate(blSaveFire, this);
+        if (fBlSaveTimer) {
+            uint64_t dl = 0;
+            clock_interval_to_deadline(1000, kMillisecondScale, &dl);
+            thread_call_enter_delayed(fBlSaveTimer, dl);
+        }
+    }
+    void snapDeRegs(const char *tag, bool writeNvram) {
+        uint16_t cmd = fPci ? fPci->configRead16(kIOPCIConfigCommand) : 0;
+        uint32_t pipe = 0xffffffffu, pln = 0xffffffffu, surf = 0xffffffffu, ddi = 0xffffffffu;
+        uint32_t pwr = 0xffffffffu, cd = 0xffffffffu, ppSt = 0xffffffffu, ppCtl = 0xffffffffu, aux = 0xffffffffu, fc = 0xffffffffu;
+        if (fR && (cmd & kIOPCICommandMemorySpace)) {
+            pipe = rd(0x70008);
+            pln  = rd(0x70180);
+            surf = rd(0x7019c);
+            ddi  = rd(0x60400);
+            pwr  = rd(0x45404);
+            cd   = rd(0x46000);
+            ppSt = rd(0xc7200);
+            ppCtl = rd(0xc7204);
+            aux  = rd(fAuxCtl);
+            fc   = rd(0x70040);
+        }
+        char buf[220];
+        snprintf(buf, sizeof(buf),
+                 "%s:cmd=%04x pipe=%08x pln=%08x surf=%08x ddi=%08x pwr=%08x cd=%08x pp=%08x/%08x aux=%08x fc=%u bl=%u",
+                 tag, (unsigned)cmd, (unsigned)pipe, (unsigned)pln, (unsigned)surf, (unsigned)ddi,
+                 (unsigned)pwr, (unsigned)cd, (unsigned)ppSt, (unsigned)ppCtl, (unsigned)aux,
+                 (unsigned)fc, (unsigned)fBlLevel);
+        XIFBLOG("%s", buf);
+        if (writeNvram) nvramSetStr("xeintelfb-wake", buf);
+    }
     void blInit() {
         if (!fR) return;
         if (!fBlLock) fBlLock = IOLockAlloc();
@@ -262,6 +342,20 @@ members_code = r"""    friend class XeGfxBacklightHandler;
         gRegs = nullptr;
         if (fBlLock) IOLockUnlock(fBlLock);
 
+        if (fBlReady) {
+            uint32_t savedBl = 0;
+            if (nvramReadU32("xeintelfb-bl", &savedBl) && savedBl <= kBlMax) {
+                if (savedBl < kBlMinFloor) savedBl = kBlMinFloor;
+                fBlLevel = savedBl;
+                fBlSaveLevel = savedBl;
+                bool wOk = blWriteHw(fBlLevel);
+                XIFBLOG("restored saved NVRAM brightness %u/%u (hw=%s)",
+                        (unsigned)fBlLevel, (unsigned)kBlMax, wOk ? "ok" : "err");
+            } else {
+                fBlSaveLevel = fBlLevel;
+            }
+        }
+
         if (fBlReady && !fBlHandler) {
             fBlHandler = XeGfxBacklightHandler::withFramebuffer(this);
             if (fBlHandler) {
@@ -298,6 +392,8 @@ members_code = r"""    friend class XeGfxBacklightHandler;
         static unsigned nSetLog = 0;
         bool doLog = (++nSetLog <= 12);
         if (fBlHdr) {
+            static const uint8_t kIntelOui[3] = { 0x00, 0xaa, 0x01 };
+            (void)xifbAuxDpcd(0x8, 0x300, kIntelOui, 3, nullptr);
             uint32_t span = (fBlHdrMax > fBlHdrMin) ? (fBlHdrMax - fBlHdrMin) : 512u;
             uint32_t nit = (level == 0) ? 0 : (fBlHdrMin + (uint32_t)(((uint64_t)level * span + kBlMax / 2) / kBlMax));
             uint8_t ovr[4] = {
@@ -370,8 +466,10 @@ s = s.replace(old_edid_call, new_edid_call, 1)
 anchor3 = "        if (!curSetup()) fCurReady = false;\n        return IONDRVFramebuffer::start(provider);"
 assert anchor3 in s, "anchor3 missing"
 
-start_hook = """        if (!curSetup()) fCurReady = false;
+start_hook = """        fPci = OSDynamicCast(IOPCIDevice, provider);
+        if (!curSetup()) fCurReady = false;
         blInit();
+        snapDeRegs("DE boot", false);
         if (fBlReady) {
             uint32_t one = 1;
             uint8_t zero = 0;
@@ -392,6 +490,11 @@ start_hook = """        if (!curSetup()) fCurReady = false;
             thread_call_cancel(fVblTimer);
             while (!thread_call_free(fVblTimer)) IOSleep(1);
             fVblTimer = nullptr;
+        }
+        if (fBlSaveTimer) {
+            thread_call_cancel(fBlSaveTimer);
+            while (!thread_call_free(fBlSaveTimer)) IOSleep(1);
+            fBlSaveTimer = nullptr;
         }
         if (fBlHandler) {
             fBlHandler->stop(this);
@@ -478,7 +581,9 @@ attr_code = """    IOReturn getAttributeForConnection(IOIndex ci, IOSelect attr,
     IOReturn setAttributeForConnection(IOIndex ci, IOSelect attr, uintptr_t value) override {
         if (fBlReady && attr == 0x626b6c74u /* 'bklt' */) {
             XIFBLOG("setAttrConn(%d, 'bklt', %lu)", (int)ci, (unsigned long)value);
-            return blSet((uint32_t)value) ? kIOReturnSuccess : kIOReturnIOError;
+            bool ok = blSet((uint32_t)value);
+            if (ok) scheduleBlSave((uint32_t)value);
+            return ok ? kIOReturnSuccess : kIOReturnIOError;
         }
         return IONDRVFramebuffer::setAttributeForConnection(ci, attr, value);
     }"""
@@ -512,17 +617,44 @@ get_attr_log = """    IOReturn registerPowerDriver(IOService *controllingDriver,
         return IONDRVFramebuffer::registerPowerDriver(controllingDriver, powerStates, numberOfStates);
     }
     IOReturn setAttribute(IOSelect attr, uintptr_t value) override {
+        if ((attr == kIOPowerStateAttribute || attr == kIODriverPowerAttribute) && value == 0) {
+            fDisplayAsleep = true;
+            fCurDdb = false;
+            nvramSetStr("xeintelfb-wake", "sleep");
+            if (fBlReady) (void)blWriteHw(0);
+        }
         IOReturn r = IONDRVFramebuffer::setAttribute(attr, value);
         if (attr == kIOPowerStateAttribute || attr == kIODriverPowerAttribute) {
             static unsigned nPwrLog = 0;
             if (++nPwrLog <= 20)
                 XIFBLOG("setAttr(%08x, %lu) -> %08x (bl=%u)", (unsigned)attr, (unsigned long)value, (unsigned)r, (unsigned)fBlLevel);
-            if (value == 0) {
-                fDisplayAsleep = true;
-                if (fBlReady) (void)blWriteHw(0);
+            if (value == 1 && fDisplayAsleep) {
+                snapDeRegs("w1", true);
             } else if (value >= 2) {
+                bool wasAsleep = fDisplayAsleep;
                 fDisplayAsleep = false;
-                if (fBlReady) (void)blWriteHw(fBlLevel);
+                if (wasAsleep) {
+                    if (fBlHandler) {
+                        fBlHandler->fFadeLevel = 0;
+                        xifbUpdateParamValue(fBlHandler->fDisplay, "brightness-fade", 0);
+                    }
+                    if (fBlSaveLevel > 0 && fBlLevel < kBlMinFloor) {
+                        fBlLevel = (fBlSaveLevel >= kBlMinFloor) ? fBlSaveLevel : kBlMinFloor;
+                    }
+                    if (fBlReady) (void)blWriteHw(fBlLevel);
+                    if (fCurReady && fR && fPci &&
+                        (fPci->configRead16(kIOPCIConfigCommand) & kIOPCICommandMemorySpace) &&
+                        rd(XIFB_P1_SURF) == 0xff000000u) {
+                        curDdb();
+                        IOInterruptState is = IOSimpleLockLockDisableInterrupt(fCurLock);
+                        curPtes();
+                        if (fCurDdb) curRegs(fCurX, fCurY, fCurVis && fCurImg);
+                        IOSimpleLockUnlockEnableInterrupt(fCurLock, is);
+                    }
+                    snapDeRegs("w2", true);
+                } else if (fBlReady) {
+                    (void)blWriteHw(fBlLevel);
+                }
             }
         }
         return r;
@@ -653,6 +785,8 @@ bool XeGfxBacklightHandler::doIntegerSet(OSDictionary *params, const OSSymbol *p
         fUserLevel = value;
         xifbUpdateParamValue(fDisplay, "linear-brightness", (SInt32)fUserLevel);
         applyEffective();
+        uint32_t hwUser = (uint32_t)(((uint64_t)fUserLevel * XeGfxIntelFramebuffer::kBlMax + kUiMax / 2) / kUiMax);
+        fFb->scheduleBlSave(hwUser);
         return true;
     }
     if (strcmp(name, "linear-brightness") == 0) {
@@ -660,6 +794,8 @@ bool XeGfxBacklightHandler::doIntegerSet(OSDictionary *params, const OSSymbol *p
         fUserLevel = value;
         xifbUpdateParamValue(fDisplay, "brightness", (SInt32)fUserLevel);
         applyEffective();
+        uint32_t hwUser = (uint32_t)(((uint64_t)fUserLevel * XeGfxIntelFramebuffer::kBlMax + kUiMax / 2) / kUiMax);
+        fFb->scheduleBlSave(hwUser);
         return true;
     }
     if (strcmp(name, "brightness-fade") == 0) {
