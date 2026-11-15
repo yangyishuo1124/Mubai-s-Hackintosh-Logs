@@ -94,12 +94,13 @@ if [[ "$stage" -lt 7 ]]; then
 fi
 if ! ioreg -r -c NMXAccel | grep -q NMXAccel; then
     rm -rf /tmp/XeGfxAGDC.kext /tmp/XeGfxAccel.kext 2>/dev/null || true
-    if [[ ! -d /Library/Extensions/XeGfxAGDC.kext || ! -d /Library/Extensions/XeGfxAccel.kext ]]; then
-        rm -rf /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
+    if [[ ! -d /Library/Extensions/XeGfxAGDC.kext || ! -d /Library/Extensions/XeGfxAccel.kext || ! -d /Library/Extensions/NMIntelFB.kext ]]; then
+        rm -rf /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
         cp -R "$here/GPU/kexts/XeGfxAGDC.kext" /Library/Extensions/XeGfxAGDC.kext 2>/dev/null || true
         cp -R "$here/GPU/kexts/XeGfxAccel.kext" /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
-        chown -R root:wheel /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
-        chmod -R 755 /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
+        cp -R "$here/GPU/kexts/NMIntelFB.kext" /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
+        chown -R root:wheel /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
+        chmod -R 755 /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
     fi
     kextload /Library/Extensions/XeGfxAGDC.kext 2>/dev/null || true
     kextload /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
@@ -116,6 +117,26 @@ if [[ -f "$here/ws-restart.request" ]]; then
     stream_pid=$!
     sleep 1
     killall -9 WindowServer 2>/dev/null || true
+    sleep 1
+    if ! ioreg -r -c NMIntelFB | grep -q NMIntelFB; then
+        {
+            echo "=== pre-unload ==="
+            kextload /Library/Extensions/NMIntelFB.kext 2>&1 || true
+            if ! ioreg -r -c NMIntelFB | grep -q NMIntelFB; then
+                echo "=== unloading IONDRVSupport ==="
+                kextunload -b com.apple.iokit.IONDRVSupport 2>&1 || true
+                sleep 1
+                echo "=== loading NMIntelFB ==="
+                kextload /Library/Extensions/NMIntelFB.kext 2>&1 || true
+                sleep 1
+                if ! ioreg -r -c NMIntelFB | grep -q NMIntelFB; then
+                    echo "=== NMIntelFB did not attach, restoring IONDRVSupport ==="
+                    kextload /System/Library/Extensions/IONDRVSupport.kext 2>&1 || true
+                fi
+            fi
+            ioreg -r -c NMIntelFB 2>&1 | head -n 40
+        } > "$out/nmintelfb-load.txt" 2>&1 || true
+    fi
     for i in {1..35}; do
         sleep 2
         cp -f /tmp/ws-live.txt "$out/ws-live.txt" 2>/dev/null || true
