@@ -11,10 +11,9 @@ here="${0:A:h}"
 config="$here/../OC/config.plist"
 key=':NVRAM:Add:7C436110-AB2A-4BBB-A880-FE41995C9F82:boot-args'
 args="$(/usr/libexec/PlistBuddy -c "Print $key" "$config")"
-[[ "$args" != *xegfx_bootstage=* ]] || { print '开机参数已存在，请先核查 / Boot stage argument already present'; exit 1; }
 base='/Library/Application Support/MubaiGPUCapture'
 plist='/Library/LaunchDaemons/org.mubai.gpu-capture.plist'
-[[ ! -e "$plist" && ! -e "$base" ]] || { print '已存在安装，请先核查 / Existing installation'; exit 1; }
+/bin/launchctl bootout system/org.mubai.gpu-capture >/dev/null 2>&1 || true
 mkdir -p "$base" "$here/reports"
 cp -p "$config" "$base/config-before-autocapture.plist"
 cat > "$base/capture.zsh" <<'CAPTURE'
@@ -47,11 +46,12 @@ chown root:wheel "$plist"
 chmod 644 "$plist"
 /usr/bin/plutil -lint "$plist"
 /bin/launchctl bootstrap system "$plist"
-# Enable boot initialization only after the capture service is installed and loaded.
-if ! /usr/libexec/PlistBuddy -c "Set $key $args xegfx_bootstage=4" "$config" || ! /usr/bin/plutil -lint "$config"; then
-    cp -p "$base/config-before-autocapture.plist" "$config"
-    print '启动参数修改失败，已恢复 / Boot configuration restored'
-    exit 1
+if [[ "$args" != *xegfx_bootstage=* ]]; then
+    if ! /usr/libexec/PlistBuddy -c "Set $key $args xegfx_bootstage=4" "$config" || ! /usr/bin/plutil -lint "$config"; then
+        cp -p "$base/config-before-autocapture.plist" "$config"
+        print '启动参数修改失败，已恢复 / Boot configuration restored'
+        exit 1
+    fi
 fi
 print '自动采集已安装，开机 stage 4 已启用。正常重启 macOS，等待两分钟再回 Windows。'
 print 'Capture service installed; boot stage 4 enabled. Reboot macOS, wait two minutes, then return to Windows.'

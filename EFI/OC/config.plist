@@ -1059,7 +1059,7 @@
 				<key>MaxKernel</key>
 				<string>25.99.99</string>
 				<key>MinKernel</key>
-				<string>25.0.0</string>
+				<string>24.0.0</string>
 				<key>PlistPath</key>
 				<string>Contents/Info.plist</string>
 			</dict>
@@ -1077,7 +1077,7 @@
 				<key>MaxKernel</key>
 				<string>25.99.99</string>
 				<key>MinKernel</key>
-				<string>25.0.0</string>
+				<string>24.0.0</string>
 				<key>PlistPath</key>
 				<string>Contents/Info.plist</string>
 			</dict>
@@ -1095,7 +1095,7 @@
 				<key>MaxKernel</key>
 				<string>25.99.99</string>
 				<key>MinKernel</key>
-				<string>25.0.0</string>
+				<string>24.0.0</string>
 				<key>PlistPath</key>
 				<string>Contents/Info.plist</string>
 			</dict>
