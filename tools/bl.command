@@ -14,9 +14,12 @@ mkdir -p "/Volumes/SYSTEM/EFI/Diagnostics/reports"
   echo "=== IOREG PNLF ==="
   /usr/sbin/ioreg -r -n PNLF 2>&1
   echo "=== IOREG AppleBacklightDisplay / AppleDisplay / IODisplayConnect ==="
-  /usr/sbin/ioreg -r -c AppleBacklightDisplay 2>&1
+  /usr/sbin/ioreg -l -w0 -c AppleBacklightDisplay 2>&1
+  /usr/sbin/ioreg -l -w0 -c XeGfxBacklightHandler 2>&1
   /usr/sbin/ioreg -l -w0 -c AppleDisplay 2>&1
   /usr/sbin/ioreg -l -w0 -c IODisplayConnect 2>&1
+  echo "=== LOG SHOW (COREBRIGHTNESSD / BRIGHTNESS) ==="
+  /usr/bin/log show --style compact --predicate 'process == "corebrightnessd" OR eventMessage contains[c] "brightness"' --last 10m | /usr/bin/tail -n 100 2>&1
   echo "=== IOGRAPHICSFAMILY INFO.PLIST ==="
   /usr/bin/grep -l "AppleBacklightDisplay" /System/Library/Extensions/*.kext/Contents/Info.plist /System/Library/Extensions/*.kext/Contents/PlugIns/*.kext/Contents/Info.plist 2>&1
   /usr/bin/plutil -p /System/Library/Extensions/IOGraphicsFamily.kext/Contents/Info.plist 2>&1

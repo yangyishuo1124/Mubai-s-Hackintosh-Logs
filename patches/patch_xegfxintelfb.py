@@ -15,11 +15,13 @@ s = s.replace(
     1,
 )
 
-# 1. Add native AUX DPCD helpers right before xifbMeasureHz
+# 1. Include <IOKit/graphics/IODisplay.h>, add native AUX DPCD helpers right before xifbMeasureHz
 anchor1 = "// pipe A's frame counter over about half a second: the refresh rate the firmware's mode runs at, in 16.16"
 assert anchor1 in s, "anchor1 missing"
 
-aux_dpcd_code = r"""// Native eDP AUX DPCD read/write (cmd 0x9 = read, 0x8 = write) for panel backlight (0x700..0x72f)
+aux_dpcd_code = r"""#include <IOKit/graphics/IODisplay.h>
+
+// Native eDP AUX DPCD read/write (cmd 0x9 = read, 0x8 = write) for panel backlight (0x300..0x359, 0x700..0x737)
 static int xifbAuxDpcd(uint8_t cmd, uint32_t addr, const uint8_t *wdata, uint8_t len, uint8_t *rdata)
 {
     if (len == 0 || len > 16) return -1;
@@ -77,11 +79,37 @@ static bool xifbProbeEdidAllAux(uint8_t *edid, int *len, uint32_t *foundCtl)
 """
 s = s.replace(anchor1, aux_dpcd_code + anchor1, 1)
 
-# 2. Add VBL timer + interrupt state + backlight state (DPCD + BXT SoC PWM fallback) inside XeGfxIntelFramebuffer
+# 1b. Declare XeGfxBacklightHandler (IODisplayParameterHandler subclass) right before XeGfxIntelFramebuffer
+fb_cls_anchor = "class XeGfxIntelFramebuffer : public IONDRVFramebuffer {"
+assert fb_cls_anchor in s, "fb_cls_anchor missing"
+bl_handler_decl = r"""class XeGfxIntelFramebuffer;
+
+class XeGfxBacklightHandler : public IODisplayParameterHandler {
+    OSDeclareDefaultStructors(XeGfxBacklightHandler)
+public:
+    XeGfxIntelFramebuffer *fFb = nullptr;
+    IODisplay *fDisplay = nullptr;
+    uint32_t fUserLevel = 1024;
+    uint32_t fFadeLevel = 0;
+    static constexpr SInt32 kUiMax = 1024;
+
+    static XeGfxBacklightHandler *withFramebuffer(XeGfxIntelFramebuffer *fb);
+    bool setDisplay(IODisplay *display) override;
+    bool doIntegerSet(OSDictionary *params, const OSSymbol *paramName, UInt32 value) override;
+    bool doDataSet(const OSSymbol *paramName, OSData *value) override;
+    bool doUpdate(void) override;
+    void applyEffective();
+};
+
+class XeGfxIntelFramebuffer : public IONDRVFramebuffer {"""
+s = s.replace(fb_cls_anchor, bl_handler_decl, 1)
+
+# 2. Add VBL timer + interrupt state + backlight state (Intel HDR TCON + VESA DPCD + SoC PWM) inside XeGfxIntelFramebuffer
 anchor2 = "    SInt32 fCurX = 0, fCurY = 0; bool fCurVis = false, fCurImg = false;"
 assert anchor2 in s, "anchor2 missing"
 
-members_code = r"""    SInt32 fCurX = 0, fCurY = 0; bool fCurVis = false, fCurImg = false;
+members_code = r"""    friend class XeGfxBacklightHandler;
+    SInt32 fCurX = 0, fCurY = 0; bool fCurVis = false, fCurImg = false;
     uint32_t fAuxCtl = 0x64010u;
     // High-refresh VBL timer & interrupt delivery (replaces 30 Hz IONDRVFramebuffer default)
     struct Irq { IOFBInterruptProc proc = nullptr; OSObject *target = nullptr; void *ref = nullptr; };
@@ -122,31 +150,99 @@ members_code = r"""    SInt32 fCurX = 0, fCurY = 0; bool fCurVis = false, fCurIm
         XIFBLOG("vbl timer %s (period %llu us)", fVblTimer ? "armed" : "FAILED", (unsigned long long)(fFrameNs / 1000ull));
     }
 
-    // Backlight control: eDP AUX DPCD (0x700..0x72f) with Intel SoC PWM (BXT_BLC_PWM_CTL) fallback
-    bool fBlReady = false, fBl16Bit = false, fBlPwm = false;
-    uint32_t fBlLevel = 0x10000u, fBlPwmBase = 0, fBlPwmFreq = 0;
+    // Backlight control: Intel HDR TCON DPCD (0x340..0x359), VESA eDP DPCD (0x700..0x737), SoC PWM fallback
+    bool fBlReady = false, fBlHdr = false, fBl16Bit = false, fBlPwm = false;
+    uint32_t fBlLevel = 0x10000u, fBlHwMax = 65535u, fBlPwmBase = 0, fBlPwmFreq = 0;
+    uint32_t fBlHdrMin = 0, fBlHdrMax = 512;
+    uint8_t fBlPwmBits = 0;
+    XeGfxBacklightHandler *fBlHandler = nullptr;
+    IOLock *fBlLock = nullptr;
     static constexpr uint32_t kBlMax = 0x10000u;
     void blInit() {
         if (!fR) return;
+        if (!fBlLock) fBlLock = IOLockAlloc();
+        if (fBlLock) IOLockLock(fBlLock);
         gRegs = fR;
         gAuxCtl = fAuxCtl;
-        uint8_t caps[4] = {}, ctrl[4] = {};
-        if (xifbAuxDpcd(0x9, 0x700, nullptr, 4, caps) == 0 && xifbAuxDpcd(0x9, 0x720, nullptr, 4, ctrl) == 0) {
-            bool auxSet = (caps[2] & 0x04) != 0;
-            fBl16Bit = (caps[2] & 0x08) != 0;
-            uint32_t cur = fBl16Bit ? (((uint32_t)ctrl[2] << 8) | ctrl[3]) : ctrl[2];
-            uint32_t hwMax = fBl16Bit ? 65535u : 255u;
-            if (cur == 0 && (ctrl[1] & 0x03) != 0x02) {
-                fBlLevel = kBlMax; // GOP left panel in PWM-pin mode with DPCD cur=0; keep 100% instead of dimming
+
+        uint8_t oui[4] = {}, hdrCap[6] = {}, hdrOvr[4] = {}, hdrNits[4] = {};
+        bool ouiOk = (xifbAuxDpcd(0x9, 0x300, nullptr, 3, oui) == 0);
+        bool hdrOk = (xifbAuxDpcd(0x9, 0x340, nullptr, 6, hdrCap) == 0);
+        if ((!ouiOk || oui[0] != 0x00 || oui[1] != 0xaa || oui[2] != 0x01) && (!hdrOk || hdrCap[0] == 0)) {
+            static const uint8_t kIntelOui[3] = { 0x00, 0xaa, 0x01 };
+            (void)xifbAuxDpcd(0x8, 0x300, kIntelOui, 3, nullptr);
+            IOSleep(10);
+            hdrOk = (xifbAuxDpcd(0x9, 0x340, nullptr, 6, hdrCap) == 0);
+        }
+        (void)xifbAuxDpcd(0x9, 0x34a, nullptr, 4, hdrOvr);
+        (void)xifbAuxDpcd(0x9, 0x354, nullptr, 4, hdrNits);
+        XIFBLOG("eDP HDR DPCD (%06x): oui=%02x%02x%02x cap=[%02x %02x %02x %02x] ctrl=%02x ovr=[%02x%02x %02x%02x] nits=[%02x %02x %02x %02x]",
+                fAuxCtl, oui[0], oui[1], oui[2],
+                hdrCap[0], hdrCap[1], hdrCap[2], hdrCap[3], hdrCap[4],
+                hdrOvr[1], hdrOvr[0], hdrOvr[3], hdrOvr[2],
+                hdrNits[0], hdrNits[1], hdrNits[2], hdrNits[3]);
+
+        uint8_t caps[8] = {}, ctrl[8] = {}, lum[8] = {};
+        bool vesaOk = (xifbAuxDpcd(0x9, 0x700, nullptr, 8, caps) == 0 && xifbAuxDpcd(0x9, 0x720, nullptr, 8, ctrl) == 0);
+        (void)xifbAuxDpcd(0x9, 0x730, nullptr, 8, lum);
+        if (vesaOk) {
+            XIFBLOG("eDP VESA DPCD: 700=[%02x %02x %02x %02x %02x %02x %02x %02x] 720=[%02x %02x %02x %02x %02x %02x %02x %02x] 730=[%02x %02x %02x %02x %02x %02x %02x %02x]",
+                    caps[0], caps[1], caps[2], caps[3], caps[4], caps[5], caps[6], caps[7],
+                    ctrl[0], ctrl[1], ctrl[2], ctrl[3], ctrl[4], ctrl[5], ctrl[6], ctrl[7],
+                    lum[0], lum[1], lum[2], lum[3], lum[4], lum[5], lum[6], lum[7]);
+        } else {
+            XIFBLOG("eDP VESA DPCD (%06x): AUX read 0x700/0x720 failed", fAuxCtl);
+        }
+
+        // Prefer Intel HDR TCON DPCD if TCON advertises nits + SDR AUX control (i915 intel_dp_aux_backlight.c)
+        if (hdrOk && hdrCap[0] >= 1 && (hdrCap[1] & 0x10u) && (hdrCap[2] & 0x01u)) {
+            uint32_t ovrMin = (uint32_t)hdrOvr[0] | ((uint32_t)hdrOvr[1] << 8);
+            uint32_t ovrMax = (uint32_t)hdrOvr[2] | ((uint32_t)hdrOvr[3] << 8);
+            uint32_t curNits = (uint32_t)hdrNits[0] | ((uint32_t)hdrNits[1] << 8);
+            if (ovrMax > ovrMin && ovrMax <= 2000u) {
+                fBlHdrMin = ovrMin;
+                fBlHdrMax = ovrMax;
             } else {
-                fBlLevel = hwMax ? (uint32_t)(((uint64_t)cur * kBlMax + hwMax / 2) / hwMax) : kBlMax;
+                fBlHdrMin = 0;
+                fBlHdrMax = (curNits > 512u && curNits <= 1200u) ? curNits : 512u;
+            }
+            if ((hdrCap[4] & 0x10u) && curNits > 0 && fBlHdrMax > fBlHdrMin) {
+                uint32_t span = fBlHdrMax - fBlHdrMin;
+                uint32_t c = (curNits > fBlHdrMin) ? (curNits - fBlHdrMin) : 0;
+                if (c > span) c = span;
+                fBlLevel = (uint32_t)(((uint64_t)c * kBlMax + span / 2) / span);
+            } else {
+                fBlLevel = kBlMax;
+            }
+            fBlHdr = true;
+            fBlReady = true;
+            XIFBLOG("eDP backlight mode: Intel HDR TCON (%u..%u nits, cur=%u -> fBl=%u)",
+                    (unsigned)fBlHdrMin, (unsigned)fBlHdrMax, (unsigned)curNits, (unsigned)fBlLevel);
+        } else if (vesaOk && (caps[2] & 0x02u)) {
+            // VESA: 0x702 bit 1 = aux_set, bit 2 = 16-bit LSB reg (0x722 MSB + 0x723 LSB)
+            fBl16Bit = (caps[2] & 0x04u) != 0;
+            uint8_t pn = ctrl[4] & 0x1fu;
+            uint8_t pnMin = caps[6] & 0x1fu;
+            uint8_t pnMax = caps[7] & 0x1fu;
+            if (pnMax >= 8u && pnMax <= 16u && pnMin <= pnMax) {
+                if (pn < pnMin || pn > pnMax) pn = pnMax;
+                fBlPwmBits = pn;
+                fBlHwMax = (1u << pn) - 1u;
+            } else {
+                fBlPwmBits = 0;
+                fBlHwMax = fBl16Bit ? 65535u : 255u;
+            }
+            uint32_t cur = fBl16Bit ? (((uint32_t)ctrl[2] << 8) | ctrl[3]) : ctrl[2];
+            if ((ctrl[1] & 0x03u) != 0x02u) {
+                fBlLevel = kBlMax; // assume 100% until DPCD control mode is active
+            } else {
+                if (cur > fBlHwMax) cur = fBlHwMax;
+                fBlLevel = fBlHwMax ? (uint32_t)(((uint64_t)cur * kBlMax + fBlHwMax / 2) / fBlHwMax) : kBlMax;
             }
             if (fBlLevel > kBlMax) fBlLevel = kBlMax;
-            fBlReady = auxSet;
-            XIFBLOG("eDP DPCD backlight (%06x): rev=%02x cap1=%02x cap2=%02x ctrl=%02x mode=%02x cur=%u (%s, aux=%d) -> fBl=%u",
-                    fAuxCtl, caps[0], caps[1], caps[2], ctrl[0], ctrl[1], cur, fBl16Bit ? "16b" : "8b", auxSet ? 1 : 0, (unsigned)fBlLevel);
-        } else {
-            XIFBLOG("eDP DPCD backlight (%06x): AUX read 0x700/0x720 failed", fAuxCtl);
+            fBlReady = true;
+            XIFBLOG("eDP backlight mode: VESA DPCD (%s, pn=%u, hwMax=%u, cur=%u -> fBl=%u)",
+                    fBl16Bit ? "16b" : "8b", (unsigned)fBlPwmBits, (unsigned)fBlHwMax, (unsigned)cur, (unsigned)fBlLevel);
         }
         static const uint32_t kPwmBases[2] = { 0xc8250u, 0xc8350u };
         for (int i = 0; i < 2; i++) {
@@ -163,34 +259,90 @@ members_code = r"""    SInt32 fCurX = 0, fCurY = 0; bool fCurVis = false, fCurIm
             }
         }
         gRegs = nullptr;
+        if (fBlLock) IOLockUnlock(fBlLock);
+
+        if (fBlReady && !fBlHandler) {
+            fBlHandler = XeGfxBacklightHandler::withFramebuffer(this);
+            if (fBlHandler) {
+                if (!fBlHandler->attach(this)) {
+                    fBlHandler->release();
+                    fBlHandler = nullptr;
+                } else {
+                    fBlHandler->start(this);
+                    fBlHandler->registerService();
+                    XIFBLOG("XeGfxBacklightHandler attached (initLevel=%u)", (unsigned)fBlLevel);
+                }
+            }
+        }
     }
     bool blSet(uint32_t level) {
         if (!fBlReady || !fR) return false;
         if (level > kBlMax) level = kBlMax;
+        if (fBlLock) IOLockLock(fBlLock);
         fBlLevel = level;
         if (fBlPwm) {
             uint32_t duty = (uint32_t)(((uint64_t)level * fBlPwmFreq + kBlMax / 2) / kBlMax);
             wr(fBlPwmBase + 8, duty);
+            if (fBlLock) IOLockUnlock(fBlLock);
             return true;
         }
         gRegs = fR;
         gAuxCtl = fAuxCtl;
-        uint8_t mode[2] = { 0x01, 0x02 }; // enable backlight, DPCD brightness mode
-        (void)xifbAuxDpcd(0x8, 0x720, mode, 2, nullptr);
-        uint8_t val[2];
-        if (fBl16Bit) {
-            uint32_t v = (uint32_t)(((uint64_t)level * 65535u + kBlMax / 2) / kBlMax);
-            val[0] = (uint8_t)(v >> 8);
-            val[1] = (uint8_t)(v & 0xff);
-            int rc = xifbAuxDpcd(0x8, 0x722, val, 2, nullptr);
+        static unsigned nSetLog = 0;
+        bool doLog = (++nSetLog <= 12);
+        if (fBlHdr) {
+            uint32_t span = (fBlHdrMax > fBlHdrMin) ? (fBlHdrMax - fBlHdrMin) : 512u;
+            uint32_t nit = (level == 0) ? 0 : (fBlHdrMin + (uint32_t)(((uint64_t)level * span + kBlMax / 2) / kBlMax));
+            uint8_t ovr[4] = {
+                (uint8_t)(fBlHdrMin & 0xffu), (uint8_t)((fBlHdrMin >> 8) & 0xffu),
+                (uint8_t)(fBlHdrMax & 0xffu), (uint8_t)((fBlHdrMax >> 8) & 0xffu)
+            };
+            (void)xifbAuxDpcd(0x8, 0x34a, ovr, 4, nullptr);
+            uint8_t nb[4] = { (uint8_t)(nit & 0xffu), (uint8_t)((nit >> 8) & 0xffu), 0, 0 };
+            int rc = xifbAuxDpcd(0x8, 0x354, nb, 4, nullptr);
+            uint8_t c0 = 0;
+            if (xifbAuxDpcd(0x9, 0x344, nullptr, 1, &c0) == 0) {
+                uint8_t c1 = c0 | 0x10u; // INTEL_EDP_HDR_TCON_BRIGHTNESS_AUX_ENABLE
+                if (c1 != c0) (void)xifbAuxDpcd(0x8, 0x344, &c1, 1, nullptr);
+            }
+            if (doLog) {
+                uint8_t rbC = 0, rbN[4] = {};
+                (void)xifbAuxDpcd(0x9, 0x344, nullptr, 1, &rbC);
+                (void)xifbAuxDpcd(0x9, 0x354, nullptr, 4, rbN);
+                XIFBLOG("blSet HDR lvl=%u -> nit=%u rc=%d rb[344=%02x 354=%02x%02x]",
+                        (unsigned)level, (unsigned)nit, rc, rbC, rbN[1], rbN[0]);
+            }
             gRegs = nullptr;
-            return rc == 0;
-        } else {
-            val[0] = (uint8_t)(((uint64_t)level * 255u + kBlMax / 2) / kBlMax);
-            int rc = xifbAuxDpcd(0x8, 0x722, val, 1, nullptr);
-            gRegs = nullptr;
+            if (fBlLock) IOLockUnlock(fBlLock);
             return rc == 0;
         }
+        uint32_t v = (uint32_t)(((uint64_t)level * fBlHwMax + kBlMax / 2) / kBlMax);
+        uint8_t curCtrl = 0;
+        (void)xifbAuxDpcd(0x9, 0x720, nullptr, 1, &curCtrl);
+        if (fBlPwmBits) {
+            (void)xifbAuxDpcd(0x8, 0x724, &fBlPwmBits, 1, nullptr);
+        }
+        uint8_t mode = 0x02u; // DP_EDP_BACKLIGHT_CONTROL_MODE_DPCD
+        (void)xifbAuxDpcd(0x8, 0x721, &mode, 1, nullptr);
+        int rc = -1;
+        if (fBl16Bit) {
+            uint8_t val[2] = { (uint8_t)((v >> 8) & 0xffu), (uint8_t)(v & 0xffu) };
+            rc = xifbAuxDpcd(0x8, 0x722, val, 2, nullptr);
+        } else {
+            uint8_t val[1] = { (uint8_t)(v & 0xffu) };
+            rc = xifbAuxDpcd(0x8, 0x722, val, 1, nullptr);
+        }
+        uint8_t en = (curCtrl & ~0x01u) | (level > 0 ? 0x01u : 0x00u);
+        (void)xifbAuxDpcd(0x8, 0x720, &en, 1, nullptr);
+        if (doLog) {
+            uint8_t rb[5] = {};
+            (void)xifbAuxDpcd(0x9, 0x720, nullptr, 5, rb);
+            XIFBLOG("blSet VESA lvl=%u -> hw=%u rc=%d rb[720..724=%02x %02x %02x %02x %02x]",
+                    (unsigned)level, (unsigned)v, rc, rb[0], rb[1], rb[2], rb[3], rb[4]);
+        }
+        gRegs = nullptr;
+        if (fBlLock) IOLockUnlock(fBlLock);
+        return rc == 0;
     }"""
 s = s.replace(anchor2, members_code, 1)
 
@@ -234,7 +386,32 @@ start_hook = """        if (!curSetup()) fCurReady = false;
             while (!thread_call_free(fVblTimer)) IOSleep(1);
             fVblTimer = nullptr;
         }
+        if (fBlHandler) {
+            fBlHandler->stop(this);
+            fBlHandler->detach(this);
+            fBlHandler->release();
+            fBlHandler = nullptr;
+        }
         IONDRVFramebuffer::stop(provider);
+    }
+    using IONDRVFramebuffer::setProperty;
+    bool setProperty(const OSSymbol *key, OSObject *value) override {
+        bool ok = IONDRVFramebuffer::setProperty(key, value);
+        if (ok && fBlHandler && key && strcmp(key->getCStringNoCopy(), "IOFBBuiltIn") == 0) {
+            XIFBLOG("IOFBBuiltIn set -> re-syncing backlight IODisplayParameters");
+            fBlHandler->doUpdate();
+        }
+        return ok;
+    }
+    IOReturn getAppleSense(IOIndex ci, UInt32 *senseType, UInt32 *primary, UInt32 *extended, UInt32 *displayType) override {
+        if (ci == 0) {
+            if (senseType) *senseType = 0;
+            if (primary) *primary = 0;
+            if (extended) *extended = 0;
+            if (displayType) *displayType = kPanelTFTConnect;
+            return kIOReturnSuccess;
+        }
+        return IONDRVFramebuffer::getAppleSense(ci, senseType, primary, extended, displayType);
     }
     IOReturn registerForInterruptType(IOSelect type, IOFBInterruptProc proc, OSObject *target, void *ref, void **iref) override {
         if (type == kIOFBVBLInterruptType) {
@@ -261,7 +438,7 @@ start_hook = """        if (!curSetup()) fCurReady = false;
         }"""
 s = s.replace(anchor3, start_hook, 1)
 
-# 4. Handle 'flgs' (kConnectionFlags -> kIOConnectionBuiltIn) and 'bklt' in getAttributeForConnection / setAttributeForConnection
+# 4. Handle 'flgs' (kConnectionFlags -> kIOConnectionBuiltIn) and 'bklt' fallback in getAttributeForConnection / setAttributeForConnection
 anchor4 = """    IOReturn getAttributeForConnection(IOIndex ci, IOSelect attr, uintptr_t *value) override {
         if (fEdidLen && attr == kConnectionSupportsHLDDCSense) return kIOReturnSuccess;
         return IONDRVFramebuffer::getAttributeForConnection(ci, attr, value);
@@ -276,32 +453,8 @@ attr_code = """    IOReturn getAttributeForConnection(IOIndex ci, IOSelect attr,
             if (value) *value = base | (1u << 11); // kIOConnectionBuiltIn (0x800)
             return kIOReturnSuccess;
         }
-        if (fBlReady && attr == 0x70636e74u /* 'pcnt' */) {
-            uintptr_t cnt = 0;
-            IOReturn r = IONDRVFramebuffer::getAttributeForConnection(ci, attr, &cnt);
-            XIFBLOG("getAttrConn(%d, 'pcnt') base r=%08x cnt=%lu", (int)ci, (unsigned)r, (unsigned long)cnt);
-            if (value) *value = (r == kIOReturnSuccess) ? (cnt + 1) : 5;
-            return kIOReturnSuccess;
-        }
-        if (fBlReady && attr == 0x7061726du /* 'parm' */ && value) {
-            IOReturn r = IONDRVFramebuffer::getAttributeForConnection(ci, attr, value);
-            if (r == kIOReturnSuccess) {
-                uint32_t *p32 = (uint32_t *)value;
-                XIFBLOG("getAttrConn(%d, 'parm') p32=[%08x,%08x,%08x,%08x,%08x] u64=[%lx,%lx,%lx,%lx,%lx]",
-                        (int)ci, p32[0], p32[1], p32[2], p32[3], p32[4],
-                        (unsigned long)value[0], (unsigned long)value[1], (unsigned long)value[2],
-                        (unsigned long)value[3], (unsigned long)value[4]);
-                if (p32[0] == 0x72677363u && p32[1] == 0x67677363u) {
-                    p32[4] = 0x626b6c74u; /* 'bklt' */
-                } else if (value[0] == 0x72677363u && value[1] == 0x67677363u) {
-                    value[4] = 0x626b6c74u; /* 'bklt' */
-                }
-            }
-            return r;
-        }
         if (fBlReady && attr == 0x626b6c74u /* 'bklt' */) {
             if (value) *value = fBlLevel;
-            XIFBLOG("getAttrConn(%d, 'bklt') -> %u", (int)ci, (unsigned)fBlLevel);
             return kIOReturnSuccess;
         }
         IOReturn r = IONDRVFramebuffer::getAttributeForConnection(ci, attr, value);
@@ -354,6 +507,144 @@ get_attr_log = """    IOReturn getAttribute(IOSelect attr, uintptr_t *value) ove
         return r;
     }"""
 s = s.replace(get_attr_anchor, get_attr_log, 1)
+
+# 7. Append XeGfxBacklightHandler method definitions at end of intelfb.cpp
+s += r"""
+
+OSDefineMetaClassAndStructors(XeGfxBacklightHandler, IODisplayParameterHandler)
+
+static void xifbSetParamEntry(OSDictionary *params, const char *keyStr, SInt32 minVal, SInt32 maxVal, SInt32 curVal)
+{
+    if (!params) return;
+    OSDictionary *pd = OSDictionary::withCapacity(3);
+    if (!pd) return;
+    OSNumber *nMin = OSNumber::withNumber((unsigned long long)(uint32_t)minVal, 32);
+    OSNumber *nMax = OSNumber::withNumber((unsigned long long)(uint32_t)maxVal, 32);
+    OSNumber *nVal = OSNumber::withNumber((unsigned long long)(uint32_t)curVal, 32);
+    if (nMin && nMax && nVal) {
+        pd->setObject("min", nMin);
+        pd->setObject("max", nMax);
+        pd->setObject("value", nVal);
+        params->setObject(keyStr, pd);
+    }
+    if (nMin) nMin->release();
+    if (nMax) nMax->release();
+    if (nVal) nVal->release();
+    pd->release();
+}
+
+static void xifbUpdateParamValue(IODisplay *display, const char *keyStr, SInt32 val)
+{
+    if (!display) return;
+    OSObject *p = display->copyProperty("IODisplayParameters");
+    OSDictionary *dp = OSDynamicCast(OSDictionary, p);
+    OSDictionary *sub = dp ? OSDynamicCast(OSDictionary, dp->getObject(keyStr)) : nullptr;
+    OSNumber *num = sub ? OSDynamicCast(OSNumber, sub->getObject("value")) : nullptr;
+    if (num) num->setValue((unsigned long long)(uint32_t)val);
+    if (p) p->release();
+}
+
+XeGfxBacklightHandler *XeGfxBacklightHandler::withFramebuffer(XeGfxIntelFramebuffer *fb)
+{
+    XeGfxBacklightHandler *h = new XeGfxBacklightHandler;
+    if (h && !h->init()) {
+        h->release();
+        return nullptr;
+    }
+    if (h) h->fFb = fb;
+    return h;
+}
+
+bool XeGfxBacklightHandler::setDisplay(IODisplay *display)
+{
+    fDisplay = display;
+    if (!display || !fFb) return false;
+    fUserLevel = (uint32_t)(((uint64_t)fFb->fBlLevel * kUiMax + XeGfxIntelFramebuffer::kBlMax / 2) / XeGfxIntelFramebuffer::kBlMax);
+    if (fUserLevel > (uint32_t)kUiMax) fUserLevel = (uint32_t)kUiMax;
+    fFadeLevel = 0;
+    XIFBLOG("BlHandler::setDisplay(%s) initUi=%u", display->getName(), (unsigned)fUserLevel);
+    return true;
+}
+
+bool XeGfxBacklightHandler::doUpdate(void)
+{
+    if (!fDisplay || !fFb) return false;
+    OSObject *p = fDisplay->copyProperty("IODisplayParameters");
+    OSDictionary *cur = OSDynamicCast(OSDictionary, p);
+    OSDictionary *nd = cur ? OSDictionary::withDictionary(cur) : OSDictionary::withCapacity(8);
+    if (p) {
+        if (cur) {
+            OSDictionary *existingBr = OSDynamicCast(OSDictionary, cur->getObject("brightness"));
+            if (existingBr) {
+                OSNumber *mx = OSDynamicCast(OSNumber, existingBr->getObject("max"));
+                OSNumber *vl = OSDynamicCast(OSNumber, existingBr->getObject("value"));
+                XIFBLOG("BlHandler::doUpdate existing brightness max=%u val=%u -> setting %u/%d",
+                        mx ? (unsigned)mx->unsigned32BitValue() : 0u,
+                        vl ? (unsigned)vl->unsigned32BitValue() : 0u,
+                        (unsigned)fUserLevel, (int)kUiMax);
+            }
+        }
+        p->release();
+    }
+    if (!nd) return false;
+    xifbSetParamEntry(nd, "brightness", 0, kUiMax, (SInt32)fUserLevel);
+    xifbSetParamEntry(nd, "linear-brightness", 0, kUiMax, (SInt32)fUserLevel);
+    xifbSetParamEntry(nd, "brightness-fade", 0, kUiMax, (SInt32)fFadeLevel);
+    xifbSetParamEntry(nd, "commit", 0, 0, 0);
+    fDisplay->setProperty("IODisplayParameters", nd);
+    nd->release();
+    return true;
+}
+
+void XeGfxBacklightHandler::applyEffective()
+{
+    if (!fFb) return;
+    uint32_t effUi = fUserLevel;
+    if (fFadeLevel > 0) {
+        uint32_t cap = (fFadeLevel >= (uint32_t)kUiMax) ? 0u : ((uint32_t)kUiMax - fFadeLevel);
+        if (cap < effUi) effUi = cap;
+    }
+    uint32_t hw = (uint32_t)(((uint64_t)effUi * XeGfxIntelFramebuffer::kBlMax + kUiMax / 2) / kUiMax);
+    fFb->blSet(hw);
+}
+
+bool XeGfxBacklightHandler::doIntegerSet(OSDictionary *params, const OSSymbol *paramName, UInt32 value)
+{
+    const char *name = paramName ? paramName->getCStringNoCopy() : "";
+    static unsigned nLog = 0;
+    if (++nLog <= 30) XIFBLOG("BlHandler::doIntegerSet('%s', %u)", name, (unsigned)value);
+
+    if (strcmp(name, "brightness") == 0) {
+        if (value > (UInt32)kUiMax) value = (UInt32)kUiMax;
+        fUserLevel = value;
+        xifbUpdateParamValue(fDisplay, "linear-brightness", (SInt32)fUserLevel);
+        applyEffective();
+        return true;
+    }
+    if (strcmp(name, "linear-brightness") == 0) {
+        if (value > (UInt32)kUiMax) value = (UInt32)kUiMax;
+        fUserLevel = value;
+        xifbUpdateParamValue(fDisplay, "brightness", (SInt32)fUserLevel);
+        applyEffective();
+        return true;
+    }
+    if (strcmp(name, "brightness-fade") == 0) {
+        if (value > (UInt32)kUiMax) value = (UInt32)kUiMax;
+        fFadeLevel = value;
+        applyEffective();
+        return true;
+    }
+    if (strcmp(name, "commit") == 0) {
+        return true;
+    }
+    return false;
+}
+
+bool XeGfxBacklightHandler::doDataSet(const OSSymbol *paramName, OSData *value)
+{
+    return false;
+}
+"""
 
 p.write_text(s)
 print("Patched", p)
