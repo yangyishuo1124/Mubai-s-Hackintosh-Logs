@@ -5,6 +5,8 @@ mkdir -p "/Volumes/SYSTEM/EFI/Diagnostics/reports"
 {
   echo "=== DATE ==="
   /bin/date
+  echo "=== DISPLAYS ==="
+  /usr/sbin/system_profiler SPDisplaysDataType 2>&1
   echo "=== LOG SHOW (XeGfxIntelFB) ==="
   /usr/bin/log show --style compact --predicate 'eventMessage contains "XeGfxIntelFB"' --last 1h 2>&1
   echo "=== IOREG PNLF ==="
@@ -14,7 +16,10 @@ mkdir -p "/Volumes/SYSTEM/EFI/Diagnostics/reports"
   /usr/sbin/ioreg -l -w0 -c AppleDisplay 2>&1
   /usr/sbin/ioreg -l -w0 -c IODisplayConnect 2>&1
   echo "=== IOGRAPHICSFAMILY INFO.PLIST ==="
-  /usr/bin/plutil -p /System/Library/Extensions/IOGraphicsFamily.kext/Contents/Info.plist 2>&1 | /usr/bin/grep -A 35 -E "AppleBacklightDisplay|AppleDisplay" 2>&1
+  /usr/bin/grep -l "AppleBacklightDisplay" /System/Library/Extensions/*.kext/Contents/Info.plist /System/Library/Extensions/*.kext/Contents/PlugIns/*.kext/Contents/Info.plist 2>&1
+  /usr/bin/plutil -p /System/Library/Extensions/IOGraphicsFamily.kext/Contents/Info.plist 2>&1
+  echo "=== IOREG AppleACPILid ==="
+  /usr/sbin/ioreg -r -c AppleACPILid 2>&1
   echo "=== APPLEBACKLIGHT INFO.PLIST ==="
   /usr/bin/plutil -p /System/Library/Extensions/AppleBacklight.kext/Contents/Info.plist 2>&1
   echo "=== IOREG XeGfxIntelFramebuffer ==="

@@ -211,9 +211,13 @@ start_hook = """        if (!curSetup()) fCurReady = false;
         blInit();
         if (fBlReady) {
             uint32_t one = 1;
+            uint8_t zero = 0;
             provider->setProperty("AAPL,HasPanel", &one, 4);
             provider->setProperty("AAPL,backlight-control", &one, 4);
+            provider->setProperty("built-in", &zero, 1);
+            setProperty("AAPL,HasPanel", &one, 4);
             setProperty("AAPL,backlight-control", &one, 4);
+            setProperty("built-in", &zero, 1);
         }
         bool ok = IONDRVFramebuffer::start(provider);
         if (ok) armVbl();
@@ -286,10 +290,10 @@ attr_code = """    IOReturn getAttributeForConnection(IOIndex ci, IOSelect attr,
         static unsigned nConnLog = 0;
         if (nConnLog < 40) {
             nConnLog++;
-            XIFBLOG("getAttrConn(%d, '%c%c%c%c'/%08x) -> %08x val=%lx", (int)ci,
-                    (char)((attr >> 24) & 0xff), (char)((attr >> 16) & 0xff),
-                    (char)((attr >> 8) & 0xff), (char)(attr & 0xff), (unsigned)attr, (unsigned)r,
-                    value ? (unsigned long)*value : 0ul);
+            auto p4 = [](uint32_t v, int s) -> char { char c = (char)((v >> s) & 0xff); return (c >= 0x20 && c < 0x7f) ? c : '.'; };
+            XIFBLOG("getAttrConn(%d, %08x/'%c%c%c%c') -> %08x val=%lx", (int)ci,
+                    (unsigned)attr, p4(attr, 24), p4(attr, 16), p4(attr, 8), p4(attr, 0),
+                    (unsigned)r, value ? (unsigned long)*value : 0ul);
         }
         return r;
     }
@@ -323,10 +327,10 @@ get_attr_log = """    IOReturn getAttribute(IOSelect attr, uintptr_t *value) ove
         static unsigned nAttrLog = 0;
         if (nAttrLog < 40) {
             nAttrLog++;
-            XIFBLOG("getAttr('%c%c%c%c'/%08x) -> %08x val=%lx",
-                    (char)((attr >> 24) & 0xff), (char)((attr >> 16) & 0xff),
-                    (char)((attr >> 8) & 0xff), (char)(attr & 0xff), (unsigned)attr, (unsigned)r,
-                    value ? (unsigned long)*value : 0ul);
+            auto p4 = [](uint32_t v, int s) -> char { char c = (char)((v >> s) & 0xff); return (c >= 0x20 && c < 0x7f) ? c : '.'; };
+            XIFBLOG("getAttr(%08x/'%c%c%c%c') -> %08x val=%lx",
+                    (unsigned)attr, p4(attr, 24), p4(attr, 16), p4(attr, 8), p4(attr, 0),
+                    (unsigned)r, value ? (unsigned long)*value : 0ul);
         }
         return r;
     }"""
