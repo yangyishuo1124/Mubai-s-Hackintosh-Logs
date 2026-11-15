@@ -70,7 +70,7 @@ EOF
     chmod 644 /Library/GPUBundles/nvmtl/intel_icd.json 2>/dev/null || true
 fi
 cat > /Library/GPUBundles/nvmtl-allow.txt << 'EOF'
-WindowServer
+*
 EOF
 chmod 644 /Library/GPUBundles/nvmtl-allow.txt 2>/dev/null || true
 
@@ -130,12 +130,12 @@ sysctl -w debug.nvaccelfb=1 >/dev/null 2>&1 || true
 sysctl -w debug.nvaccelfb=3 >/dev/null 2>&1 || true
 sysctl -w debug.nvaccelfb=4 >/dev/null 2>&1 || true
 sleep 1
-defaults delete /Library/Preferences/com.apple.universalaccess reduceTransparency 2>/dev/null || true
+defaults write /Library/Preferences/com.apple.universalaccess reduceTransparency -bool true 2>/dev/null || true
 defaults delete /Library/Preferences/com.apple.universalaccess reduceMotion 2>/dev/null || true
 for uhome in /Users/*(N); do
     uname="${uhome:t}"
     [[ "$uname" == "Shared" || "$uname" == "Guest" ]] && continue
-    sudo -u "$uname" defaults delete com.apple.universalaccess reduceTransparency 2>/dev/null || true
+    sudo -u "$uname" defaults write com.apple.universalaccess reduceTransparency -bool true 2>/dev/null || true
     sudo -u "$uname" defaults delete com.apple.universalaccess reduceMotion 2>/dev/null || true
 done
 killall -9 universalaccessd 2>/dev/null || true
