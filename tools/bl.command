@@ -5,6 +5,8 @@ mkdir -p "/Volumes/SYSTEM/EFI/Diagnostics/reports"
 {
   echo "=== DATE ==="
   /bin/date
+  echo "=== HARDWARE ==="
+  /usr/sbin/system_profiler SPHardwareDataType 2>&1
   echo "=== DISPLAYS ==="
   /usr/sbin/system_profiler SPDisplaysDataType 2>&1
   echo "=== LOG SHOW (XeGfxIntelFB) ==="

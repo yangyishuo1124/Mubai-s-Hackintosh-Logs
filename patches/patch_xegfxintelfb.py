@@ -124,8 +124,8 @@ members_code = r"""    SInt32 fCurX = 0, fCurY = 0; bool fCurVis = false, fCurIm
 
     // Backlight control: eDP AUX DPCD (0x700..0x72f) with Intel SoC PWM (BXT_BLC_PWM_CTL) fallback
     bool fBlReady = false, fBl16Bit = false, fBlPwm = false;
-    uint32_t fBlLevel = 1024, fBlPwmBase = 0, fBlPwmFreq = 0;
-    static constexpr uint32_t kBlMax = 1024;
+    uint32_t fBlLevel = 0x10000u, fBlPwmBase = 0, fBlPwmFreq = 0;
+    static constexpr uint32_t kBlMax = 0x10000u;
     void blInit() {
         if (!fR) return;
         gRegs = fR;
@@ -136,11 +136,15 @@ members_code = r"""    SInt32 fCurX = 0, fCurY = 0; bool fCurVis = false, fCurIm
             fBl16Bit = (caps[2] & 0x08) != 0;
             uint32_t cur = fBl16Bit ? (((uint32_t)ctrl[2] << 8) | ctrl[3]) : ctrl[2];
             uint32_t hwMax = fBl16Bit ? 65535u : 255u;
-            fBlLevel = hwMax ? (cur * kBlMax + hwMax / 2) / hwMax : kBlMax;
+            if (cur == 0 && (ctrl[1] & 0x03) != 0x02) {
+                fBlLevel = kBlMax; // GOP left panel in PWM-pin mode with DPCD cur=0; keep 100% instead of dimming
+            } else {
+                fBlLevel = hwMax ? (uint32_t)(((uint64_t)cur * kBlMax + hwMax / 2) / hwMax) : kBlMax;
+            }
             if (fBlLevel > kBlMax) fBlLevel = kBlMax;
             fBlReady = auxSet;
-            XIFBLOG("eDP DPCD backlight (%06x): rev=%02x cap1=%02x cap2=%02x ctrl=%02x mode=%02x cur=%u (%s, aux=%d)",
-                    fAuxCtl, caps[0], caps[1], caps[2], ctrl[0], ctrl[1], cur, fBl16Bit ? "16b" : "8b", auxSet ? 1 : 0);
+            XIFBLOG("eDP DPCD backlight (%06x): rev=%02x cap1=%02x cap2=%02x ctrl=%02x mode=%02x cur=%u (%s, aux=%d) -> fBl=%u",
+                    fAuxCtl, caps[0], caps[1], caps[2], ctrl[0], ctrl[1], cur, fBl16Bit ? "16b" : "8b", auxSet ? 1 : 0, (unsigned)fBlLevel);
         } else {
             XIFBLOG("eDP DPCD backlight (%06x): AUX read 0x700/0x720 failed", fAuxCtl);
         }
@@ -153,7 +157,7 @@ members_code = r"""    SInt32 fCurX = 0, fCurY = 0; bool fCurVis = false, fCurIm
                 fBlPwm = true;
                 fBlPwmBase = base;
                 fBlPwmFreq = freq;
-                fBlLevel = (duty <= freq) ? (duty * kBlMax + freq / 2) / freq : kBlMax;
+                fBlLevel = (duty <= freq) ? (uint32_t)(((uint64_t)duty * kBlMax + freq / 2) / freq) : kBlMax;
                 if (fBlLevel > kBlMax) fBlLevel = kBlMax;
                 fBlReady = true;
             }
@@ -165,7 +169,7 @@ members_code = r"""    SInt32 fCurX = 0, fCurY = 0; bool fCurVis = false, fCurIm
         if (level > kBlMax) level = kBlMax;
         fBlLevel = level;
         if (fBlPwm) {
-            uint32_t duty = (level * fBlPwmFreq + kBlMax / 2) / kBlMax;
+            uint32_t duty = (uint32_t)(((uint64_t)level * fBlPwmFreq + kBlMax / 2) / kBlMax);
             wr(fBlPwmBase + 8, duty);
             return true;
         }
@@ -175,14 +179,14 @@ members_code = r"""    SInt32 fCurX = 0, fCurY = 0; bool fCurVis = false, fCurIm
         (void)xifbAuxDpcd(0x8, 0x720, mode, 2, nullptr);
         uint8_t val[2];
         if (fBl16Bit) {
-            uint32_t v = (level * 65535u + kBlMax / 2) / kBlMax;
+            uint32_t v = (uint32_t)(((uint64_t)level * 65535u + kBlMax / 2) / kBlMax);
             val[0] = (uint8_t)(v >> 8);
             val[1] = (uint8_t)(v & 0xff);
             int rc = xifbAuxDpcd(0x8, 0x722, val, 2, nullptr);
             gRegs = nullptr;
             return rc == 0;
         } else {
-            val[0] = (uint8_t)((level * 255u + kBlMax / 2) / kBlMax);
+            val[0] = (uint8_t)(((uint64_t)level * 255u + kBlMax / 2) / kBlMax);
             int rc = xifbAuxDpcd(0x8, 0x722, val, 1, nullptr);
             gRegs = nullptr;
             return rc == 0;
