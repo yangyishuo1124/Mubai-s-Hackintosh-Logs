@@ -180,6 +180,10 @@ log_pid=$!
 /bin/ps -axo pid,ppid,state,etime,comm > "$out/processes-first.txt" 2>&1
 for n in {1..24}; do
     date '+%Y-%m-%d %H:%M:%S' >> "$out/heartbeat.txt"
+    if [[ "$n" -eq 6 ]]; then
+        /usr/sbin/sysctl debug.nmxaccel_headless debug.nvaccelfb debug.nvaccel_iop debug.nvaccel_iop_ok_h4 debug.nvaccel_iop_fail debug.nvaccel_pipe_init debug.nvaccel_pipe_validate debug.nvaccel_pipe_perform debug.nvaccel_pipe_complete debug.nvaccel_scanout_copies > "$out/accel-30s.txt" 2>&1 || true
+        /usr/bin/sample WindowServer 2 -file "$out/ws-sample-30s.txt" >/dev/null 2>&1 &
+    fi
     sleep 5
 done
 if kill -0 "$log_pid" 2>/dev/null; then
