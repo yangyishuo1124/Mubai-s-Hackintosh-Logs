@@ -78,6 +78,9 @@ mkdir -p /Library/GPUBundles/nvmtl 2>/dev/null || true
 cat > /Library/GPUBundles/nvmtl/nvrm610.conf << 'EOF'
 NVMTL_XE_UNIFIED=1
 NVMTL_ASYNC_COMMIT=0
+NVMTL_NO_HEAP_ALIAS=1
+NVMTL_NO_NOCOPY=1
+NVMTL_EVFOLD=0
 EOF
 chmod 644 /Library/GPUBundles/nvmtl/nvrm610.conf 2>/dev/null || true
 if [[ -f "$here/GPU/vulkan/libvulkan_intel.dylib" ]] && ! cmp -s "$here/GPU/vulkan/libvulkan_intel.dylib" /Library/GPUBundles/nvmtl/libvulkan_intel.dylib 2>/dev/null; then
@@ -136,8 +139,14 @@ for uhome in /Users/*(N); do
     sudo -u "$uname" defaults delete com.apple.universalaccess reduceMotion 2>/dev/null || true
 done
 killall -9 universalaccessd 2>/dev/null || true
+need_ws_restart=0
 if [[ -f "$here/ws-restart.request" ]]; then
     mv "$here/ws-restart.request" "$here/reports/ws-restart-$(date +%Y%m%d-%H%M%S)-$$.attempted" 2>/dev/null || rm -f "$here/ws-restart.request"
+    need_ws_restart=1
+elif [[ "$(/usr/sbin/sysctl -n debug.xegfx_stage 2>/dev/null)" == "7" && "$(/usr/sbin/sysctl -n debug.nvaccel_pipe_validate 2>/dev/null)" == "0" ]]; then
+    need_ws_restart=1
+fi
+if [[ "$need_ws_restart" -eq 1 ]]; then
     /usr/bin/log stream --style compact --predicate 'process == "WindowServer" OR process == "loginwindow" OR sender == "XeGfxAccel" OR sender == "XeGfxAGDC" OR sender == "NMIntelFB" OR (sender == "kernel" AND (eventMessage CONTAINS "xegfx" OR eventMessage CONTAINS "NMIntelFB")) OR eventMessage CONTAINS "NVMTL"' > /tmp/ws-live.txt 2>&1 &
     stream_pid=$!
     sleep 1
