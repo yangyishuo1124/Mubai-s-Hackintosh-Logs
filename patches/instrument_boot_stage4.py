@@ -11,9 +11,7 @@ queue=r'''
 	if (PE_parse_boot_argn("xegfx_bootstage", &target, sizeof(target)) && target == 4) {
 		gBootInitCall = thread_call_allocate(xg_boot_fire, nullptr);
 		if (gBootInitCall) {
-			uint64_t deadline;
-			clock_interval_to_deadline(3000, NSEC_PER_MSEC, &deadline);
-			thread_call_enter_delayed(gBootInitCall, deadline);
+			thread_call_enter(gBootInitCall);
 		} else xg_printf("XeGfx BOOT: failed to allocate deferred initializer\n");
 	}
 '''.replace('\n+', '\n')
@@ -47,7 +45,7 @@ xg_boot_initialize(void)
  gpu->release();
  xg_printf("XeGfx BOOT: GPU discovered; starting stages\n");
  strlcpy(xg_env, "compat.linuxkpi.xe_probe_display=0 compat.linuxkpi.xe_probe_skip_pc_start=1 compat.linuxkpi.xe_probe_skip_lrc_ggtt_remove=1", sizeof(xg_env));
- xg_printf("XeGfx BOOT V34: automatic stages 1-4 (after 3s delay); display=0 PC bypass=1 LRC ggtt_remove bypass=1 sync_drain=1 Stage 7 unlocked\n");
+ xg_printf("XeGfx BOOT V35: automatic stages 1-4 (immediate); display=0 PC bypass=1 LRC ggtt_remove bypass=1 sync_drain=1 Stage 7 unlocked\n");
  int err = xg_request_watchdog_start();
  if (err) {
   xg_printf("XeGfx BOOT watchdog unavailable: %d; initialization stopped\n", err);

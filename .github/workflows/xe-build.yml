@@ -1,5 +1,5 @@
 name: Experimental Panther Lake Xe build
-# V24 dispatches boot initialization to a dedicated kernel thread; periodic monitor status.
+# V35 dispatches boot initialization immediately (no 3s delay); periodic monitor status.
 on:
   push:
     paths:
