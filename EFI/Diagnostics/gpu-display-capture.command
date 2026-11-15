@@ -94,24 +94,50 @@ if [[ "$stage" -lt 7 ]]; then
 fi
 if ! ioreg -r -c NMXAccel | grep -q NMXAccel; then
     rm -rf /tmp/XeGfxAGDC.kext /tmp/XeGfxAccel.kext 2>/dev/null || true
-    if [[ ! -d /Library/Extensions/XeGfxAGDC.kext || ! -d /Library/Extensions/XeGfxAccel.kext || ! -d /Library/Extensions/NMIntelFB.kext ]]; then
-        rm -rf /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
+    if [[ ! -d /Library/Extensions/XeGfxAGDC.kext || ! -d /Library/Extensions/XeGfxAccel.kext ]]; then
+        rm -rf /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
         cp -R "$here/GPU/kexts/XeGfxAGDC.kext" /Library/Extensions/XeGfxAGDC.kext 2>/dev/null || true
         cp -R "$here/GPU/kexts/XeGfxAccel.kext" /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
-        cp -R "$here/GPU/kexts/NMIntelFB.kext" /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
-        chown -R root:wheel /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
-        chmod -R 755 /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
+        chown -R root:wheel /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
+        chmod -R 755 /Library/Extensions/XeGfxAGDC.kext /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
     fi
     kextload /Library/Extensions/XeGfxAGDC.kext 2>/dev/null || true
     kextload /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
     sleep 1
 fi
+if ! ioreg -r -c NMIntelFB | grep -q NMIntelFB; then
+    if [[ -d "$here/GPU/kexts/NMIntelFB.kext" && ! -d /Library/Extensions/NMIntelFB.kext ]]; then
+        cp -R "$here/GPU/kexts/NMIntelFB.kext" /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
+        chown -R root:wheel /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
+        chmod -R 755 /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
+        codesign --force --sign - /Library/Extensions/NMIntelFB.kext > "$out/nmintelfb-codesign.log" 2>&1 || true
+        KC=/Library/KernelCollections/AuxiliaryKernelExtensions.kc
+        NEW="$KC.nmintelfb-new"
+        rm -f "$NEW" 2>/dev/null || true
+        KARG=(--allow-missing-kdk)
+        [[ ! -f /System/Library/Kernels/kernel ]] || KARG+=(--kernel /System/Library/Kernels/kernel)
+        if /usr/bin/kmutil create -n aux --volume-root / "${KARG[@]}" \
+            -B /System/Library/KernelCollections/BootKernelExtensions.kc \
+            -S /System/Library/KernelCollections/SystemKernelExtensions.kc \
+            --repository /Library/Extensions -A "$NEW" -z > "$out/nmintelfb-kmutil.log" 2>&1; then
+            [[ ! -e "$KC" ]] || cp -p "$KC" "$KC.before-nmintelfb" 2>/dev/null || true
+            mv -f "$NEW" "$KC" 2>> "$out/nmintelfb-kmutil.log" || true
+            print "AuxKC rebuilt with NMIntelFB.kext (reboot required to activate)" >> "$out/nmintelfb-kmutil.log"
+        else
+            rm -f "$NEW" 2>/dev/null || true
+        fi
+    fi
+fi
+kextstat | grep -E 'XeGfx|NMIntel|NMX' > "$out/kextstat.txt" 2>&1 || true
+ioreg -r -c NMIntelFB -l > "$out/nmintelfb-ioreg.txt" 2>&1 || true
 sysctl -w debug.xegfx_agdc=1 >/dev/null 2>&1 || true
 sysctl -w debug.xegfx_agdc_k5=1 >/dev/null 2>&1 || true
 sysctl -w debug.xegfx_agdc_fbcapex=1 >/dev/null 2>&1 || true
 sysctl -w debug.xegfx_agdc_client_ack=1 >/dev/null 2>&1 || true
 sleep 1
 sysctl -w debug.nvaccel_iop=1 >/dev/null 2>&1 || true
+sysctl -w debug.nvaccelfb=1 >/dev/null 2>&1 || true
+sysctl -w debug.nvaccelfb=3 >/dev/null 2>&1 || true
 sysctl -w debug.nvaccelfb=4 >/dev/null 2>&1 || true
 sleep 1
 defaults delete /Library/Preferences/com.apple.universalaccess reduceTransparency 2>/dev/null || true
