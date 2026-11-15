@@ -107,47 +107,22 @@ if ! ioreg -r -c NMXAccel | grep -q NMXAccel; then
     sleep 1
 fi
 sysctl -w debug.xegfx_agdc=1 >/dev/null 2>&1 || true
+sysctl -w debug.xegfx_agdc_k5=1 >/dev/null 2>&1 || true
+sysctl -w debug.xegfx_agdc_fbcapex=1 >/dev/null 2>&1 || true
+sysctl -w debug.xegfx_agdc_client_ack=1 >/dev/null 2>&1 || true
 sleep 1
 sysctl -w debug.nvaccel_iop=1 >/dev/null 2>&1 || true
 sysctl -w debug.nvaccelfb=4 >/dev/null 2>&1 || true
 sleep 1
-if ! ioreg -r -c NMIntelFB | grep -q NMIntelFB; then
-    # Trigger System Settings approval prompt if not yet approved, or rebuild AuxKC if approved so it loads at boot before IONDRVFramebuffer
-    if kextload /Library/Extensions/NMIntelFB.kext > "$out/nmintelfb-load.txt" 2>&1; then
-        {
-            echo "=== kmutil create -n aux ==="
-            kmutil create -a x86_64 -n aux \
-                -B /System/Library/KernelCollections/BootKernelExtensions.kc \
-                -S /System/Library/KernelCollections/SystemKernelExtensions.kc \
-                -p /Library/KernelCollections/AuxiliaryKernelCollection.kc \
-                --repository /Library/Extensions \
-                -b com.nullmoth.NMIntelFB 2>&1 || kmutil create --help 2>&1
-            echo "=== /Library/KernelCollections ==="
-            ls -la /Library/KernelCollections/ 2>&1 || true
-        } > "$out/kmutil-auxkc.txt" 2>&1 || true
-        kmutil inspect -p /Library/KernelCollections/AuxiliaryKernelCollection.kc > "$out/kmutil-inspect.txt" 2>&1 || true
-    fi
-    defaults write /Library/Preferences/com.apple.universalaccess reduceTransparency -bool true 2>/dev/null || true
-    defaults write /Library/Preferences/com.apple.universalaccess reduceMotion -bool true 2>/dev/null || true
-    for uhome in /Users/*(N); do
-        uname="${uhome:t}"
-        [[ "$uname" == "Shared" || "$uname" == "Guest" ]] && continue
-        sudo -u "$uname" defaults write com.apple.universalaccess reduceTransparency -bool true 2>/dev/null || true
-        sudo -u "$uname" defaults write com.apple.universalaccess reduceMotion -bool true 2>/dev/null || true
-    done
-    killall -9 universalaccessd 2>/dev/null || true
-else
-    # NMIntelFB is active: restore full Liquid Glass
-    defaults delete /Library/Preferences/com.apple.universalaccess reduceTransparency 2>/dev/null || true
-    defaults delete /Library/Preferences/com.apple.universalaccess reduceMotion 2>/dev/null || true
-    for uhome in /Users/*(N); do
-        uname="${uhome:t}"
-        [[ "$uname" == "Shared" || "$uname" == "Guest" ]] && continue
-        sudo -u "$uname" defaults delete com.apple.universalaccess reduceTransparency 2>/dev/null || true
-        sudo -u "$uname" defaults delete com.apple.universalaccess reduceMotion 2>/dev/null || true
-    done
-    killall -9 universalaccessd 2>/dev/null || true
-fi
+defaults delete /Library/Preferences/com.apple.universalaccess reduceTransparency 2>/dev/null || true
+defaults delete /Library/Preferences/com.apple.universalaccess reduceMotion 2>/dev/null || true
+for uhome in /Users/*(N); do
+    uname="${uhome:t}"
+    [[ "$uname" == "Shared" || "$uname" == "Guest" ]] && continue
+    sudo -u "$uname" defaults delete com.apple.universalaccess reduceTransparency 2>/dev/null || true
+    sudo -u "$uname" defaults delete com.apple.universalaccess reduceMotion 2>/dev/null || true
+done
+killall -9 universalaccessd 2>/dev/null || true
 if [[ -f "$here/ws-restart.request" ]]; then
     mv "$here/ws-restart.request" "$here/reports/ws-restart-$(date +%Y%m%d-%H%M%S)-$$.attempted" 2>/dev/null || rm -f "$here/ws-restart.request"
     /usr/bin/log stream --style compact --predicate 'process == "WindowServer" OR process == "loginwindow" OR sender == "XeGfxAccel" OR sender == "XeGfxAGDC" OR sender == "NMIntelFB" OR (sender == "kernel" AND (eventMessage CONTAINS "xegfx" OR eventMessage CONTAINS "NMIntelFB")) OR eventMessage CONTAINS "NVMTL"' > /tmp/ws-live.txt 2>&1 &
@@ -158,7 +133,7 @@ if [[ -f "$here/ws-restart.request" ]]; then
         sleep 2
         cp -f /tmp/ws-live.txt "$out/ws-live.txt" 2>/dev/null || true
         if [[ "$i" -eq 4 || "$i" -eq 12 || "$i" -eq 24 || "$i" -eq 34 ]]; then
-            /usr/sbin/sysctl debug.nmxaccel_headless debug.nvaccelfb debug.nvaccel_iop debug.nvaccel_iop_ok_h4 debug.nvaccel_iop_fail debug.nvaccel_pipe_init debug.nvaccel_pipe_validate debug.nvaccel_pipe_perform debug.nvaccel_pipe_complete debug.nvaccel_scanout_copies debug.nvaccel_scanout_last_us debug.nvaccel_scanout_max_us debug.nvaccel_scanout_sum_us debug.nvaccel_scanout_self debug.nvaccel_iop_copy_us debug.nvaccel_iop_copy_us_max debug.xegfx_agdc debug.xegfx_agdc_cmds > "$out/accel-after-restart.txt" 2>&1 || true
+            /usr/sbin/sysctl debug.nmxaccel_headless debug.nvaccelfb debug.nvaccel_iop debug.nvaccel_iop_ok_h4 debug.nvaccel_iop_fail debug.nvaccel_pipe_init debug.nvaccel_pipe_validate debug.nvaccel_pipe_perform debug.nvaccel_pipe_complete debug.nvaccel_scanout_copies debug.nvaccel_scanout_last_us debug.nvaccel_scanout_max_us debug.nvaccel_scanout_sum_us debug.nvaccel_scanout_self debug.nvaccel_iop_copy_us debug.nvaccel_iop_copy_us_max debug.xegfx_agdc debug.xegfx_agdc_k5 debug.xegfx_agdc_fbcapex debug.xegfx_agdc_client_ack debug.xegfx_agdc_k5_asked debug.xegfx_agdc_k5_link debug.xegfx_agdc_k5_caps debug.xegfx_agdc_k5_why debug.xegfx_agdc_fbcapex_asked debug.xegfx_agdc_fbcapex_served debug.xegfx_agdc_client_set debug.xegfx_agdc_last_refused debug.xegfx_agdc_refused debug.xegfx_agdc_cmds > "$out/accel-after-restart.txt" 2>&1 || true
             dmesg > "$out/dmesg-after-restart.txt" 2>&1 || true
         fi
         if [[ "$i" -eq 10 ]]; then
