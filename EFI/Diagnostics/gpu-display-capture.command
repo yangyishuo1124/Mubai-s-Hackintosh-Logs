@@ -70,6 +70,8 @@ EOF
     chmod 644 /Library/GPUBundles/nvmtl/intel_icd.json 2>/dev/null || true
 fi
 cat > /Library/GPUBundles/nvmtl-allow.txt << 'EOF'
+-WindowServer
+*
 EOF
 chmod 644 /Library/GPUBundles/nvmtl-allow.txt 2>/dev/null || true
 
