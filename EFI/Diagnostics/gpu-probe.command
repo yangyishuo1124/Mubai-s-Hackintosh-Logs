@@ -176,6 +176,10 @@ cp -f "$base/GPU/vulkan/libvulkan.1.dylib" /Library/GPUBundles/nvmtl/libvulkan.d
 cp -f "$base/GPU/vulkan/libvulkan_intel.dylib" /Library/GPUBundles/nvmtl/libvulkan_intel.dylib
 cp -f "$base/GPU/metal/libnvmtl_translate.dylib" /Library/GPUBundles/nvmtl/libnvmtl_translate.dylib
 chmod 755 /Library/GPUBundles/nvmtl/*.dylib
+/usr/bin/codesign -f -s - /Library/GPUBundles/nvmtl/*.dylib 2>/dev/null || true
+/usr/bin/codesign -f -s - /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/*.dylib 2>/dev/null || true
+/usr/bin/codesign -f -s - /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/NVMTLDriver 2>/dev/null || true
+/usr/bin/codesign -f -s - /Library/GPUBundles/NVMTLDriver.bundle 2>/dev/null || true
 
 cat > /Library/GPUBundles/nvmtl/intel_icd.json << 'EOF'
 {
@@ -254,5 +258,5 @@ if [[ -n "$(ioreg -r -c NMXAccel 2>/dev/null)" ]]; then
     sync
     printf '%s\n' '即将在 2 秒后重启 WindowServer（会回到登录界面，重新登录即可检验加速；若黑屏请强制重启）...'
     sleep 2
-    killall WindowServer 2>/dev/null || true
+    killall -9 WindowServer 2>/dev/null || true
 fi

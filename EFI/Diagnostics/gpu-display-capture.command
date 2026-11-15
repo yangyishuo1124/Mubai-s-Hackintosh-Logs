@@ -50,6 +50,10 @@ EOF
     cp -f "$here/GPU/vulkan/libvulkan_intel.dylib" /Library/GPUBundles/nvmtl/libvulkan_intel.dylib 2>/dev/null || true
     cp -f "$here/GPU/metal/libnvmtl_translate.dylib" /Library/GPUBundles/nvmtl/libnvmtl_translate.dylib 2>/dev/null || true
     chmod 755 /Library/GPUBundles/nvmtl/*.dylib 2>/dev/null || true
+    /usr/bin/codesign -f -s - /Library/GPUBundles/nvmtl/*.dylib 2>/dev/null || true
+    /usr/bin/codesign -f -s - /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/air-runtime/*.dylib 2>/dev/null || true
+    /usr/bin/codesign -f -s - /Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/NVMTLDriver 2>/dev/null || true
+    /usr/bin/codesign -f -s - /Library/GPUBundles/NVMTLDriver.bundle 2>/dev/null || true
     cat > /Library/GPUBundles/nvmtl/intel_icd.json << 'EOF'
 {
     "file_format_version": "1.0.1",
