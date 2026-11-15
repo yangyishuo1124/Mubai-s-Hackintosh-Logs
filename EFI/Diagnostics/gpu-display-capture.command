@@ -105,32 +105,11 @@ if ! ioreg -r -c NMXAccel | grep -q NMXAccel; then
     kextload /Library/Extensions/XeGfxAccel.kext 2>/dev/null || true
     sleep 1
 fi
-if ! ioreg -r -c NMIntelFB | grep -q NMIntelFB; then
-    if [[ -d "$here/GPU/kexts/NMIntelFB.kext" ]] && ! cmp -s "$here/GPU/kexts/NMIntelFB.kext/Contents/MacOS/NMIntelFB" /Library/Extensions/NMIntelFB.kext/Contents/MacOS/NMIntelFB 2>/dev/null; then
-        rm -rf /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
-        cp -R "$here/GPU/kexts/NMIntelFB.kext" /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
-        chown -R root:wheel /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
-        chmod -R 755 /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
-        codesign --force --sign - /Library/Extensions/NMIntelFB.kext > "$out/nmintelfb-codesign.log" 2>&1 || true
-        KC=/Library/KernelCollections/AuxiliaryKernelExtensions.kc
-        NEW="$KC.nmintelfb-new"
-        rm -f "$NEW" 2>/dev/null || true
-        KARG=(--allow-missing-kdk)
-        [[ ! -f /System/Library/Kernels/kernel ]] || KARG+=(--kernel /System/Library/Kernels/kernel)
-        if /usr/bin/kmutil create -n aux --volume-root / "${KARG[@]}" \
-            -B /System/Library/KernelCollections/BootKernelExtensions.kc \
-            -S /System/Library/KernelCollections/SystemKernelExtensions.kc \
-            --repository /Library/Extensions -A "$NEW" -z > "$out/nmintelfb-kmutil.log" 2>&1; then
-            [[ ! -e "$KC" ]] || cp -p "$KC" "$KC.before-nmintelfb" 2>/dev/null || true
-            mv -f "$NEW" "$KC" 2>> "$out/nmintelfb-kmutil.log" || true
-            print "AuxKC rebuilt with NMIntelFB.kext (reboot required to activate)" >> "$out/nmintelfb-kmutil.log"
-        else
-            rm -f "$NEW" 2>/dev/null || true
-        fi
-    fi
+if [[ -d /Library/Extensions/NMIntelFB.kext ]]; then
+    rm -rf /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
 fi
 kextstat | grep -E 'XeGfx|NMIntel|NMX' > "$out/kextstat.txt" 2>&1 || true
-ioreg -r -c NMIntelFB -l > "$out/nmintelfb-ioreg.txt" 2>&1 || true
+ioreg -r -c XeGfxIntelFramebuffer -l > "$out/xeintelfb-ioreg.txt" 2>&1 || true
 sysctl -w debug.xegfx_agdc=1 >/dev/null 2>&1 || true
 sysctl -w debug.xegfx_agdc_k5=1 >/dev/null 2>&1 || true
 sysctl -w debug.xegfx_agdc_fbcapex=1 >/dev/null 2>&1 || true
