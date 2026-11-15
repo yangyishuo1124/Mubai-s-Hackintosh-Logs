@@ -1,5 +1,5 @@
 name: Experimental Panther Lake Xe build
-# V35 dispatches boot initialization immediately (no 3s delay); periodic monitor status.
+# V35 dispatches boot initialization immediately (no 3s delay); update test_boot_stage4.
 on:
   push:
     paths:

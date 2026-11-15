@@ -3,7 +3,7 @@ import sys,tempfile,subprocess
 s=Path(sys.argv[1]).read_text();a=s.index('static void\nxg_boot_initialize(void)\n{');b=s.index('static void\nxg_boot_worker(',a)
 fn=s[a:b]
 start=s[s.index('bool\nXeGfxResident::start'):s.index('OSDefineMetaClassAndStructors')]
-assert 'thread_call_enter_delayed' in start and 'xg_boot_initialize();' not in start
+assert 'thread_call_enter(' in start and 'thread_call_enter_delayed' not in start and 'xg_boot_initialize();' not in start
 assert '|| gBootInitCall)' in s
 worker=s[b:s.index('static int\nxegfx_stage_sysctl(',b)]
 assert worker.count('xg_boot_initialize();') == 1
