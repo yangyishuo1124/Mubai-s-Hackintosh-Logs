@@ -111,32 +111,36 @@ sleep 1
 sysctl -w debug.nvaccel_iop=1 >/dev/null 2>&1 || true
 sysctl -w debug.nvaccelfb=4 >/dev/null 2>&1 || true
 sleep 1
+if ! ioreg -r -c NMIntelFB | grep -q NMIntelFB; then
+    # Trigger System Settings approval prompt if not yet approved, and temporarily reduce transparency so desktop is usable to approve it
+    kextload /Library/Extensions/NMIntelFB.kext > "$out/nmintelfb-load.txt" 2>&1 || true
+    defaults write /Library/Preferences/com.apple.universalaccess reduceTransparency -bool true 2>/dev/null || true
+    defaults write /Library/Preferences/com.apple.universalaccess reduceMotion -bool true 2>/dev/null || true
+    for uhome in /Users/*(N); do
+        uname="${uhome:t}"
+        [[ "$uname" == "Shared" || "$uname" == "Guest" ]] && continue
+        sudo -u "$uname" defaults write com.apple.universalaccess reduceTransparency -bool true 2>/dev/null || true
+        sudo -u "$uname" defaults write com.apple.universalaccess reduceMotion -bool true 2>/dev/null || true
+    done
+    killall -9 universalaccessd 2>/dev/null || true
+else
+    # NMIntelFB is active: restore full Liquid Glass
+    defaults delete /Library/Preferences/com.apple.universalaccess reduceTransparency 2>/dev/null || true
+    defaults delete /Library/Preferences/com.apple.universalaccess reduceMotion 2>/dev/null || true
+    for uhome in /Users/*(N); do
+        uname="${uhome:t}"
+        [[ "$uname" == "Shared" || "$uname" == "Guest" ]] && continue
+        sudo -u "$uname" defaults delete com.apple.universalaccess reduceTransparency 2>/dev/null || true
+        sudo -u "$uname" defaults delete com.apple.universalaccess reduceMotion 2>/dev/null || true
+    done
+    killall -9 universalaccessd 2>/dev/null || true
+fi
 if [[ -f "$here/ws-restart.request" ]]; then
     mv "$here/ws-restart.request" "$here/reports/ws-restart-$(date +%Y%m%d-%H%M%S)-$$.attempted" 2>/dev/null || rm -f "$here/ws-restart.request"
     /usr/bin/log stream --style compact --predicate 'process == "WindowServer" OR process == "loginwindow" OR sender == "XeGfxAccel" OR sender == "XeGfxAGDC" OR sender == "NMIntelFB" OR (sender == "kernel" AND (eventMessage CONTAINS "xegfx" OR eventMessage CONTAINS "NMIntelFB")) OR eventMessage CONTAINS "NVMTL"' > /tmp/ws-live.txt 2>&1 &
     stream_pid=$!
     sleep 1
     killall -9 WindowServer 2>/dev/null || true
-    sleep 1
-    if ! ioreg -r -c NMIntelFB | grep -q NMIntelFB; then
-        {
-            echo "=== pre-unload ==="
-            kextload /Library/Extensions/NMIntelFB.kext 2>&1 || true
-            if ! ioreg -r -c NMIntelFB | grep -q NMIntelFB; then
-                echo "=== unloading IONDRVSupport ==="
-                kextunload -b com.apple.iokit.IONDRVSupport 2>&1 || true
-                sleep 1
-                echo "=== loading NMIntelFB ==="
-                kextload /Library/Extensions/NMIntelFB.kext 2>&1 || true
-                sleep 1
-                if ! ioreg -r -c NMIntelFB | grep -q NMIntelFB; then
-                    echo "=== NMIntelFB did not attach, restoring IONDRVSupport ==="
-                    kextload /System/Library/Extensions/IONDRVSupport.kext 2>&1 || true
-                fi
-            fi
-            ioreg -r -c NMIntelFB 2>&1 | head -n 40
-        } > "$out/nmintelfb-load.txt" 2>&1 || true
-    fi
     for i in {1..35}; do
         sleep 2
         cp -f /tmp/ws-live.txt "$out/ws-live.txt" 2>/dev/null || true
