@@ -106,7 +106,8 @@ if ! ioreg -r -c NMXAccel | grep -q NMXAccel; then
     sleep 1
 fi
 if ! ioreg -r -c NMIntelFB | grep -q NMIntelFB; then
-    if [[ -d "$here/GPU/kexts/NMIntelFB.kext" && ! -d /Library/Extensions/NMIntelFB.kext ]]; then
+    if [[ -d "$here/GPU/kexts/NMIntelFB.kext" ]] && ! cmp -s "$here/GPU/kexts/NMIntelFB.kext/Contents/MacOS/NMIntelFB" /Library/Extensions/NMIntelFB.kext/Contents/MacOS/NMIntelFB 2>/dev/null; then
+        rm -rf /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
         cp -R "$here/GPU/kexts/NMIntelFB.kext" /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
         chown -R root:wheel /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
         chmod -R 755 /Library/Extensions/NMIntelFB.kext 2>/dev/null || true
