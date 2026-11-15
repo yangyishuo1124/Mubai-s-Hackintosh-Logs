@@ -9,8 +9,9 @@ mkdir -p "/Volumes/SYSTEM/EFI/Diagnostics/reports"
   /usr/bin/log show --style compact --predicate 'eventMessage contains "XeGfxIntelFB"' --last 1h 2>&1
   echo "=== IOREG PNLF ==="
   /usr/sbin/ioreg -r -n PNLF 2>&1
-  echo "=== IOREG AppleBacklightDisplay ==="
+  echo "=== IOREG AppleBacklightDisplay / IODisplayConnect ==="
   /usr/sbin/ioreg -r -c AppleBacklightDisplay 2>&1
+  /usr/sbin/ioreg -r -c IODisplayConnect -d 2 2>&1
   echo "=== IOREG XeGfxIntelFramebuffer ==="
   /usr/sbin/ioreg -r -c XeGfxIntelFramebuffer -d 4 2>&1
   echo "=== KEXTSTAT ==="

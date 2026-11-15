@@ -266,7 +266,16 @@ attr_code = """    IOReturn getAttributeForConnection(IOIndex ci, IOSelect attr,
             if (value) *value = fBlLevel;
             return kIOReturnSuccess;
         }
-        return IONDRVFramebuffer::getAttributeForConnection(ci, attr, value);
+        IOReturn r = IONDRVFramebuffer::getAttributeForConnection(ci, attr, value);
+        static unsigned nConnLog = 0;
+        if (nConnLog < 40) {
+            nConnLog++;
+            XIFBLOG("getAttrConn(%d, '%c%c%c%c'/%08x) -> %08x val=%lx", (int)ci,
+                    (char)((attr >> 24) & 0xff), (char)((attr >> 16) & 0xff),
+                    (char)((attr >> 8) & 0xff), (char)(attr & 0xff), (unsigned)attr, (unsigned)r,
+                    value ? (unsigned long)*value : 0ul);
+        }
+        return r;
     }
     IOReturn setAttributeForConnection(IOIndex ci, IOSelect attr, uintptr_t value) override {
         if (fBlReady && attr == 0x626b6c74u /* 'bklt' */) {
