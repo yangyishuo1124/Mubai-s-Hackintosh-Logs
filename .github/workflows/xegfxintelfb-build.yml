@@ -4,6 +4,7 @@ on:
     paths:
       - '.github/workflows/xegfxintelfb-build.yml'
       - 'patches/patch_xegfxintelfb.py'
+      - 'EFI/OC/ACPI/SSDT-PNLF.dsl'
   workflow_dispatch:
 permissions:
   contents: read
@@ -28,8 +29,12 @@ jobs:
           bash build/WTLIntelGfx/build/build_xegfxintelfb.sh
           lipo out/XeGfxIntelFB/XeGfxIntelFB.kext/Contents/MacOS/XeGfxIntelFB -verify_arch x86_64
           codesign --verify --verbose out/XeGfxIntelFB/XeGfxIntelFB.kext
+          brew install acpica
+          iasl -p out/SSDT-PNLF.aml EFI/OC/ACPI/SSDT-PNLF.dsl
       - uses: actions/upload-artifact@v4
         with:
           name: XeGfxIntelFB-build
-          path: out/XeGfxIntelFB/XeGfxIntelFB.kext
+          path: |
+            out/XeGfxIntelFB/XeGfxIntelFB.kext
+            out/SSDT-PNLF.aml
           retention-days: 14
