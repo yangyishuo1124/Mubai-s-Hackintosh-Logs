@@ -110,19 +110,9 @@ sleep 1
 sysctl -w debug.nvaccel_iop=1 >/dev/null 2>&1 || true
 sysctl -w debug.nvaccelfb=4 >/dev/null 2>&1 || true
 sleep 1
-# Reduce Liquid Glass / SDF CPU load when CDDisplay falls back to CompositorSW on IONDRVFramebuffer
-defaults write /Library/Preferences/com.apple.universalaccess reduceTransparency -bool true 2>/dev/null || true
-defaults write /Library/Preferences/com.apple.universalaccess reduceMotion -bool true 2>/dev/null || true
-for uhome in /Users/*(N); do
-    uname="${uhome:t}"
-    [[ "$uname" == "Shared" || "$uname" == "Guest" ]] && continue
-    sudo -u "$uname" defaults write com.apple.universalaccess reduceTransparency -bool true 2>/dev/null || true
-    sudo -u "$uname" defaults write com.apple.universalaccess reduceMotion -bool true 2>/dev/null || true
-done
-killall -9 universalaccessd 2>/dev/null || true
 if [[ -f "$here/ws-restart.request" ]]; then
     mv "$here/ws-restart.request" "$here/reports/ws-restart-$(date +%Y%m%d-%H%M%S)-$$.attempted" 2>/dev/null || rm -f "$here/ws-restart.request"
-    /usr/bin/log stream --style compact --predicate 'process == "WindowServer" OR process == "loginwindow" OR sender == "XeGfxAccel" OR sender == "XeGfxAGDC" OR (sender == "kernel" AND eventMessage CONTAINS "xegfx") OR eventMessage CONTAINS "NVMTL"' > /tmp/ws-live.txt 2>&1 &
+    /usr/bin/log stream --style compact --predicate 'process == "WindowServer" OR process == "loginwindow" OR sender == "XeGfxAccel" OR sender == "XeGfxAGDC" OR sender == "NMIntelFB" OR (sender == "kernel" AND (eventMessage CONTAINS "xegfx" OR eventMessage CONTAINS "NMIntelFB")) OR eventMessage CONTAINS "NVMTL"' > /tmp/ws-live.txt 2>&1 &
     stream_pid=$!
     sleep 1
     killall -9 WindowServer 2>/dev/null || true
