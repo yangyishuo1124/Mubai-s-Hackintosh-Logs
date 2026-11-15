@@ -203,12 +203,18 @@ new_edid_call = """                    if (xifbProbeEdidAllAux(fEdid, &fEdidLen,
                     else { fEdidLen = 0; XIFBLOG("EDID: all AUX channels failed, the display stays unnamed"); }"""
 s = s.replace(old_edid_call, new_edid_call, 1)
 
-# 3. Call blInit() and armVbl() in start(), and add stop() + VBL overrides
+# 3. Call blInit() and armVbl() in start(), set AAPL panel/backlight properties, and add stop() + VBL overrides
 anchor3 = "        if (!curSetup()) fCurReady = false;\n        return IONDRVFramebuffer::start(provider);"
 assert anchor3 in s, "anchor3 missing"
 
 start_hook = """        if (!curSetup()) fCurReady = false;
         blInit();
+        if (fBlReady) {
+            uint32_t one = 1;
+            provider->setProperty("AAPL,HasPanel", &one, 4);
+            provider->setProperty("AAPL,backlight-control", &one, 4);
+            setProperty("AAPL,backlight-control", &one, 4);
+        }
         bool ok = IONDRVFramebuffer::start(provider);
         if (ok) armVbl();
         return ok;
@@ -262,6 +268,16 @@ attr_code = """    IOReturn getAttributeForConnection(IOIndex ci, IOSelect attr,
             if (value) *value = base | (1u << 11); // kIOConnectionBuiltIn (0x800)
             return kIOReturnSuccess;
         }
+        if (fBlReady && attr == 0x70636e74u /* 'pcnt' */) {
+            uintptr_t cnt = 0;
+            IOReturn r = IONDRVFramebuffer::getAttributeForConnection(ci, attr, &cnt);
+            if (r == kIOReturnSuccess && value) *value = cnt + 1;
+            return r;
+        }
+        if (fBlReady && attr == 0x7061726du /* 'parm' */ && value && *value == 4) {
+            *value = 0x626b6c74u; /* 'bklt' */
+            return kIOReturnSuccess;
+        }
         if (fBlReady && attr == 0x626b6c74u /* 'bklt' */) {
             if (value) *value = fBlLevel;
             return kIOReturnSuccess;
@@ -284,6 +300,11 @@ attr_code = """    IOReturn getAttributeForConnection(IOIndex ci, IOSelect attr,
         return IONDRVFramebuffer::setAttributeForConnection(ci, attr, value);
     }"""
 s = s.replace(anchor4, attr_code, 1)
+
+# 5. Drop kDisplayModeValidForHiResFlag so macOS doesn't lock the single GOP mode to 2x (1280x800)
+hires_line = "        info->flags |= kDisplayModeValidForHiResFlag;"
+assert hires_line in s, "hires_line missing"
+s = s.replace(hires_line, "        info->flags &= ~kDisplayModeValidForHiResFlag;", 1)
 
 p.write_text(s)
 print("Patched", p)

@@ -12,6 +12,8 @@ mkdir -p "/Volumes/SYSTEM/EFI/Diagnostics/reports"
   echo "=== IOREG AppleBacklightDisplay / IODisplayConnect ==="
   /usr/sbin/ioreg -r -c AppleBacklightDisplay 2>&1
   /usr/sbin/ioreg -r -c IODisplayConnect -d 2 2>&1
+  echo "=== APPLEBACKLIGHT INFO.PLIST ==="
+  /usr/bin/plutil -p /System/Library/Extensions/AppleBacklight.kext/Contents/Info.plist 2>&1
   echo "=== IOREG XeGfxIntelFramebuffer ==="
   /usr/sbin/ioreg -r -c XeGfxIntelFramebuffer -d 4 2>&1
   echo "=== KEXTSTAT ==="
