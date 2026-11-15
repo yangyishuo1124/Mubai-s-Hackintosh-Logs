@@ -23,8 +23,10 @@ mkdir -p "/Volumes/SYSTEM/EFI/Diagnostics/reports"
   echo "=== IOGRAPHICSFAMILY INFO.PLIST ==="
   /usr/bin/grep -l "AppleBacklightDisplay" /System/Library/Extensions/*.kext/Contents/Info.plist /System/Library/Extensions/*.kext/Contents/PlugIns/*.kext/Contents/Info.plist 2>&1
   /usr/bin/plutil -p /System/Library/Extensions/IOGraphicsFamily.kext/Contents/Info.plist 2>&1
-  echo "=== IOREG AppleACPILid ==="
+  echo "=== IOREG AppleACPILid & LID0 & ApplePS2Keyboard ==="
   /usr/sbin/ioreg -r -c AppleACPILid 2>&1
+  /usr/sbin/ioreg -r -n LID0 -d 2 2>&1
+  /usr/sbin/ioreg -r -c ApplePS2Keyboard -d 2 2>&1
   echo "=== APPLEBACKLIGHT INFO.PLIST ==="
   /usr/bin/plutil -p /System/Library/Extensions/AppleBacklight.kext/Contents/Info.plist 2>&1
   echo "=== IOREG XeGfxIntelFramebuffer ==="
@@ -44,8 +46,8 @@ mkdir -p "/Volumes/SYSTEM/EFI/Diagnostics/reports"
   /usr/sbin/ioreg -r -c IOPMrootDomain -d 2 2>&1
   echo "=== IOREG ACPI LID / PWRB / SLPB ==="
   /usr/sbin/ioreg -p IOACPIPlane -w 0 | /usr/bin/grep -i -E "LID|PNP0C0D|PWRB|SLPB" 2>&1
-  echo "=== LOG SHOW (SLEEP/LID/WAKE 15m) ==="
-  /usr/bin/log show --style compact --predicate 'eventMessage contains[c] "clamshell" OR eventMessage contains[c] "lid" OR eventMessage contains[c] "sleep" OR eventMessage contains[c] "wake"' --last 15m | /usr/bin/tail -n 150 2>&1
+  echo "=== LOG SHOW (SLEEP/LID/WAKE/PMRD/FB 15m) ==="
+  /usr/bin/log show --style compact --predicate 'eventMessage contains[c] "clamshell" OR eventMessage contains[c] "lid" OR eventMessage contains[c] "PMRD" OR eventMessage contains[c] "XeGfxIntelFB" OR eventMessage contains[c] "AppleACPIButtons" OR eventMessage contains[c] "ApplePS2Keyboard"' --last 15m | /usr/bin/tail -n 200 2>&1
 } > "$OUT"
 /bin/ls -lh "$OUT"
 echo "Saved to $OUT"

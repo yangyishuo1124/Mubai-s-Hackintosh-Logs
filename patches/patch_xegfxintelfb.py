@@ -20,6 +20,7 @@ anchor1 = "// pipe A's frame counter over about half a second: the refresh rate 
 assert anchor1 in s, "anchor1 missing"
 
 aux_dpcd_code = r"""#include <IOKit/graphics/IODisplay.h>
+#include <IOKit/pwr_mgt/IOPM.h>
 
 // Native eDP AUX DPCD read/write (cmd 0x9 = read, 0x8 = write) for panel backlight (0x300..0x359, 0x700..0x737)
 static int xifbAuxDpcd(uint8_t cmd, uint32_t addr, const uint8_t *wdata, uint8_t len, uint8_t *rdata)
@@ -151,7 +152,7 @@ members_code = r"""    friend class XeGfxBacklightHandler;
     }
 
     // Backlight control: Intel HDR TCON DPCD (0x340..0x359), VESA eDP DPCD (0x700..0x737), SoC PWM fallback
-    bool fBlReady = false, fBlHdr = false, fBl16Bit = false, fBlPwm = false;
+    bool fBlReady = false, fBlHdr = false, fBl16Bit = false, fBlPwm = false, fDisplayAsleep = false;
     uint32_t fBlLevel = 0x10000u, fBlHwMax = 65535u, fBlPwmBase = 0, fBlPwmFreq = 0;
     uint32_t fBlHdrMin = 0, fBlHdrMax = 512;
     uint8_t fBlPwmBits = 0;
@@ -278,8 +279,14 @@ members_code = r"""    friend class XeGfxBacklightHandler;
     bool blSet(uint32_t level) {
         if (!fBlReady || !fR) return false;
         if (level > kBlMax) level = kBlMax;
-        if (fBlLock) IOLockLock(fBlLock);
         fBlLevel = level;
+        if (fDisplayAsleep) return true;
+        return blWriteHw(level);
+    }
+    bool blWriteHw(uint32_t level) {
+        if (!fBlReady || !fR) return false;
+        if (level > kBlMax) level = kBlMax;
+        if (fBlLock) IOLockLock(fBlLock);
         if (fBlPwm) {
             uint32_t duty = (uint32_t)(((uint64_t)level * fBlPwmFreq + kBlMax / 2) / kBlMax);
             wr(fBlPwmBase + 8, duty);
@@ -486,14 +493,41 @@ hires_line = "        info->flags |= kDisplayModeValidForHiResFlag;"
 assert hires_line in s, "hires_line missing"
 s = s.replace(hires_line, "        info->flags &= ~kDisplayModeValidForHiResFlag;", 1)
 
-# 6. Log IOFramebuffer::getAttribute() queries (excluding kIOHardwareCursorAttribute) to see what AppleBacklightDisplay / IOPM query
+# 6. Strip kIOPMPreventSystemSleep from registerPowerDriver, handle kIOPowerStateAttribute, and log getAttribute() queries
 get_attr_anchor = """    IOReturn getAttribute(IOSelect attr, uintptr_t *value) override {
         if (attr == kIOHardwareCursorAttribute) { if (value) *value = fCurReady; return kIOReturnSuccess; }
         return IONDRVFramebuffer::getAttribute(attr, value);
     }"""
 assert get_attr_anchor in s, "get_attr_anchor missing"
 
-get_attr_log = """    IOReturn getAttribute(IOSelect attr, uintptr_t *value) override {
+get_attr_log = """    IOReturn registerPowerDriver(IOService *controllingDriver, IOPMPowerState *powerStates, unsigned long numberOfStates) override {
+        if (controllingDriver == this && powerStates && numberOfStates > 0 && numberOfStates <= 8) {
+            IOPMPowerState patched[8];
+            bcopy(powerStates, patched, numberOfStates * sizeof(IOPMPowerState));
+            for (unsigned long i = 0; i < numberOfStates; i++)
+                patched[i].capabilityFlags &= ~kIOPMPreventSystemSleep;
+            XIFBLOG("registerPowerDriver: stripped kIOPMPreventSystemSleep (%lu states)", numberOfStates);
+            return IONDRVFramebuffer::registerPowerDriver(controllingDriver, patched, numberOfStates);
+        }
+        return IONDRVFramebuffer::registerPowerDriver(controllingDriver, powerStates, numberOfStates);
+    }
+    IOReturn setAttribute(IOSelect attr, uintptr_t value) override {
+        IOReturn r = IONDRVFramebuffer::setAttribute(attr, value);
+        if (attr == kIOPowerStateAttribute || attr == kIODriverPowerAttribute) {
+            static unsigned nPwrLog = 0;
+            if (++nPwrLog <= 20)
+                XIFBLOG("setAttr(%08x, %lu) -> %08x (bl=%u)", (unsigned)attr, (unsigned long)value, (unsigned)r, (unsigned)fBlLevel);
+            if (value == 0) {
+                fDisplayAsleep = true;
+                if (fBlReady) (void)blWriteHw(0);
+            } else if (value >= 2) {
+                fDisplayAsleep = false;
+                if (fBlReady) (void)blWriteHw(fBlLevel);
+            }
+        }
+        return r;
+    }
+    IOReturn getAttribute(IOSelect attr, uintptr_t *value) override {
         if (attr == kIOHardwareCursorAttribute) { if (value) *value = fCurReady; return kIOReturnSuccess; }
         IOReturn r = IONDRVFramebuffer::getAttribute(attr, value);
         static unsigned nAttrLog = 0;
