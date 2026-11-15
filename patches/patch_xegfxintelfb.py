@@ -56,8 +56,9 @@ static int xifbAuxDpcd(uint8_t cmd, uint32_t addr, const uint8_t *wdata, uint8_t
 static bool xifbProbeEdidAllAux(uint8_t *edid, int *len, uint32_t *foundCtl)
 {
     static const uint32_t kAuxPorts[] = {
-        0x64010u, 0x64110u, 0x64210u, 0x64310u, 0x64410u,
-        0x16f210u, 0x16f410u, 0x16f610u, 0x16f810u
+        0x16fa10u, 0x16fc10u, 0x16fe10u, 0x170010u,
+        0x16f210u, 0x16f410u, 0x16f610u, 0x16f810u,
+        0x64010u, 0x64110u, 0x64210u, 0x64310u, 0x64410u
     };
     for (unsigned i = 0; i < sizeof kAuxPorts / sizeof kAuxPorts[0]; i++) {
         gAuxCtl = kAuxPorts[i];
