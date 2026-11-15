@@ -1453,6 +1453,7 @@
 				<string>csr-active-config</string>
 				<string>bluetoothExternalDongleFailed</string>
 				<string>bluetoothInternalControllerInfo</string>
+				<string>xeintelfb-starts</string>
 			</array>
 		</dict>
 		<key>LegacyOverwrite</key>
