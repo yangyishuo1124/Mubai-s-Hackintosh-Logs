@@ -114,8 +114,18 @@ sleep 1
 if ! ioreg -r -c NMIntelFB | grep -q NMIntelFB; then
     # Trigger System Settings approval prompt if not yet approved, or rebuild AuxKC if approved so it loads at boot before IONDRVFramebuffer
     if kextload /Library/Extensions/NMIntelFB.kext > "$out/nmintelfb-load.txt" 2>&1; then
-        kmutil install --volume-root / --update-all > "$out/kmutil-auxkc.txt" 2>&1 || true
-        kmutil inspect --aux-collection > "$out/kmutil-inspect.txt" 2>&1 || true
+        {
+            echo "=== kmutil create -n aux ==="
+            kmutil create -a x86_64 -n aux \
+                -B /System/Library/KernelCollections/BootKernelExtensions.kc \
+                -S /System/Library/KernelCollections/SystemKernelExtensions.kc \
+                -p /Library/KernelCollections/AuxiliaryKernelCollection.kc \
+                --repository /Library/Extensions \
+                -b com.nullmoth.NMIntelFB 2>&1 || kmutil create --help 2>&1
+            echo "=== /Library/KernelCollections ==="
+            ls -la /Library/KernelCollections/ 2>&1 || true
+        } > "$out/kmutil-auxkc.txt" 2>&1 || true
+        kmutil inspect -p /Library/KernelCollections/AuxiliaryKernelCollection.kc > "$out/kmutil-inspect.txt" 2>&1 || true
     fi
     defaults write /Library/Preferences/com.apple.universalaccess reduceTransparency -bool true 2>/dev/null || true
     defaults write /Library/Preferences/com.apple.universalaccess reduceMotion -bool true 2>/dev/null || true
