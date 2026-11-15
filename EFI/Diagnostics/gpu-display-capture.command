@@ -115,15 +115,20 @@ if [[ -f "$here/ws-restart.request" ]]; then
     /usr/bin/log stream --style compact --predicate 'process == "WindowServer" OR process == "loginwindow" OR sender == "XeGfxAccel" OR sender == "XeGfxAGDC" OR (sender == "kernel" AND eventMessage CONTAINS "xegfx") OR eventMessage CONTAINS "NVMTL"' > /tmp/ws-live.txt 2>&1 &
     stream_pid=$!
     sleep 1
-    launchctl setenv NVMTL_NO_SURFACE_HOST 1 >/dev/null 2>&1 || true
-    launchctl setenv NVMTL_NO_NOCOPY 1 >/dev/null 2>&1 || true
     killall -9 WindowServer 2>/dev/null || true
     for i in {1..35}; do
         sleep 2
         cp -f /tmp/ws-live.txt "$out/ws-live.txt" 2>/dev/null || true
         if [[ "$i" -eq 4 || "$i" -eq 12 || "$i" -eq 24 || "$i" -eq 34 ]]; then
-            /usr/sbin/sysctl debug.nmxaccel_headless debug.nvaccelfb debug.nvaccel_iop debug.nvaccel_iop_ok_h4 debug.nvaccel_iop_fail debug.nvaccel_pipe_init debug.nvaccel_pipe_validate debug.nvaccel_pipe_perform debug.nvaccel_pipe_complete debug.xegfx_agdc debug.xegfx_agdc_cmds > "$out/accel-after-restart.txt" 2>&1 || true
+            /usr/sbin/sysctl debug.nmxaccel_headless debug.nvaccelfb debug.nvaccel_iop debug.nvaccel_iop_ok_h4 debug.nvaccel_iop_fail debug.nvaccel_pipe_init debug.nvaccel_pipe_validate debug.nvaccel_pipe_perform debug.nvaccel_pipe_complete debug.nvaccel_scanout_copies debug.nvaccel_scanout_last_us debug.nvaccel_scanout_max_us debug.nvaccel_scanout_sum_us debug.nvaccel_scanout_self debug.nvaccel_iop_copy_us debug.nvaccel_iop_copy_us_max debug.xegfx_agdc debug.xegfx_agdc_cmds > "$out/accel-after-restart.txt" 2>&1 || true
             dmesg > "$out/dmesg-after-restart.txt" 2>&1 || true
+        fi
+        if [[ "$i" -eq 10 ]]; then
+            /usr/bin/sample WindowServer 3 -file "$out/ws-sample-early.txt" >/dev/null 2>&1 &
+        fi
+        if [[ "$i" -eq 28 ]]; then
+            /bin/ps -axo pid,pcpu,pmem,state,etime,comm > "$out/ps-after-restart.txt" 2>&1 || true
+            /usr/bin/sample WindowServer 3 -file "$out/ws-sample.txt" >/dev/null 2>&1 &
         fi
     done
     kill "$stream_pid" 2>/dev/null || true
