@@ -38,25 +38,10 @@
 			<dict>
 				<key>port-count</key>
 				<data>
-				BQAAAA==
+				AwAAAA==
 				</data>
 				<key>ports</key>
 				<dict>
-					<key>HS01</key>
-					<dict>
-						<key>Comment</key>
-						<string>TCSS Type-C HS01</string>
-						<key>UsbConnector</key>
-						<integer>9</integer>
-						<key>port</key>
-						<data>
-						AQAAAA==
-						</data>
-						<key>usb-port-number</key>
-						<integer>1</integer>
-						<key>usb-port-type</key>
-						<integer>9</integer>
-					</dict>
 					<key>SS01</key>
 					<dict>
 						<key>Comment</key>
@@ -87,40 +72,10 @@
 						<key>usb-port-type</key>
 						<integer>9</integer>
 					</dict>
-					<key>SS03</key>
-					<dict>
-						<key>Comment</key>
-						<string>TCSS Type-C SS03</string>
-						<key>UsbConnector</key>
-						<integer>9</integer>
-						<key>port</key>
-						<data>
-						BAAAAA==
-						</data>
-						<key>usb-port-number</key>
-						<integer>4</integer>
-						<key>usb-port-type</key>
-						<integer>9</integer>
-					</dict>
-					<key>SS04</key>
-					<dict>
-						<key>Comment</key>
-						<string>TCSS Type-C SS04</string>
-						<key>UsbConnector</key>
-						<integer>9</integer>
-						<key>port</key>
-						<data>
-						BQAAAA==
-						</data>
-						<key>usb-port-number</key>
-						<integer>5</integer>
-						<key>usb-port-type</key>
-						<integer>9</integer>
-					</dict>
 				</dict>
 			</dict>
 			<key>model</key>
-			<string>MacBookPro16,1</string>
+			<string>MacBookPro16,2</string>
 		</dict>
 		<key>XHCI_PantherLake</key>
 		<dict>
@@ -138,16 +93,16 @@
 			<dict>
 				<key>port-count</key>
 				<data>
-				DgAAAA==
+				DAAAAA==
 				</data>
 				<key>ports</key>
 				<dict>
 					<key>HS01</key>
 					<dict>
 						<key>Comment</key>
-						<string>USB 2.0 Port 1</string>
+						<string>Type-C #1 HS01</string>
 						<key>UsbConnector</key>
-						<integer>3</integer>
+						<integer>9</integer>
 						<key>port</key>
 						<data>
 						AQAAAA==
@@ -155,7 +110,7 @@
 						<key>usb-port-number</key>
 						<integer>1</integer>
 						<key>usb-port-type</key>
-						<integer>3</integer>
+						<integer>9</integer>
 					</dict>
 					<key>HS02</key>
 					<dict>
@@ -175,7 +130,7 @@
 					<key>HS03</key>
 					<dict>
 						<key>Comment</key>
-						<string>USB-C / Hub HS</string>
+						<string>Type-C #2 HS03</string>
 						<key>UsbConnector</key>
 						<integer>9</integer>
 						<key>port</key>
@@ -187,25 +142,10 @@
 						<key>usb-port-type</key>
 						<integer>9</integer>
 					</dict>
-					<key>HS04</key>
-					<dict>
-						<key>Comment</key>
-						<string>USB 2.0 Port 4</string>
-						<key>UsbConnector</key>
-						<integer>3</integer>
-						<key>port</key>
-						<data>
-						BAAAAA==
-						</data>
-						<key>usb-port-number</key>
-						<integer>4</integer>
-						<key>usb-port-type</key>
-						<integer>3</integer>
-					</dict>
 					<key>HS05</key>
 					<dict>
 						<key>Comment</key>
-						<string>USB-A Port (HS05)</string>
+						<string>USB-A Port 1 (HS05)</string>
 						<key>UsbConnector</key>
 						<integer>0</integer>
 						<key>port</key>
@@ -220,7 +160,7 @@
 					<key>HS06</key>
 					<dict>
 						<key>Comment</key>
-						<string>USB-A Port (HS06)</string>
+						<string>USB-A Port 2 (HS06)</string>
 						<key>UsbConnector</key>
 						<integer>0</integer>
 						<key>port</key>
@@ -265,7 +205,7 @@
 					<key>SS01</key>
 					<dict>
 						<key>Comment</key>
-						<string>USB 3.2 SS01 (0x0B)</string>
+						<string>USB 3.2 Type-A SS01 (0x0B)</string>
 						<key>UsbConnector</key>
 						<integer>3</integer>
 						<key>port</key>
@@ -280,7 +220,7 @@
 					<key>SS02</key>
 					<dict>
 						<key>Comment</key>
-						<string>USB 3.2 SS02 (0x0C) - Toshiba Boot Drive</string>
+						<string>USB 3.2 Type-A SS02 (0x0C)</string>
 						<key>UsbConnector</key>
 						<integer>3</integer>
 						<key>port</key>
@@ -292,40 +232,10 @@
 						<key>usb-port-type</key>
 						<integer>3</integer>
 					</dict>
-					<key>SS03</key>
-					<dict>
-						<key>Comment</key>
-						<string>USB 3.2 SS03 (0x0D)</string>
-						<key>UsbConnector</key>
-						<integer>3</integer>
-						<key>port</key>
-						<data>
-						DQAAAA==
-						</data>
-						<key>usb-port-number</key>
-						<integer>13</integer>
-						<key>usb-port-type</key>
-						<integer>3</integer>
-					</dict>
-					<key>SS04</key>
-					<dict>
-						<key>Comment</key>
-						<string>USB 3.2 SS04 (0x0E)</string>
-						<key>UsbConnector</key>
-						<integer>3</integer>
-						<key>port</key>
-						<data>
-						DgAAAA==
-						</data>
-						<key>usb-port-number</key>
-						<integer>14</integer>
-						<key>usb-port-type</key>
-						<integer>3</integer>
-					</dict>
 				</dict>
 			</dict>
 			<key>model</key>
-			<string>MacBookPro16,1</string>
+			<string>MacBookPro16,2</string>
 		</dict>
 	</dict>
 	<key>OSBundleLibraries</key>
