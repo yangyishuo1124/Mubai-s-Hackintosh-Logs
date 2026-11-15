@@ -171,14 +171,13 @@ start_hook = """        if (!curSetup()) fCurReady = false;
         if (iref == &fVbl) { fVblEnabled = (state != 0); return kIOReturnSuccess; }
         return IONDRVFramebuffer::setInterruptState(iref, state);
     }
-    IOReturn getVBLTime(AbsoluteTime *time, AbsoluteTime *delta) override {
+    void getVBLTime(AbsoluteTime *time, AbsoluteTime *delta) override {
         if (time) *(uint64_t *)time = fVblLastTime ? fVblLastTime : mach_absolute_time();
         if (delta) {
             uint64_t period = 0;
             nanoseconds_to_absolutetime(fFrameNs, &period);
             *(uint64_t *)delta = period;
-        }
-        return kIOReturnSuccess;"""
+        }"""
 s = s.replace(anchor3, start_hook, 1)
 
 # 4. Handle 'bklt' in getAttributeForConnection and add setAttributeForConnection
