@@ -29,8 +29,12 @@ jobs:
           bash build/WTLIntelGfx/build/build_xegfxintelfb.sh
           lipo out/XeGfxIntelFB/XeGfxIntelFB.kext/Contents/MacOS/XeGfxIntelFB -verify_arch x86_64
           codesign --verify --verbose out/XeGfxIntelFB/XeGfxIntelFB.kext
-          brew install acpica
-          iasl -p out/SSDT-PNLF.aml EFI/OC/ACPI/SSDT-PNLF.dsl
+          if [ -f EFI/OC/ACPI/SSDT-PNLF.dsl ]; then
+            brew install acpica
+            iasl -p out/SSDT-PNLF.aml EFI/OC/ACPI/SSDT-PNLF.dsl
+          else
+            cp EFI/OC/ACPI/SSDT-PNLF.aml out/SSDT-PNLF.aml
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: XeGfxIntelFB-build
