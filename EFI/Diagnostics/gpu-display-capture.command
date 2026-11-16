@@ -70,16 +70,24 @@ EOF
     chmod 644 /Library/GPUBundles/nvmtl/intel_icd.json 2>/dev/null || true
 fi
 cat > /Library/GPUBundles/nvmtl-allow.txt << 'EOF'
--WindowServer
 *
 EOF
 chmod 644 /Library/GPUBundles/nvmtl-allow.txt 2>/dev/null || true
+
+if [[ -f "$here/DisplayProductID-420a" ]]; then
+    mkdir -p /Library/Displays/Contents/Resources/Overrides/DisplayVendorID-4c83 2>/dev/null || true
+    cp -f "$here/DisplayProductID-420a" /Library/Displays/Contents/Resources/Overrides/DisplayVendorID-4c83/DisplayProductID-420a 2>/dev/null || true
+    chmod 644 /Library/Displays/Contents/Resources/Overrides/DisplayVendorID-4c83/DisplayProductID-420a 2>/dev/null || true
+fi
+
+pmset -a sleep 0 standby 0 autopoweroff 0 powernap 0 proximitywake 0 tcpkeepalive 0 disablesleep 1 >/dev/null 2>&1 || true
 
 mkdir -p /Library/GPUBundles/nvmtl 2>/dev/null || true
 cat > /Library/GPUBundles/nvmtl/nvrm610.conf << 'EOF'
 NVMTL_XE_UNIFIED=1
 NVMTL_NO_HEAP_ALIAS=1
 NVMTL_NO_NOCOPY=1
+NVMTL_FBFETCH_WS=1
 EOF
 chmod 644 /Library/GPUBundles/nvmtl/nvrm610.conf 2>/dev/null || true
 if [[ -f "$here/GPU/vulkan/libvulkan_intel.dylib" ]] && ! cmp -s "$here/GPU/vulkan/libvulkan_intel.dylib" /Library/GPUBundles/nvmtl/libvulkan_intel.dylib 2>/dev/null; then
