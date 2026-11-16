@@ -157,6 +157,7 @@ members_code = r"""    friend class XeGfxBacklightHandler;
     // Backlight control: Intel HDR TCON DPCD (0x340..0x359), VESA eDP DPCD (0x700..0x737), SoC PWM fallback
     IOPCIDevice *fPci = nullptr;
     bool fBlReady = false, fBlHdr = false, fBl16Bit = false, fBlPwm = false, fDisplayAsleep = false;
+    bool fBlPanelWasOff = false;
     uint32_t fBlLevel = 0x10000u, fBlSaveLevel = 0x10000u, fBlHwMax = 65535u, fBlPwmBase = 0, fBlPwmFreq = 0;
     uint32_t fBlHdrMin = 0, fBlHdrMax = 512;
     uint8_t fBlPwmBits = 0;
@@ -223,25 +224,43 @@ members_code = r"""    friend class XeGfxBacklightHandler;
         if (!me->fDisplayAsleep && me->fBlReady && me->fBlHdr && me->fR && me->fPci &&
             (me->fPci->configRead16(kIOPCIConfigCommand) & kIOPCICommandMemorySpace)) {
             bool needRestore = false;
-            if (me->fBlLock) IOLockLock(me->fBlLock);
-            gRegs = me->fR;
-            gAuxCtl = me->fAuxCtl;
-            uint8_t c0 = 0, rbN[4] = {};
-            if (xifbAuxDpcd(0x9, 0x344, nullptr, 1, &c0) == 0 &&
-                xifbAuxDpcd(0x9, 0x354, nullptr, 4, rbN) == 0) {
-                uint32_t hwNit = (uint32_t)rbN[0] | ((uint32_t)rbN[1] << 8);
-                uint32_t span = (me->fBlHdrMax > me->fBlHdrMin) ? (me->fBlHdrMax - me->fBlHdrMin) : 512u;
-                uint32_t wantNit = (me->fBlLevel == 0) ? 0 : (me->fBlHdrMin + (uint32_t)(((uint64_t)me->fBlLevel * span + kBlMax / 2) / kBlMax));
-                uint32_t diff = (hwNit > wantNit) ? (hwNit - wantNit) : (wantNit - hwNit);
-                if ((c0 & 0x10u) == 0 || diff > 4u) {
+            uint32_t ppSt = me->rd(0xc7200);
+            if ((ppSt & 0x80000000u) == 0) {
+                me->fBlPanelWasOff = true;
+            } else {
+                if (me->fBlPanelWasOff) {
+                    me->fBlPanelWasOff = false;
                     needRestore = true;
                 }
-            }
-            gRegs = nullptr;
-            if (me->fBlLock) IOLockUnlock(me->fBlLock);
-            if (needRestore) {
-                XIFBLOG("lid/panel DPCD reset detected -> restoring brightness %u/%u", (unsigned)me->fBlLevel, (unsigned)kBlMax);
-                (void)me->blWriteHw(me->fBlLevel);
+                if (me->fBlLock) IOLockLock(me->fBlLock);
+                gRegs = me->fR;
+                gAuxCtl = me->fAuxCtl;
+                uint8_t oui[3] = {}, c0 = 0, rbN[4] = {};
+                if (xifbAuxDpcd(0x9, 0x300, nullptr, 3, oui) != 0) {
+                    me->fBlPanelWasOff = true;
+                } else {
+                    if (oui[0] != 0x00 || oui[1] != 0xaa || oui[2] != 0x01) {
+                        needRestore = true;
+                    }
+                    if (xifbAuxDpcd(0x9, 0x344, nullptr, 1, &c0) != 0 ||
+                        xifbAuxDpcd(0x9, 0x354, nullptr, 4, rbN) != 0) {
+                        me->fBlPanelWasOff = true;
+                    } else {
+                        uint32_t hwNit = (uint32_t)rbN[0] | ((uint32_t)rbN[1] << 8);
+                        uint32_t span = (me->fBlHdrMax > me->fBlHdrMin) ? (me->fBlHdrMax - me->fBlHdrMin) : 512u;
+                        uint32_t wantNit = (me->fBlLevel == 0) ? 0 : (me->fBlHdrMin + (uint32_t)(((uint64_t)me->fBlLevel * span + kBlMax / 2) / kBlMax));
+                        uint32_t diff = (hwNit > wantNit) ? (hwNit - wantNit) : (wantNit - hwNit);
+                        if ((c0 & 0x10u) == 0 || diff > 4u) {
+                            needRestore = true;
+                        }
+                    }
+                }
+                gRegs = nullptr;
+                if (me->fBlLock) IOLockUnlock(me->fBlLock);
+                if (needRestore) {
+                    XIFBLOG("lid/panel DPCD reset detected -> restoring brightness %u/%u", (unsigned)me->fBlLevel, (unsigned)kBlMax);
+                    (void)me->blWriteHw(me->fBlLevel);
+                }
             }
         }
         uint64_t dl = 0;
