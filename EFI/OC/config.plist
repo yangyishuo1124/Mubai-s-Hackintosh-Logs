@@ -735,6 +735,13 @@
 	<dict>
 		<key>Add</key>
 		<dict>
+			<key>PciRoot(0x0)/Pci(0x1C,0x0)/Pci(0x0,0x0)</key>
+			<dict>
+				<key>built-in</key>
+				<data>
+				AQ==
+				</data>
+			</dict>
 			<key>PciRoot(0x0)/Pci(0x1F,0x3)</key>
 			<dict>
 				<key>device-id</key>
@@ -1815,7 +1822,7 @@
 			<integer>3841</integer>
 			<key>ROM</key>
 			<data>
-			ESIzRFVm
+			DM3Q5uGP
 			</data>
 			<key>SpoofVendor</key>
 			<true/>
