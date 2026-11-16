@@ -832,6 +832,18 @@ bool XeGfxBacklightHandler::doIntegerSet(OSDictionary *params, const OSSymbol *p
 
     if (strcmp(name, "brightness") == 0) {
         if (value > (UInt32)kUiMax) value = (UInt32)kUiMax;
+        if (fFb->fHasSavedBl && value == 255) {
+            uint64_t nowNs = 0;
+            absolutetime_to_nanoseconds(mach_absolute_time(), &nowNs);
+            if (nowNs >= fFb->fBlInitNs && (nowNs - fFb->fBlInitNs) < 25000000000ull) {
+                XIFBLOG("ignoring early boot 255 brightness override; keeping saved %u", (unsigned)fUserLevel);
+                xifbUpdateParamValue(fDisplay, "brightness", (SInt32)fUserLevel);
+                xifbUpdateParamValue(fDisplay, "linear-brightness", (SInt32)fUserLevel);
+                applyEffective();
+                return true;
+            }
+        }
+        fFb->fHasSavedBl = false;
         fUserLevel = value;
         xifbUpdateParamValue(fDisplay, "linear-brightness", (SInt32)fUserLevel);
         applyEffective();
