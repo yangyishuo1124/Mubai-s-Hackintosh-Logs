@@ -1582,7 +1582,7 @@
 			<key>HibernateSkipsPicker</key>
 			<false/>
 			<key>HideAuxiliary</key>
-			<false/>
+			<true/>
 			<key>InstanceIdentifier</key>
 			<string></string>
 			<key>LauncherOption</key>
@@ -1600,16 +1600,16 @@
 			<key>PollAppleHotKeys</key>
 			<true/>
 			<key>ShowPicker</key>
-			<true/>
+			<false/>
 			<key>TakeoffDelay</key>
 			<integer>0</integer>
 			<key>Timeout</key>
-			<integer>5</integer>
+			<integer>0</integer>
 		</dict>
 		<key>Debug</key>
 		<dict>
 			<key>AppleDebug</key>
-			<true/>
+			<false/>
 			<key>ApplePanic</key>
 			<true/>
 			<key>DisableWatchDog</key>
@@ -1623,7 +1623,7 @@
 			<key>SysReport</key>
 			<false/>
 			<key>Target</key>
-			<integer>67</integer>
+			<integer>0</integer>
 		</dict>
 		<key>Entries</key>
 		<array/>
@@ -1652,7 +1652,7 @@
 			<data>
 			</data>
 			<key>ScanPolicy</key>
-			<integer>0</integer>
+			<integer>257</integer>
 			<key>SecureBootModel</key>
 			<string>Disabled</string>
 			<key>Vault</key>
@@ -1733,7 +1733,7 @@
 				AAAAAAAAAAAAAAAAAAA=
 				</data>
 				<key>boot-args</key>
-				<string>-v keepsyms=1 msgbuf=1048576 -no_compat_check -rtw89nowpa3 revpatch=cpuname revcpu=1 -amfipassbeta amfi_get_out_of_my_way=1 ipc_control_port_options=0 alcid=3 xegfx_bootstage=4 nvaccelfb=1 -nmintelfboff</string>
+				<string>keepsyms=1 msgbuf=1048576 -no_compat_check -rtw89nowpa3 revpatch=cpuname revcpu=1 -amfipassbeta amfi_get_out_of_my_way=1 ipc_control_port_options=0 alcid=3 xegfx_bootstage=4 nvaccelfb=1 -nmintelfboff</string>
 				<key>csr-active-config</key>
 				<data>
 				AwgAAA==
