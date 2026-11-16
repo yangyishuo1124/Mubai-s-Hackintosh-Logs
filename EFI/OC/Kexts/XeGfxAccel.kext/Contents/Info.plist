@@ -39,5 +39,7 @@
 			<key>MetalPluginClassName</key><string>NVMTLDevice</string>
 		</dict>
 	</dict>
+	<key>OSBundleRequired</key>
+	<string>Root</string>
 </dict>
 </plist>
