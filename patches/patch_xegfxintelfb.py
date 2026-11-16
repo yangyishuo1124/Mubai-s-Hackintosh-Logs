@@ -163,6 +163,9 @@ members_code = r"""    friend class XeGfxBacklightHandler;
     XeGfxBacklightHandler *fBlHandler = nullptr;
     IOLock *fBlLock = nullptr;
     thread_call_t fBlSaveTimer = nullptr;
+    thread_call_t fBlWatchTimer = nullptr;
+    bool fHasSavedBl = false;
+    uint64_t fBlInitNs = 0;
     static constexpr uint32_t kBlMax = 0x10000u;
     static constexpr uint32_t kBlMinFloor = 0x400u;
 
@@ -212,6 +215,46 @@ members_code = r"""    friend class XeGfxBacklightHandler;
             uint64_t dl = 0;
             clock_interval_to_deadline(1000, kMillisecondScale, &dl);
             thread_call_enter_delayed(fBlSaveTimer, dl);
+        }
+    }
+    static void blWatchFire(thread_call_param_t p0, thread_call_param_t) {
+        XeGfxIntelFramebuffer *me = (XeGfxIntelFramebuffer *)p0;
+        if (me->fStopping) return;
+        if (!me->fDisplayAsleep && me->fBlReady && me->fBlHdr && me->fR && me->fPci &&
+            (me->fPci->configRead16(kIOPCIConfigCommand) & kIOPCICommandMemorySpace)) {
+            bool needRestore = false;
+            if (me->fBlLock) IOLockLock(me->fBlLock);
+            gRegs = me->fR;
+            gAuxCtl = me->fAuxCtl;
+            uint8_t c0 = 0, rbN[4] = {};
+            if (xifbAuxDpcd(0x9, 0x344, nullptr, 1, &c0) == 0 &&
+                xifbAuxDpcd(0x9, 0x354, nullptr, 4, rbN) == 0) {
+                uint32_t hwNit = (uint32_t)rbN[0] | ((uint32_t)rbN[1] << 8);
+                uint32_t span = (me->fBlHdrMax > me->fBlHdrMin) ? (me->fBlHdrMax - me->fBlHdrMin) : 512u;
+                uint32_t wantNit = (me->fBlLevel == 0) ? 0 : (me->fBlHdrMin + (uint32_t)(((uint64_t)me->fBlLevel * span + kBlMax / 2) / kBlMax));
+                uint32_t diff = (hwNit > wantNit) ? (hwNit - wantNit) : (wantNit - hwNit);
+                if ((c0 & 0x10u) == 0 || diff > 4u) {
+                    needRestore = true;
+                }
+            }
+            gRegs = nullptr;
+            if (me->fBlLock) IOLockUnlock(me->fBlLock);
+            if (needRestore) {
+                XIFBLOG("lid/panel DPCD reset detected -> restoring brightness %u/%u", (unsigned)me->fBlLevel, (unsigned)kBlMax);
+                (void)me->blWriteHw(me->fBlLevel);
+            }
+        }
+        uint64_t dl = 0;
+        clock_interval_to_deadline(2000, kMillisecondScale, &dl);
+        thread_call_enter_delayed(me->fBlWatchTimer, dl);
+    }
+    void armBlWatch() {
+        if (!fBlReady || !fBlHdr || fBlWatchTimer) return;
+        fBlWatchTimer = thread_call_allocate(blWatchFire, this);
+        if (fBlWatchTimer) {
+            uint64_t dl = 0;
+            clock_interval_to_deadline(2000, kMillisecondScale, &dl);
+            thread_call_enter_delayed(fBlWatchTimer, dl);
         }
     }
     void snapDeRegs(const char *tag, bool writeNvram) {
@@ -343,11 +386,13 @@ members_code = r"""    friend class XeGfxBacklightHandler;
         if (fBlLock) IOLockUnlock(fBlLock);
 
         if (fBlReady) {
+            absolutetime_to_nanoseconds(mach_absolute_time(), &fBlInitNs);
             uint32_t savedBl = 0;
             if (nvramReadU32("xeintelfb-bl", &savedBl) && savedBl <= kBlMax) {
                 if (savedBl < kBlMinFloor) savedBl = kBlMinFloor;
                 fBlLevel = savedBl;
                 fBlSaveLevel = savedBl;
+                fHasSavedBl = true;
                 bool wOk = blWriteHw(fBlLevel);
                 XIFBLOG("restored saved NVRAM brightness %u/%u (hw=%s)",
                         (unsigned)fBlLevel, (unsigned)kBlMax, wOk ? "ok" : "err");
@@ -481,7 +526,7 @@ start_hook = """        fPci = OSDynamicCast(IOPCIDevice, provider);
             setProperty("built-in", &zero, 1);
         }
         bool ok = IONDRVFramebuffer::start(provider);
-        if (ok) armVbl();
+        if (ok) { armVbl(); armBlWatch(); }
         return ok;
     }
     void stop(IOService *provider) override {
@@ -495,6 +540,11 @@ start_hook = """        fPci = OSDynamicCast(IOPCIDevice, provider);
             thread_call_cancel(fBlSaveTimer);
             while (!thread_call_free(fBlSaveTimer)) IOSleep(1);
             fBlSaveTimer = nullptr;
+        }
+        if (fBlWatchTimer) {
+            thread_call_cancel(fBlWatchTimer);
+            while (!thread_call_free(fBlWatchTimer)) IOSleep(1);
+            fBlWatchTimer = nullptr;
         }
         if (fBlHandler) {
             fBlHandler->stop(this);
@@ -791,6 +841,18 @@ bool XeGfxBacklightHandler::doIntegerSet(OSDictionary *params, const OSSymbol *p
     }
     if (strcmp(name, "linear-brightness") == 0) {
         if (value > (UInt32)kUiMax) value = (UInt32)kUiMax;
+        if (fFb->fHasSavedBl && value == 255) {
+            uint64_t nowNs = 0;
+            absolutetime_to_nanoseconds(mach_absolute_time(), &nowNs);
+            if (nowNs >= fFb->fBlInitNs && (nowNs - fFb->fBlInitNs) < 25000000000ull) {
+                XIFBLOG("ignoring early boot 255 override; keeping saved brightness %u", (unsigned)fUserLevel);
+                xifbUpdateParamValue(fDisplay, "brightness", (SInt32)fUserLevel);
+                xifbUpdateParamValue(fDisplay, "linear-brightness", (SInt32)fUserLevel);
+                applyEffective();
+                return true;
+            }
+        }
+        fFb->fHasSavedBl = false;
         fUserLevel = value;
         xifbUpdateParamValue(fDisplay, "brightness", (SInt32)fUserLevel);
         applyEffective();
