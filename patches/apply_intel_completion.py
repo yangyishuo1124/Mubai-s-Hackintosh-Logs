@@ -94,3 +94,24 @@ b = '''#ifdef NMX_XEGFX
 #endif'''
 assert a in s
 p.write_text(s.replace(a, b, 1))
+
+# Advertise Intel display transactions before the family creates its first pipe.
+p = r / 'kexts/XeGfxAccel/accel/nvrm-accel.cpp'
+s = p.read_text()
+a = 'static int    gNvIop = 0;'
+assert a in s
+s = s.replace(a, '', 1)
+s = s.replace('static int gNvScanout = 1;', 'static int gNvIop = 1;\nstatic int gNvScanout = 1;', 1)
+s = s.replace('static int gNvScanout = 0;', 'static int gNvIop = 0;\nstatic int gNvScanout = 0;', 1)
+a = '        ALOG("start(%s): calling IOGraphicsAccelerator2::start — the family\'s own bring-up", provider ? provider->getName() : "?");'
+b = '''#ifdef NMX_XEGFX
+        OSDictionary *earlyCaps = OSDictionary::withCapacity(2);
+        if (!earlyCaps) return false;
+        earlyCaps->setObject("DisplayPipeSupported", kOSBooleanTrue);
+        earlyCaps->setObject("TransactionsSupported", kOSBooleanTrue);
+        setProperty("IOAccelDisplayPipeCapabilities", earlyCaps);
+        earlyCaps->release();
+#endif
+''' + a
+assert a in s
+p.write_text(s.replace(a, b, 1))
