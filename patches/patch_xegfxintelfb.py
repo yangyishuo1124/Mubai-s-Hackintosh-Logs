@@ -158,6 +158,7 @@ members_code = r"""    friend class XeGfxBacklightHandler;
     IOPCIDevice *fPci = nullptr;
     bool fBlReady = false, fBlHdr = false, fBl16Bit = false, fBlPwm = false, fDisplayAsleep = false;
     bool fBlPanelWasOff = false;
+    uint32_t fBlLastFc = 0;
     uint32_t fBlLevel = 0x10000u, fBlSaveLevel = 0x10000u, fBlHwMax = 65535u, fBlPwmBase = 0, fBlPwmFreq = 0;
     uint32_t fBlHdrMin = 0, fBlHdrMax = 512;
     uint8_t fBlPwmBits = 0;
@@ -225,7 +226,11 @@ members_code = r"""    friend class XeGfxBacklightHandler;
             (me->fPci->configRead16(kIOPCIConfigCommand) & kIOPCICommandMemorySpace)) {
             bool needRestore = false;
             uint32_t ppSt = me->rd(0xc7200);
-            if ((ppSt & 0x80000000u) == 0) {
+            uint32_t ppCtl = me->rd(0xc7204);
+            uint32_t fc = me->rd(0x70040);
+            bool panelOff = ((ppSt & 0x80000000u) == 0) || ((ppCtl & 0x05u) != 0x05u) || (fc == me->fBlLastFc && me->fBlLastFc != 0);
+            me->fBlLastFc = fc;
+            if (panelOff) {
                 me->fBlPanelWasOff = true;
             } else {
                 if (me->fBlPanelWasOff) {
@@ -235,7 +240,7 @@ members_code = r"""    friend class XeGfxBacklightHandler;
                 if (me->fBlLock) IOLockLock(me->fBlLock);
                 gRegs = me->fR;
                 gAuxCtl = me->fAuxCtl;
-                uint8_t oui[3] = {}, c0 = 0, rbN[4] = {};
+                uint8_t oui[3] = {}, c0 = 0, ovr[4] = {}, rbN[4] = {};
                 if (xifbAuxDpcd(0x9, 0x300, nullptr, 3, oui) != 0) {
                     me->fBlPanelWasOff = true;
                 } else {
@@ -243,14 +248,17 @@ members_code = r"""    friend class XeGfxBacklightHandler;
                         needRestore = true;
                     }
                     if (xifbAuxDpcd(0x9, 0x344, nullptr, 1, &c0) != 0 ||
+                        xifbAuxDpcd(0x9, 0x34a, nullptr, 4, ovr) != 0 ||
                         xifbAuxDpcd(0x9, 0x354, nullptr, 4, rbN) != 0) {
                         me->fBlPanelWasOff = true;
                     } else {
+                        uint32_t hwMin = (uint32_t)ovr[0] | ((uint32_t)ovr[1] << 8);
+                        uint32_t hwMax = (uint32_t)ovr[2] | ((uint32_t)ovr[3] << 8);
                         uint32_t hwNit = (uint32_t)rbN[0] | ((uint32_t)rbN[1] << 8);
                         uint32_t span = (me->fBlHdrMax > me->fBlHdrMin) ? (me->fBlHdrMax - me->fBlHdrMin) : 512u;
                         uint32_t wantNit = (me->fBlLevel == 0) ? 0 : (me->fBlHdrMin + (uint32_t)(((uint64_t)me->fBlLevel * span + kBlMax / 2) / kBlMax));
                         uint32_t diff = (hwNit > wantNit) ? (hwNit - wantNit) : (wantNit - hwNit);
-                        if ((c0 & 0x10u) == 0 || diff > 4u) {
+                        if ((c0 & 0x10u) == 0 || hwMin != me->fBlHdrMin || hwMax != me->fBlHdrMax || diff > 4u) {
                             needRestore = true;
                         }
                     }
@@ -258,13 +266,14 @@ members_code = r"""    friend class XeGfxBacklightHandler;
                 gRegs = nullptr;
                 if (me->fBlLock) IOLockUnlock(me->fBlLock);
                 if (needRestore) {
-                    XIFBLOG("lid/panel DPCD reset detected -> restoring brightness %u/%u", (unsigned)me->fBlLevel, (unsigned)kBlMax);
+                    XIFBLOG("lid/panel DPCD reset detected (pp=%08x/%08x c0=%02x) -> restoring brightness %u/%u",
+                            (unsigned)ppSt, (unsigned)ppCtl, (unsigned)c0, (unsigned)me->fBlLevel, (unsigned)kBlMax);
                     (void)me->blWriteHw(me->fBlLevel);
                 }
             }
         }
         uint64_t dl = 0;
-        clock_interval_to_deadline(2000, kMillisecondScale, &dl);
+        clock_interval_to_deadline(1000, kMillisecondScale, &dl);
         thread_call_enter_delayed(me->fBlWatchTimer, dl);
     }
     void armBlWatch() {
@@ -272,8 +281,9 @@ members_code = r"""    friend class XeGfxBacklightHandler;
         fBlWatchTimer = thread_call_allocate(blWatchFire, this);
         if (fBlWatchTimer) {
             uint64_t dl = 0;
-            clock_interval_to_deadline(2000, kMillisecondScale, &dl);
+            clock_interval_to_deadline(1000, kMillisecondScale, &dl);
             thread_call_enter_delayed(fBlWatchTimer, dl);
+            XIFBLOG("blWatchFire armed (1000ms)");
         }
     }
     void snapDeRegs(const char *tag, bool writeNvram) {
