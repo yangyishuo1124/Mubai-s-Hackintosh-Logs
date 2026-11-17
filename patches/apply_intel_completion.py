@@ -70,3 +70,27 @@ a = 'fprintf(stderr, "PERFSUB k%d sets %u gap'
 assert a in s
 s = s.replace('void nvlog(const char *fmt, ...);', 'void nvlog(const char *fmt, ...);\nvoid nvlog_raw(const char *fmt, ...);', 1)
 p.write_text(s.replace(a, 'nvlog_raw("PERFSUB k%d sets %u gap', 1))
+
+# Keep Intel completion marks until completion and preserve the previous frame
+# when the bounded present wait expires.
+p = r / 'kexts/XeGfxAccel/accel/nvrm-accel.cpp'
+s = p.read_text()
+a = 'if (mach_absolute_time() >= deadline) { gSurfPend[i].id = 0; ready = false; break; }'
+b = '''if (mach_absolute_time() >= deadline) {
+#ifdef NMX_XEGFX
+            ready = false;
+#else
+            gSurfPend[i].id = 0; ready = false;
+#endif
+            break;
+        }'''
+assert a in s
+s = s.replace(a, b, 1)
+a = '        nvSurfWaitReady(s->getSurfaceID());   // a copied frame is read here, so its GPU work must be done first'
+b = '''#ifdef NMX_XEGFX
+        if (!nvSurfWaitReady(s->getSurfaceID())) return kIOReturnSuccess;
+#else
+        nvSurfWaitReady(s->getSurfaceID());
+#endif'''
+assert a in s
+p.write_text(s.replace(a, b, 1))
