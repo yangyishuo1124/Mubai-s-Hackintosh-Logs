@@ -89,3 +89,15 @@ WindowServer 重启后连续 SIGABRT，最终 watchdog 超时。启动日志确�
 19:23 重启后启动脚本恢复了旧 Mesa、旧插件和旧配置。已核对两项二进制 SHA256 与安装前备份一致；debug.xegfx_env 不含 xe_userptr 开关。未再次启用实验桌面。
 
 本地产物已添加 @loader_path 并重新签名；在 env -i 空环境中 ctypes 加载 Mesa、解析 Vulkan 入口通过。安装脚本改为使用修正产物，并新增空环境加载检查，Metal 预检也去掉 DYLD_LIBRARY_PATH。修正产物尚未重新接入桌面，仍需独立 Metal 验证和带自动恢复的桌面验证。共享内存硬件小测试成功仍有效，桌面稳定性尚未验证。
+
+
+修正 RPATH 后完成无 DYLD_LIBRARY_PATH 的硬件复测：2560×1600 Metal IOSurface 双向访问零错误，20 次独立导入/提交/释放均通过（每次 16 种数据模式）。退出后确认 xe_userptr 开关恢复关闭。桌面仍使用基线组件。自动回退部署尚待完善，未再次重启 WindowServer。
+
+
+## 21:10 Intel completion bridge hardware trial
+
+Loaded accelerator UUID 582FA4EC-C798-3643-BD08-781E26D2B30C. First WindowServer selected Metal without automatic restart after early initialization, but its display-pipe presents stayed at zero until a controlled WindowServer restart. Early initialization alone does not yet fully solve first-login presentation.
+
+Intel completion marks now travel over XGDR selector 1 with WindowServer identity checks. Initial plugin incorrectly looked up NVAccel rather than NMXAccel for NVAccelSurfaceWait, choosing publication-before-release and producing repeated 100 ms waits. Corrected capability lookup. With the corrected plugin, identical 10-second animation trials observed 25.51 present events/s with kernel waiting off and 29.67 with it on, zero additional timeout during the measured animation. These are presentation event rates, not measured display FPS, and background load is uncontrolled. A subsequent 30-second retention check observed one additional timeout, so the check disabled kernel waiting and did not persist the experimental plugin. Current shared-memory desktop remains active with completion waits on the userspace side. Further diagnosis must distinguish actual GPU latency from remaining lock/contention waits.
+
+KDK download and installer wait were cancelled. kextd had automatically refreshed AuxKC with the new accelerator after the /Library/Extensions update, so a KDK was unnecessary for this system's update path.
