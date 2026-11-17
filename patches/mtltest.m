@@ -44,15 +44,27 @@ int main(void) {
             "  constexpr sampler s(coord::normalized, filter::linear);\n"
             "  float a = t.sample(s, in.uv * 0.5 + 0.5).a;\n"
             "  return float4(0, a, 0, 1);\n"
+            "}\n"
+            "fragment half4 f16_circle(VOut in [[stage_in]]) {\n"
+            "  half2 uv = half2(in.uv);\n"
+            "  return length(uv) <= half(0.65) ? half4(0,1,0,1) : half4(0,0,0,1);\n"
+            "}\n"
+            "fragment half4 f16_pow_circle(VOut in [[stage_in]]) {\n"
+            "  half2 uv = half2(in.uv);\n"
+            "  half d = pow(abs(uv.x), half(2.0)) + pow(abs(uv.y), half(2.0));\n"
+            "  return d <= half(0.4225) ? half4(0,1,0,1) : half4(0,0,0,1);\n"
+            "}\n"
+            "fragment half4 f16_fbfetch(VOut in [[stage_in]], half4 prev [[color(0)]]) {\n"
+            "  return prev + half4(0, 0.5, 0, 0);\n"
             "}\n";
 
         NSError *err = nil;
         id<MTLLibrary> lib = [dev newLibraryWithSource:src options:nil error:&err];
         if (!lib) { printf("compile err: %s\n", err.localizedDescription.UTF8String); return 1; }
 
-        // 1. f_circle, f_pow_circle, f_fbfetch
-        const char *frags[3] = { "f_circle", "f_pow_circle", "f_fbfetch" };
-        for (int k = 0; k < 3; k++) {
+        // 1. f_circle, f_pow_circle, f_fbfetch + f16 variants
+        const char *frags[6] = { "f_circle", "f_pow_circle", "f_fbfetch", "f16_circle", "f16_pow_circle", "f16_fbfetch" };
+        for (int k = 0; k < 6; k++) {
             MTLTextureDescriptor *td = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm width:16 height:16 mipmapped:NO];
             td.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
             id<MTLTexture> tex = [dev newTextureWithDescriptor:td];
@@ -67,7 +79,7 @@ int main(void) {
             MTLRenderPassDescriptor *rp = [MTLRenderPassDescriptor renderPassDescriptor];
             rp.colorAttachments[0].texture = tex;
             rp.colorAttachments[0].loadAction = MTLLoadActionClear;
-            rp.colorAttachments[0].clearColor = (k == 2) ? MTLClearColorMake(0.5, 0, 0, 1) : MTLClearColorMake(0, 0, 0, 1);
+            rp.colorAttachments[0].clearColor = (k == 2 || k == 5) ? MTLClearColorMake(0.5, 0, 0, 1) : MTLClearColorMake(0, 0, 0, 1);
             rp.colorAttachments[0].storeAction = MTLStoreActionStore;
             id<MTLRenderCommandEncoder> enc = [cb renderCommandEncoderWithDescriptor:rp];
             [enc setRenderPipelineState:pso];
@@ -78,10 +90,10 @@ int main(void) {
 
             uint8_t px[16 * 16 * 4] = {};
             [tex getBytes:px bytesPerRow:16 * 4 fromRegion:MTLRegionMake2D(0, 0, 16, 16) mipmapLevel:0];
-            if (k < 2) {
+            if (k != 2 && k != 5) {
                 print_grid(frags[k], px, 16);
             } else {
-                printf("f_fbfetch center BGRA: %u %u %u %u (want ~0 128 128 255)\n",
+                printf("%s center BGRA: %u %u %u %u (want ~0 128 128 255)\n", frags[k],
                        px[(8*16+8)*4+0], px[(8*16+8)*4+1], px[(8*16+8)*4+2], px[(8*16+8)*4+3]);
             }
         }
