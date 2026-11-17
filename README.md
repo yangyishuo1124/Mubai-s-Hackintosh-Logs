@@ -2,9 +2,9 @@
 
 **简体中文 / English** · 更新 / Updated: **2026-11-17**
 
-这是我的 ASUS Vivobook S16 S5650AA 黑苹果适配记录与 OpenCore EFI。当前实机运行 **macOS Sequoia 15.6 (24G84)**（OpenCore `REL-108-2026-09-27`，SMBIOS `MacBookPro16,2`），已实现静默直通启动、`XeGfxIntelFramebuffer` 接管显示与背光（2560×1600 @ 165 Hz / Metal 3）、**开机亮度 NVRAM 记忆**、**防 S3 睡死（`pmset` 持久化）**、触摸板 GPIO 中断、Wi-Fi/蓝牙/摄像头与 `en0` Apple ID 注入；**合盖再开盖背光恢复**、**WindowServer 桌面 Metal 渲染异常**与**缩放分辨率**仍待进一步适配。
+这是我的 ASUS Vivobook S16 S5650AA 黑苹果适配记录与 OpenCore EFI。当前实机运行 **macOS Sequoia 15.6 (24G84)**（OpenCore `REL-108-2026-09-27`，SMBIOS `MacBookPro16,2`），已实现静默直通启动、`XeGfxIntelFramebuffer` 接管显示与背光（`1280×800` HiDPI 与 `2560×1600` 1x @ 165 Hz / Metal 3）、**开机亮度 NVRAM 记忆**、**合盖息屏与开盖亮度恢复**、**防 S3 睡死（`pmset` 持久化）**、触摸板 GPIO 中断、Wi-Fi/蓝牙/摄像头与 `en0` Apple ID 注入；**WindowServer 桌面 Metal 渲染异常**与**大于半屏的缩放分辨率（Pipe Scaler）**仍待进一步适配。
 
-My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. The machine currently runs **macOS Sequoia 15.6 (24G84)** (OpenCore `REL-108-2026-09-27`, SMBIOS `MacBookPro16,2`) with silent direct boot, `XeGfxIntelFramebuffer` display & backlight control (2560×1600 @ 165 Hz / Metal 3), **boot brightness NVRAM persistence**, **anti-S3-sleep-death (`pmset` persisted at boot)**, GPIO-mode touchpad, Wi-Fi/Bluetooth/Webcam, and `en0` built-in/ROM injection for Apple ID. **Lid-open backlight restore**, **WindowServer Metal composition glitches**, and **scaled/HiDPI resolutions** remain open.
+My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. The machine currently runs **macOS Sequoia 15.6 (24G84)** (OpenCore `REL-108-2026-09-27`, SMBIOS `MacBookPro16,2`) with silent direct boot, `XeGfxIntelFramebuffer` display & backlight control (`1280×800` HiDPI & `2560×1600` 1x @ 165 Hz / Metal 3), **boot brightness NVRAM persistence**, **lid-close backlight-off & lid-open brightness restore**, **anti-S3-sleep-death (`pmset` persisted at boot)**, GPIO-mode touchpad, Wi-Fi/Bluetooth/Webcam, and `en0` built-in/ROM injection for Apple ID. **WindowServer Metal composition glitches** and **>half-panel scaled resolutions (Pipe Scaler)** remain open.
 
 ---
 
@@ -16,7 +16,7 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. The machi
 | 操作系统 / OS | macOS Sequoia 15.6 (`24G84`) | 可静默直通启动（`ShowPicker=false`, `ScanPolicy=257`）/ Silent direct boot |
 | 处理器 / CPU | Core Ultra 7 356H, Panther Lake, 16C/16T | 16 核在线；Comet Lake CPUID 伪装 + `ProcessorType=3841` / All 16 cores online |
 | 显卡 / GPU | Intel Arc (PTL Xe2), PCI `8086:B0A0` | `XeGfx (0.0.47)` + `XeGfxAccel (0.9)` + `XeGfxAGDC (0.1.1)` + `XeGfxIntelFB (0.9)` 已加载；Metal 3 报告正常。默认 `nvaccelfb=1` 走软件合成可用；切换 `debug.nvaccelfb=3` 可启动 `WindowServer` Metal 合成（`NVMTL_FBFETCH_WS=1` 已启用），但存在掉帧、缺圆角、半透明变黑与锁屏头像菱形等渲染异常 / Kexts loaded & Metal 3 reported. Software compositing (`nvaccelfb=1`) works; `debug.nvaccelfb=3` enables Metal `WindowServer` (`NVMTL_FBFETCH_WS=1` on) but still hits frame drops, missing corners, black blur, and diamond avatar glitches |
-| 屏幕与背光 / Display & Backlight | 16-inch OLED (`ATNA60HS01-0`) | `XeGfxIntelFramebuffer` 已接管 `2560×1600 @ 165.00 Hz`；**开机 NVRAM 亮度记忆已修复并实机验证**（拦截开机早期 `255` 覆盖）；合盖再开盖后的背光恢复仍待修复；仅原生 `2560×1600` 分辨率，缩放/HiDPI 待补全 pipe scaler / **Boot brightness NVRAM persistence verified**; lid-open restore still broken; native `2560×1600` only (scaled/HiDPI needs pipe scaler) |
+| 屏幕与背光 / Display & Backlight | 16-inch OLED (`ATNA60HS01-0`) | `XeGfxIntelFramebuffer` 已接管显示与背光（`@165.00 Hz`）；**开机 NVRAM 亮度记忆已修复**、**合盖息屏与开盖亮度恢复已修复**（监听 `IOPMrootDomain` `AppleClamshellState` 并拦截开盖 `0`/`255` 覆盖）；已提供 **`1280×800` HiDPI** 与 **`2560×1600` 1x** 两种模式，大于半屏的缩放分辨率（如 `1680×1050` / `1920×1200` HiDPI）待补全 Pipe Scaler / **Boot NVRAM persistence & lid-close/open backlight restore verified**; **`1280×800` HiDPI & `2560×1600` 1x @ 165 Hz** available (>half-panel scaled modes need pipe scaler) |
 | 内存 / Memory | 32 GB LPDDR5X 7467 MT/s | 正常识别 / Working |
 | 主硬盘 / Primary SSD | 1 TB NVMe | APFS 系统可启动 / Boots macOS Sequoia 15.6 |
 | 副硬盘 / Secondary SSD | Samsung PM981 256 GB | `SSDT-Disable-PM981.aml` 已启用，但实机仍挂载为 `external` 盘（ACPI 路径待按真实设备路径调整） / Enabled in config, still enumerates as external (ACPI path mismatch) |
@@ -36,17 +36,17 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. The machi
 
 - **OpenCore 与引导 / Boot**：升级并同步至 Sequoia 15.6 EFI；配置 `ShowPicker=false`、`ScanPolicy=257`、移除 `-v` 与调试日志，启用 `DisableRtcChecksum`；清理 EFI 根目录冗余日志与临时脚本。
 - **防睡死与电源 / Anti-sleep-death**：在 `EFI/Diagnostics/gpu-display-capture.command` 开机脚本中持久化 `pmset` 禁用睡眠参数，规避 Panther Lake 固件无 S3 导致的 `Sleep Wake failure in EFI 0x00000000 0x0000001f` 睡死问题。
-- **亮度记忆修复 / Boot Brightness Fix**：更新 `patches/patch_xegfxintelfb.py`，修复 `BlHandler::doUpdate` 提前清除 `fHasSavedBl` 标志导致开机早期 `brightness=255` 覆盖 NVRAM 记忆值的问题；重建 `/Library/KernelCollections/AuxiliaryKernelExtensions.kc`（`kmutil create -n aux ... --allow-missing-kdk`）后实机重启验证开机亮度记忆成功。
+- **亮度记忆与合盖开盖修复 / Boot & Lid Backlight Fix**：更新 `patches/patch_xegfxintelfb.py`：1）修复 `BlHandler::doUpdate` 提前清除 `fHasSavedBl` 标志导致开机早期 `brightness=255` 覆盖 NVRAM 记忆值的问题；2）监听 `IOPMrootDomain` `AppleClamshellState`（外加 500ms 轮询兜底），合盖时锁存 `fPreLidBlLevel` 并写 `0` 息屏，开盖时拦截 macOS 下发的 `0`/`255` 覆盖并立即恢复盒盖前亮度。
+- **HiDPI 分辨率启用 / HiDPI 1280×800 Enabled**：在 `patches/patch_xegfxintelfb.py` 中恢复 `kDisplayModeValidForHiResFlag` 与面板物理尺寸上报，系统设置已可切换 `1280×800` HiDPI（2x `2560×1600 @ 165Hz`）与 `2560×1600` 1x。
 - **桌面 Metal 诊断 / Desktop Metal Diagnostics**：在 `nvrm610.conf` 加入 `NVMTL_FBFETCH_WS=1` 并验证 `WindowServer` 已开启 `framebuffer fetch ON`，定位到剩余 `bytesPerRow` 非 32B 对齐拷贝不同步、`clear-only pass` 及 PTL Xe2 渲染异常问题。
 
 ---
 
 ## 待办与已知问题 / Remaining issues & TODO
 
-1. **合盖再开盖背光恢复**：排查合盖/开盖后面板 DPCD `0x300`/`0x344`/`0x354` 或面板电源状态重置导致背光异常的原因。
-2. **修复 WindowServer 桌面 Metal 渲染异常**：修复 `NVMTLObjects.m` 中 `bytesPerRow` 非 32B 对齐的替身纹理重同步、`clear-only pass` depth/stencil 清理及 Panther Lake (`8086:B0A0`) `WindowServer` 合成异常（掉帧、缺圆角、毛玻璃变黑、锁屏头像菱形），以在不依赖“降低透明度”的前提下正常使用桌面硬件加速。
-3. **缩放分辨率（HiDPI）**：在 `XeGfxIntelFB` 中补全 `IOFBScalerInfo` / Intel pipe scaler 支持，使系统设置提供 `1280×800` HiDPI 等缩放选项。
-4. **外设与交互复测**：验证 Fn+亮度快捷键、内置扬声器/耳机孔/麦克风实际表现、Type-C 视频输出及 PM981 真实 ACPI 禁用路径。
+1. **修复 WindowServer 桌面 Metal 渲染异常**：修复 `NVMTLObjects.m` 中 `bytesPerRow` 非 32B 对齐的替身纹理重同步、`clear-only pass` 及 Panther Lake (`8086:B0A0`) `WindowServer` 合成异常（掉帧、缺圆角、毛玻璃变黑、锁屏头像菱形），以在不依赖“降低透明度”的前提下正常使用桌面硬件加速。
+2. **大于半屏的缩放分辨率（Pipe Scaler）**：在 `XeGfxIntelFB` 中研究 `IOFBScalerInfo` / Intel pipe scaler 支持，使系统设置提供 `1440×900`、`1680×1050`、`1920×1200` HiDPI 等缩放选项。
+3. **外设与交互复测**：验证 Fn+亮度快捷键、内置扬声器/耳机孔/麦克风实际表现、Type-C 视频输出及 PM981 真实 ACPI 禁用路径。
 
 ---
 
