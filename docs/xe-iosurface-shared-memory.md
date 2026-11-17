@@ -40,3 +40,29 @@ round trips over the same imported allocation, without a staging buffer.
 - No new kernel or Mesa library has been installed yet.
 - Hardware import, coherency, repeated allocation/release, direct image aliasing
   and WindowServer performance remain unverified.
+
+## Mesa build result
+
+Mesa build 44069820333 succeeded. The ZIP digest matches GitHub's
+`6e90d2e777bc63c6d40a281dff4a14e6195ca407577fea250ef304285ecea72b`.
+The new library was loaded only by a standalone probe. With `ANV_XE_USERPTR=0`,
+host import is absent; with `ANV_XE_USERPTR=1`, it is advertised. No host pages
+were imported during this enumeration-only check. System libraries are unchanged.
+
+## Kernel build result
+
+Kernel build 44070376590 succeeded. ZIP digest:
+`cba5ddc7c604f123e59aacb6e17205220c82fc40ce4393deca6ea2cbbc54fea2`.
+The kernel UUID is `81DDE75D-CD72-326D-8A7F-8D6F5A697A12`. Link, KPI,
+shadow-symbol and signature checks passed, as did the 16 existing stage tests.
+The PTL GuC digest matches the pinned firmware.
+
+After EFI installation and a normal reboot, run
+`python3 scripts/verify-userptr-kernel.py` before the privileged
+`scripts/run-shared-memory-probe.command`. The probe enables the runtime gate
+only for its test interval and restores the previous tunables on exit. The new
+Mesa is loaded by that test process only; desktop libraries remain unchanged.
+
+EFI installation completed. The old kernel is preserved as
+`EFI/OC/Kexts/XeGfx-pre-userptr.kext` and in a workspace backup. The active
+kernel is still the old UUID until reboot. No system Mesa library was replaced.
