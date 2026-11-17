@@ -66,3 +66,17 @@ Mesa is loaded by that test process only; desktop libraries remain unchanged.
 EFI installation completed. The old kernel is preserved as
 `EFI/OC/Kexts/XeGfx-pre-userptr.kext` and in a workspace backup. The active
 kernel is still the old UUID until reboot. No system Mesa library was replaced.
+
+## First hardware success after reboot
+
+The new UUID was verified loaded after the 19:11 reboot; Stage 7 initialization
+succeeded. With the runtime gate enabled for an isolated test process:
+
+- `VK_EXT_external_memory_host` is present.
+- GPU fill of the original 4 MiB IOSurface: 0 / 1,048,576 wrong words.
+- CPU writes -> GPU reads/copies -> original IOSurface: all 16 patterns pass.
+- No staging buffer is used by this test. The old runtime tunables were
+  restored after it. WindowServer is still using the original system Mesa.
+
+This verifies buffer-level shared pages. Direct image aliasing and desktop
+performance are the next checks; they are not implied by the buffer test.
