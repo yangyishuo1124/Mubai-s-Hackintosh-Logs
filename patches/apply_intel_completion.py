@@ -40,3 +40,11 @@ b='''    if (nvmtl_vk_vendor() == 0x8086) {
     }
 '''+a
 assert s.count(a)==1;s=s.replace(a,b);p.write_text(s)
+
+# Intel publishes the surface-wait capability on NMXAccel, not NVAccel.
+p=r/"plugin/nvmtl_vk.c"
+s=p.read_text()
+a='int nvmtl_vk_accel_surface_wait(void)\n{\n    io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("NVAccel"));'
+b='int nvmtl_vk_accel_surface_wait(void)\n{\n    io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching(nvmtl_vk_vendor() == 0x8086 ? "NMXAccel" : "NVAccel"));'
+assert a in s
+p.write_text(s.replace(a,b))
