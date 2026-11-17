@@ -1,0 +1,18 @@
+name: Build mtltest
+on:
+  push:
+    paths:
+      - patches/mtltest.m
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          xcrun clang -arch x86_64 -mmacosx-version-min=14.4 -O2 -fobjc-arc patches/mtltest.m -framework Foundation -framework Metal -framework MetalPerformanceShaders -o mtltest
+          codesign -s - --force mtltest
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mtltest-bin
+          path: mtltest
