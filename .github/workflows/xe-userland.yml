@@ -189,6 +189,7 @@ jobs:
           git -C "$HOME/src/xe-userland/mesa" checkout FETCH_HEAD
           patch -d "$HOME/src/xe-userland/mesa" -p1 < build/WTLIntelGfx/userland/patches/mesa-macos.patch
           patch -d "$HOME/src/xe-userland/mesa" -p1 < build/WTLIntelGfx/userland/patches/mesa-xegfx.patch
+          python3 patches/apply_mesa_userptr.py "$HOME/src/xe-userland/mesa"
 
       - name: Cache Mesa host tools (mesa_clc + vtn_bindgen2)
         id: cache-clc

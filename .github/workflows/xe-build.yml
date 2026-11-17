@@ -1,4 +1,4 @@
-name: Experimental Panther Lake Xe build
+name: Experimental Xe IOSurface userptr build
 # V35 dispatches boot initialization immediately (no 3s delay); update test_boot_stage4.
 on:
   push:
@@ -88,6 +88,12 @@ jobs:
           python3 patches/test_dpcpu_irq.py build/WTLIntelGfx/shim/src/fbsd/xg_kern.c --expect-regression
           (cd build/WTLIntelGfx && patch -p1 -i "$GITHUB_WORKSPACE/patches/xe-shim-dpcpu-irq.patch")
           python3 patches/test_dpcpu_irq.py build/WTLIntelGfx/shim/src/fbsd/xg_kern.c
+      - name: Test and apply opt-in shared-memory backend
+        shell: bash
+        run: |
+          clang -Wall -Wextra -Werror -fsanitize=address,undefined patches/test_xe_userptr.c -o build/test-xe-userptr
+          build/test-xe-userptr
+          python3 patches/apply_xe_userptr.py build/WTLIntelGfx
       - name: Build and verify xe kernel driver
         shell: bash
         run: |
