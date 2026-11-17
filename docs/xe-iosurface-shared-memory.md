@@ -80,3 +80,12 @@ succeeded. With the runtime gate enabled for an isolated test process:
 
 This verifies buffer-level shared pages. Direct image aliasing and desktop
 performance are the next checks; they are not implied by the buffer test.
+
+
+## 19:26 桌面接入失败与恢复
+
+WindowServer 重启后连续 SIGABRT，最终 watchdog 超时。启动日志确认新 Mesa 的 @rpath/libdrm.2.dylib 无法解析：产物没有 LC_RPATH；Vulkan 初始化失败，CoreDisplay 随后断言退出。独立测试通过 DYLD_LIBRARY_PATH 掩盖了打包问题，不能作为桌面接入成功的证据。
+
+19:23 重启后启动脚本恢复了旧 Mesa、旧插件和旧配置。已核对两项二进制 SHA256 与安装前备份一致；debug.xegfx_env 不含 xe_userptr 开关。未再次启用实验桌面。
+
+本地产物已添加 @loader_path 并重新签名；在 env -i 空环境中 ctypes 加载 Mesa、解析 Vulkan 入口通过。安装脚本改为使用修正产物，并新增空环境加载检查，Metal 预检也去掉 DYLD_LIBRARY_PATH。修正产物尚未重新接入桌面，仍需独立 Metal 验证和带自动恢复的桌面验证。共享内存硬件小测试成功仍有效，桌面稳定性尚未验证。
