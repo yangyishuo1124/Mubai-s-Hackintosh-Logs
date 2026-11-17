@@ -54,17 +54,54 @@ int main(void) {
             "  half d = pow(abs(uv.x), half(2.0)) + pow(abs(uv.y), half(2.0));\n"
             "  return d <= half(0.4225) ? half4(0,1,0,1) : half4(0,0,0,1);\n"
             "}\n"
-            "fragment half4 f16_fbfetch(VOut in [[stage_in]], half4 prev [[color(0)]]) {\n"
-            "  return prev + half4(0, 0.5, 0, 0);\n"
+            "struct VOut16 { float4 pos [[position]]; half2 uv; };\n"
+            "vertex VOut16 v_main16(uint vid [[vertex_id]]) {\n"
+            "  float2 p[4] = { {-1,-1}, {1,-1}, {-1,1}, {1,1} };\n"
+            "  VOut16 o; o.pos = float4(p[vid], 0, 1); o.uv = half2(p[vid]); return o;\n"
+            "}\n"
+            "fragment half4 f16_stagein_circle(VOut16 in [[stage_in]]) {\n"
+            "  half d = length(in.uv);\n"
+            "  half fw = fwidth(d);\n"
+            "  half a = smoothstep(half(0.65) + fw, half(0.65) - fw, d);\n"
+            "  if (a <= half(0.01)) discard_fragment();\n"
+            "  return half4(0, a, 0, 1);\n"
             "}\n";
 
         NSError *err = nil;
         id<MTLLibrary> lib = [dev newLibraryWithSource:src options:nil error:&err];
         if (!lib) { printf("compile err: %s\n", err.localizedDescription.UTF8String); return 1; }
 
-        // 1. f_circle, f_pow_circle, f_fbfetch + f16 variants
-        const char *frags[6] = { "f_circle", "f_pow_circle", "f_fbfetch", "f16_circle", "f16_pow_circle", "f16_fbfetch" };
-        for (int k = 0; k < 6; k++) {
+        // 1. f16_stagein_circle with half2 [[stage_in]] + fwidth + discard_fragment
+        {
+            MTLTextureDescriptor *td = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm width:16 height:16 mipmapped:NO];
+            td.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
+            id<MTLTexture> tex = [dev newTextureWithDescriptor:td];
+            MTLRenderPipelineDescriptor *rpd = [MTLRenderPipelineDescriptor new];
+            rpd.vertexFunction = [lib newFunctionWithName:@"v_main16"];
+            rpd.fragmentFunction = [lib newFunctionWithName:@"f16_stagein_circle"];
+            rpd.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+            id<MTLRenderPipelineState> pso = [dev newRenderPipelineStateWithDescriptor:rpd error:&err];
+            if (!pso) { printf("f16_stagein_circle pso err: %s\n", err.localizedDescription.UTF8String); }
+            else {
+                id<MTLCommandBuffer> cb = [q commandBuffer];
+                MTLRenderPassDescriptor *rp = [MTLRenderPassDescriptor renderPassDescriptor];
+                rp.colorAttachments[0].texture = tex;
+                rp.colorAttachments[0].loadAction = MTLLoadActionClear;
+                rp.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 1);
+                rp.colorAttachments[0].storeAction = MTLStoreActionStore;
+                id<MTLRenderCommandEncoder> enc = [cb renderCommandEncoderWithDescriptor:rp];
+                [enc setRenderPipelineState:pso];
+                [enc drawPrimitives:MTLPrimitiveTypeTriangleStrip vertexStart:0 vertexCount:4];
+                [enc endEncoding];
+                [cb commit];
+                [cb waitUntilCompleted];
+                uint8_t px[16 * 16 * 4] = {};
+                [tex getBytes:px bytesPerRow:16 * 4 fromRegion:MTLRegionMake2D(0, 0, 16, 16) mipmapLevel:0];
+                print_grid("f16_stagein_circle", px, 16);
+            }
+        }
+        const char *frags[5] = { "f_circle", "f_pow_circle", "f_fbfetch", "f16_circle", "f16_pow_circle" };
+        for (int k = 0; k < 5; k++) {
             MTLTextureDescriptor *td = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm width:16 height:16 mipmapped:NO];
             td.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
             id<MTLTexture> tex = [dev newTextureWithDescriptor:td];
@@ -79,7 +116,7 @@ int main(void) {
             MTLRenderPassDescriptor *rp = [MTLRenderPassDescriptor renderPassDescriptor];
             rp.colorAttachments[0].texture = tex;
             rp.colorAttachments[0].loadAction = MTLLoadActionClear;
-            rp.colorAttachments[0].clearColor = (k == 2 || k == 5) ? MTLClearColorMake(0.5, 0, 0, 1) : MTLClearColorMake(0, 0, 0, 1);
+            rp.colorAttachments[0].clearColor = (k == 2) ? MTLClearColorMake(0.5, 0, 0, 1) : MTLClearColorMake(0, 0, 0, 1);
             rp.colorAttachments[0].storeAction = MTLStoreActionStore;
             id<MTLRenderCommandEncoder> enc = [cb renderCommandEncoderWithDescriptor:rp];
             [enc setRenderPipelineState:pso];
@@ -90,7 +127,7 @@ int main(void) {
 
             uint8_t px[16 * 16 * 4] = {};
             [tex getBytes:px bytesPerRow:16 * 4 fromRegion:MTLRegionMake2D(0, 0, 16, 16) mipmapLevel:0];
-            if (k != 2 && k != 5) {
+            if (k != 2) {
                 print_grid(frags[k], px, 16);
             } else {
                 printf("%s center BGRA: %u %u %u %u (want ~0 128 128 255)\n", frags[k],
