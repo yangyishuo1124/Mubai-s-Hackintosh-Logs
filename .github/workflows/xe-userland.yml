@@ -136,6 +136,7 @@ jobs:
           bash "$R/build/build_xegfxagdc.sh"
           bash "$R/build/build_nmintelfb.sh"
           if [ -f patches/patch_nvmtl.py ]; then python3 patches/patch_nvmtl.py "$R"; fi
+          python3 patches/apply_plugin_userptr.py "$R"
           bash "$R/build/build_plugin.sh"
 
           cd "$R/translator"
