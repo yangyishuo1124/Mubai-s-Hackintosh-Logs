@@ -131,6 +131,7 @@ jobs:
           export OUTROOT="$OUT/kexts"
           export XEGFX_OUT="$OUT"
 
+          python3 patches/apply_intel_completion.py "$R"
           bash "$R/build/build_xegfxaccel.sh"
           bash "$R/build/build_xegfxintelfb.sh"
           bash "$R/build/build_xegfxagdc.sh"
