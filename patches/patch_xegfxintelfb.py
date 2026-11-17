@@ -21,6 +21,7 @@ assert anchor1 in s, "anchor1 missing"
 
 aux_dpcd_code = r"""#include <IOKit/graphics/IODisplay.h>
 #include <IOKit/pwr_mgt/IOPM.h>
+#include <IOKit/pwr_mgt/RootDomain.h>
 #include <libkern/libkern.h>
 
 // Native eDP AUX DPCD read/write (cmd 0x9 = read, 0x8 = write) for panel backlight (0x300..0x359, 0x700..0x737)
