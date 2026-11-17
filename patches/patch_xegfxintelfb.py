@@ -238,6 +238,7 @@ members_code = r"""    friend class XeGfxBacklightHandler;
             fClamshellClosed = true;
             fBlReapplyLeft = 0;
             fPreLidBlLevel = (fBlSaveLevel >= kBlMinFloor) ? fBlSaveLevel : ((fBlLevel >= kBlMinFloor) ? fBlLevel : kBlMax);
+            if (fBlReady) (void)blWriteHw(0);
             XIFBLOG("clamshell closed (%s, saved preLid=%u)", src, (unsigned)fPreLidBlLevel);
         }
     }
@@ -249,6 +250,7 @@ members_code = r"""    friend class XeGfxBacklightHandler;
                 fBlLevel = fPreLidBlLevel;
                 fBlSaveLevel = fPreLidBlLevel;
             }
+            if (fBlReady) (void)blWriteHw(fBlLevel);
             if (fBlHandler) {
                 uint32_t ui = (uint32_t)(((uint64_t)fBlLevel * 1024u + kBlMax / 2) / kBlMax);
                 if (ui > 1024u) ui = 1024u;
