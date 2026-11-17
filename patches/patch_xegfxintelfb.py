@@ -158,6 +158,9 @@ members_code = r"""    friend class XeGfxBacklightHandler;
     IOPCIDevice *fPci = nullptr;
     bool fBlReady = false, fBlHdr = false, fBl16Bit = false, fBlPwm = false, fDisplayAsleep = false;
     bool fBlPanelWasOff = false;
+    bool fClamshellClosed = false;
+    int fBlReapplyLeft = 0;
+    IONotifier *fPmNotifier = nullptr;
     uint32_t fBlLastFc = 0;
     uint32_t fBlLevel = 0x10000u, fBlSaveLevel = 0x10000u, fBlHwMax = 65535u, fBlPwmBase = 0, fBlPwmFreq = 0;
     uint32_t fBlHdrMin = 0, fBlHdrMax = 512;
@@ -219,10 +222,56 @@ members_code = r"""    friend class XeGfxBacklightHandler;
             thread_call_enter_delayed(fBlSaveTimer, dl);
         }
     }
+    static bool readClamshellClosed() {
+        IOService *pm = IOService::getPMRootDomain();
+        if (!pm) return false;
+        OSObject *cs = pm->copyProperty("AppleClamshellState");
+        bool closed = (cs == kOSBooleanTrue);
+        if (cs) cs->release();
+        return closed;
+    }
+    static IOReturn pmInterestCb(void *target, void *, UInt32 messageType, IOService *provider, void *, vm_size_t) {
+        XeGfxIntelFramebuffer *me = (XeGfxIntelFramebuffer *)target;
+        if (!me || me->fStopping) return kIOReturnSuccess;
+        OSObject *cs = provider ? provider->copyProperty("AppleClamshellState") : nullptr;
+        bool closed = (cs == kOSBooleanTrue);
+        if (cs) cs->release();
+        if (closed) {
+            if (!me->fClamshellClosed) {
+                me->fClamshellClosed = true;
+                me->fBlReapplyLeft = 0;
+                XIFBLOG("clamshell closed (msg=%08x)", (unsigned)messageType);
+            }
+        } else if (me->fClamshellClosed) {
+            me->fClamshellClosed = false;
+            me->fBlReapplyLeft = 4;
+            XIFBLOG("clamshell opened (msg=%08x) -> scheduling brightness restore %u/%u",
+                    (unsigned)messageType, (unsigned)me->fBlLevel, (unsigned)kBlMax);
+            if (me->fBlWatchTimer) {
+                uint64_t dl = 0;
+                clock_interval_to_deadline(50, kMillisecondScale, &dl);
+                thread_call_enter_delayed(me->fBlWatchTimer, dl);
+            }
+        }
+        return kIOReturnSuccess;
+    }
     static void blWatchFire(thread_call_param_t p0, thread_call_param_t) {
         XeGfxIntelFramebuffer *me = (XeGfxIntelFramebuffer *)p0;
         if (me->fStopping) return;
-        if (!me->fDisplayAsleep && me->fBlReady && me->fBlHdr && me->fR && me->fPci &&
+        bool closed = readClamshellClosed();
+        if (closed) {
+            if (!me->fClamshellClosed) {
+                me->fClamshellClosed = true;
+                me->fBlReapplyLeft = 0;
+                XIFBLOG("clamshell closed (polled)");
+            }
+        } else if (me->fClamshellClosed) {
+            me->fClamshellClosed = false;
+            me->fBlReapplyLeft = 4;
+            XIFBLOG("clamshell opened (polled) -> scheduling brightness restore %u/%u",
+                    (unsigned)me->fBlLevel, (unsigned)kBlMax);
+        }
+        if (!closed && !me->fDisplayAsleep && me->fBlReady && me->fBlHdr && me->fR && me->fPci &&
             (me->fPci->configRead16(kIOPCIConfigCommand) & kIOPCICommandMemorySpace)) {
             bool needRestore = false;
             uint32_t ppSt = me->rd(0xc7200);
@@ -230,6 +279,10 @@ members_code = r"""    friend class XeGfxBacklightHandler;
             uint32_t fc = me->rd(0x70040);
             bool panelOff = ((ppSt & 0x80000000u) == 0) || ((ppCtl & 0x05u) != 0x05u) || (fc == me->fBlLastFc && me->fBlLastFc != 0);
             me->fBlLastFc = fc;
+            if (me->fBlReapplyLeft > 0) {
+                me->fBlReapplyLeft--;
+                needRestore = true;
+            }
             if (panelOff) {
                 me->fBlPanelWasOff = true;
             } else {
@@ -266,24 +319,29 @@ members_code = r"""    friend class XeGfxBacklightHandler;
                 gRegs = nullptr;
                 if (me->fBlLock) IOLockUnlock(me->fBlLock);
                 if (needRestore) {
-                    XIFBLOG("lid/panel DPCD reset detected (pp=%08x/%08x c0=%02x) -> restoring brightness %u/%u",
-                            (unsigned)ppSt, (unsigned)ppCtl, (unsigned)c0, (unsigned)me->fBlLevel, (unsigned)kBlMax);
+                    XIFBLOG("lid/panel restore (pp=%08x/%08x c0=%02x nit=%02x%02x rem=%d) -> bl=%u/%u",
+                            (unsigned)ppSt, (unsigned)ppCtl, (unsigned)c0, rbN[1], rbN[0],
+                            me->fBlReapplyLeft, (unsigned)me->fBlLevel, (unsigned)kBlMax);
                     (void)me->blWriteHw(me->fBlLevel);
                 }
             }
         }
         uint64_t dl = 0;
-        clock_interval_to_deadline(1000, kMillisecondScale, &dl);
+        clock_interval_to_deadline(500, kMillisecondScale, &dl);
         thread_call_enter_delayed(me->fBlWatchTimer, dl);
     }
     void armBlWatch() {
         if (!fBlReady || !fBlHdr || fBlWatchTimer) return;
+        IOService *pm = IOService::getPMRootDomain();
+        if (pm && !fPmNotifier) {
+            fPmNotifier = pm->registerInterest(gIOGeneralInterest, pmInterestCb, this, nullptr);
+        }
         fBlWatchTimer = thread_call_allocate(blWatchFire, this);
         if (fBlWatchTimer) {
             uint64_t dl = 0;
-            clock_interval_to_deadline(1000, kMillisecondScale, &dl);
+            clock_interval_to_deadline(500, kMillisecondScale, &dl);
             thread_call_enter_delayed(fBlWatchTimer, dl);
-            XIFBLOG("blWatchFire armed (1000ms)");
+            XIFBLOG("blWatchFire armed (500ms, pm=%d)", fPmNotifier != nullptr ? 1 : 0);
         }
     }
     void snapDeRegs(const char *tag, bool writeNvram) {
@@ -560,6 +618,10 @@ start_hook = """        fPci = OSDynamicCast(IOPCIDevice, provider);
     }
     void stop(IOService *provider) override {
         fStopping = true;
+        if (fPmNotifier) {
+            fPmNotifier->remove();
+            fPmNotifier = nullptr;
+        }
         if (fVblTimer) {
             thread_call_cancel(fVblTimer);
             while (!thread_call_free(fVblTimer)) IOSleep(1);
