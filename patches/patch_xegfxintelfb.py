@@ -749,14 +749,12 @@ attr_code = """    IOReturn getAttributeForConnection(IOIndex ci, IOSelect attr,
     }"""
 s = s.replace(anchor4, attr_code, 1)
 
-# 5. Drop kDisplayModeValidForHiResFlag and physical imageWidth/imageHeight so macOS uses native 1x (2560x1600) instead of 2x (1280x800)
+# 5. Restore kDisplayModeValidForHiResFlag and physical imageWidth/imageHeight so macOS offers HiDPI scaled modes
 img_size_line = "        if (fEdidLen && fEdid[21] && fEdid[22]) { info->imageWidth = fEdid[21] * 10; info->imageHeight = fEdid[22] * 10; }"
 assert img_size_line in s, "img_size_line missing"
-s = s.replace(img_size_line, "        // leave imageWidth/imageHeight unset so WindowServer stays at 1x native 2560x1600", 1)
 
 hires_line = "        info->flags |= kDisplayModeValidForHiResFlag;"
 assert hires_line in s, "hires_line missing"
-s = s.replace(hires_line, "        info->flags &= ~kDisplayModeValidForHiResFlag;", 1)
 
 # 6. Strip kIOPMPreventSystemSleep from registerPowerDriver, handle kIOPowerStateAttribute, and log getAttribute() queries
 get_attr_anchor = """    IOReturn getAttribute(IOSelect attr, uintptr_t *value) override {
