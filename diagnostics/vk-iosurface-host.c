@@ -18,6 +18,7 @@ int main(void) {
     VkPhysicalDeviceExternalMemoryHostPropertiesEXT hp={.sType=VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_MEMORY_HOST_PROPERTIES_EXT};
     VkPhysicalDeviceProperties2 prop={.sType=VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,.pNext=&hp};vkGetPhysicalDeviceProperties2(pd,&prop);
     printf("device=%s host_import=%d alignment=%llu\n",prop.properties.deviceName,host,(unsigned long long)hp.minImportedHostPointerAlignment);fflush(stdout);
+    if (getenv("HOST_PROBE_ENUM_ONLY")) { vkDestroyInstance(inst,NULL);return host?0:77; }
     if(!host) { puts("BLOCKED: VK_EXT_external_memory_host is not advertised");vkDestroyInstance(inst,NULL);return 77; }
     uint32_t nq=0;vkGetPhysicalDeviceQueueFamilyProperties(pd,&nq,NULL);VkQueueFamilyProperties *qs=calloc(nq,sizeof(*qs));vkGetPhysicalDeviceQueueFamilyProperties(pd,&nq,qs);
     uint32_t qi=0;while(qi<nq && !(qs[qi].queueFlags&(VK_QUEUE_COMPUTE_BIT|VK_QUEUE_GRAPHICS_BIT)))qi++;free(qs);if(qi==nq)return 3;
