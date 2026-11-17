@@ -172,6 +172,8 @@ members_code = r"""    friend class XeGfxBacklightHandler;
     thread_call_t fBlWatchTimer = nullptr;
     bool fHasSavedBl = false;
     uint64_t fBlInitNs = 0;
+    uint64_t fLidOpenNs = 0;
+    uint32_t fPreLidBlLevel = 0x10000u;
     static constexpr uint32_t kBlMax = 0x10000u;
     static constexpr uint32_t kBlMinFloor = 0x400u;
 
@@ -231,47 +233,57 @@ members_code = r"""    friend class XeGfxBacklightHandler;
         if (cs) cs->release();
         return closed;
     }
+    void onClamshellClosed(const char *src) {
+        if (!fClamshellClosed) {
+            fClamshellClosed = true;
+            fBlReapplyLeft = 0;
+            fPreLidBlLevel = (fBlSaveLevel >= kBlMinFloor) ? fBlSaveLevel : ((fBlLevel >= kBlMinFloor) ? fBlLevel : kBlMax);
+            XIFBLOG("clamshell closed (%s, saved preLid=%u)", src, (unsigned)fPreLidBlLevel);
+        }
+    }
+    void onClamshellOpened(const char *src) {
+        if (fClamshellClosed) {
+            fClamshellClosed = false;
+            absolutetime_to_nanoseconds(mach_absolute_time(), &fLidOpenNs);
+            if (fPreLidBlLevel >= kBlMinFloor && fPreLidBlLevel <= kBlMax) {
+                fBlLevel = fPreLidBlLevel;
+                fBlSaveLevel = fPreLidBlLevel;
+            }
+            if (fBlHandler) {
+                uint32_t ui = (uint32_t)(((uint64_t)fBlLevel * 1024u + kBlMax / 2) / kBlMax);
+                if (ui > 1024u) ui = 1024u;
+                fBlHandler->fUserLevel = ui;
+                fBlHandler->fFadeLevel = 0;
+                xifbUpdateParamValue(fBlHandler->fDisplay, "brightness", (SInt32)ui);
+                xifbUpdateParamValue(fBlHandler->fDisplay, "linear-brightness", (SInt32)ui);
+                xifbUpdateParamValue(fBlHandler->fDisplay, "brightness-fade", 0);
+            }
+            fBlReapplyLeft = 4;
+            XIFBLOG("clamshell opened (%s) -> restoring preLid=%u/%u",
+                    src, (unsigned)fBlLevel, (unsigned)kBlMax);
+            if (fBlWatchTimer) {
+                uint64_t dl = 0;
+                clock_interval_to_deadline(50, kMillisecondScale, &dl);
+                thread_call_enter_delayed(fBlWatchTimer, dl);
+            }
+        }
+    }
     static IOReturn pmInterestCb(void *target, void *, UInt32 messageType, IOService *provider, void *, vm_size_t) {
         XeGfxIntelFramebuffer *me = (XeGfxIntelFramebuffer *)target;
         if (!me || me->fStopping) return kIOReturnSuccess;
         OSObject *cs = provider ? provider->copyProperty("AppleClamshellState") : nullptr;
         bool closed = (cs == kOSBooleanTrue);
         if (cs) cs->release();
-        if (closed) {
-            if (!me->fClamshellClosed) {
-                me->fClamshellClosed = true;
-                me->fBlReapplyLeft = 0;
-                XIFBLOG("clamshell closed (msg=%08x)", (unsigned)messageType);
-            }
-        } else if (me->fClamshellClosed) {
-            me->fClamshellClosed = false;
-            me->fBlReapplyLeft = 4;
-            XIFBLOG("clamshell opened (msg=%08x) -> scheduling brightness restore %u/%u",
-                    (unsigned)messageType, (unsigned)me->fBlLevel, (unsigned)kBlMax);
-            if (me->fBlWatchTimer) {
-                uint64_t dl = 0;
-                clock_interval_to_deadline(50, kMillisecondScale, &dl);
-                thread_call_enter_delayed(me->fBlWatchTimer, dl);
-            }
-        }
+        if (closed) me->onClamshellClosed("pm");
+        else if (me->fClamshellClosed) me->onClamshellOpened("pm");
         return kIOReturnSuccess;
     }
     static void blWatchFire(thread_call_param_t p0, thread_call_param_t) {
         XeGfxIntelFramebuffer *me = (XeGfxIntelFramebuffer *)p0;
         if (me->fStopping) return;
         bool closed = readClamshellClosed();
-        if (closed) {
-            if (!me->fClamshellClosed) {
-                me->fClamshellClosed = true;
-                me->fBlReapplyLeft = 0;
-                XIFBLOG("clamshell closed (polled)");
-            }
-        } else if (me->fClamshellClosed) {
-            me->fClamshellClosed = false;
-            me->fBlReapplyLeft = 4;
-            XIFBLOG("clamshell opened (polled) -> scheduling brightness restore %u/%u",
-                    (unsigned)me->fBlLevel, (unsigned)kBlMax);
-        }
+        if (closed) me->onClamshellClosed("poll");
+        else if (me->fClamshellClosed) me->onClamshellOpened("poll");
         if (!closed && !me->fDisplayAsleep && me->fBlReady && me->fBlHdr && me->fR && me->fPci &&
             (me->fPci->configRead16(kIOPCIConfigCommand) & kIOPCICommandMemorySpace)) {
             bool needRestore = false;
@@ -283,6 +295,10 @@ members_code = r"""    friend class XeGfxBacklightHandler;
             if (me->fBlReapplyLeft > 0) {
                 me->fBlReapplyLeft--;
                 needRestore = true;
+                if (me->fBlHandler) {
+                    xifbUpdateParamValue(me->fBlHandler->fDisplay, "brightness", (SInt32)me->fBlHandler->fUserLevel);
+                    xifbUpdateParamValue(me->fBlHandler->fDisplay, "linear-brightness", (SInt32)me->fBlHandler->fUserLevel);
+                }
             }
             if (panelOff) {
                 me->fBlPanelWasOff = true;
@@ -924,9 +940,18 @@ bool XeGfxBacklightHandler::doIntegerSet(OSDictionary *params, const OSSymbol *p
 
     if (strcmp(name, "brightness") == 0) {
         if (value > (UInt32)kUiMax) value = (UInt32)kUiMax;
+        uint64_t nowNs = 0;
+        absolutetime_to_nanoseconds(mach_absolute_time(), &nowNs);
+        if (fFb->fClamshellClosed || (fFb->fLidOpenNs && nowNs >= fFb->fLidOpenNs && (nowNs - fFb->fLidOpenNs) < 3000000000ull)) {
+            if ((value == 0 || value == 255) && fUserLevel != value) {
+                XIFBLOG("ignoring lid %u brightness override; keeping %u", (unsigned)value, (unsigned)fUserLevel);
+                xifbUpdateParamValue(fDisplay, "brightness", (SInt32)fUserLevel);
+                xifbUpdateParamValue(fDisplay, "linear-brightness", (SInt32)fUserLevel);
+                if (!fFb->fClamshellClosed) applyEffective();
+                return true;
+            }
+        }
         if (fFb->fHasSavedBl) {
-            uint64_t nowNs = 0;
-            absolutetime_to_nanoseconds(mach_absolute_time(), &nowNs);
             if (nowNs >= fFb->fBlInitNs && (nowNs - fFb->fBlInitNs) < 25000000000ull) {
                 if (value == 255 || value == fUserLevel) {
                     if (value == 255 && fUserLevel != 255) {
@@ -956,9 +981,18 @@ bool XeGfxBacklightHandler::doIntegerSet(OSDictionary *params, const OSSymbol *p
     }
     if (strcmp(name, "linear-brightness") == 0) {
         if (value > (UInt32)kUiMax) value = (UInt32)kUiMax;
+        uint64_t nowNs = 0;
+        absolutetime_to_nanoseconds(mach_absolute_time(), &nowNs);
+        if (fFb->fClamshellClosed || (fFb->fLidOpenNs && nowNs >= fFb->fLidOpenNs && (nowNs - fFb->fLidOpenNs) < 3000000000ull)) {
+            if ((value == 0 || value == 255) && fUserLevel != value) {
+                XIFBLOG("ignoring lid %u linear-brightness override; keeping %u", (unsigned)value, (unsigned)fUserLevel);
+                xifbUpdateParamValue(fDisplay, "brightness", (SInt32)fUserLevel);
+                xifbUpdateParamValue(fDisplay, "linear-brightness", (SInt32)fUserLevel);
+                if (!fFb->fClamshellClosed) applyEffective();
+                return true;
+            }
+        }
         if (fFb->fHasSavedBl) {
-            uint64_t nowNs = 0;
-            absolutetime_to_nanoseconds(mach_absolute_time(), &nowNs);
             if (nowNs >= fFb->fBlInitNs && (nowNs - fFb->fBlInitNs) < 25000000000ull) {
                 if (value == 255 || value == fUserLevel) {
                     if (value == 255 && fUserLevel != 255) {
