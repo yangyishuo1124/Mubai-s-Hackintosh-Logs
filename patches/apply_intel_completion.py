@@ -48,3 +48,25 @@ a='int nvmtl_vk_accel_surface_wait(void)\n{\n    io_service_t s = IOServiceGetMa
 b='int nvmtl_vk_accel_surface_wait(void)\n{\n    io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching(nvmtl_vk_vendor() == 0x8086 ? "NMXAccel" : "NVAccel"));'
 assert a in s
 p.write_text(s.replace(a,b))
+
+# Intel's first framebuffer resource request needs scanout and aperture backing.
+p = r / 'kexts/XeGfxAccel/accel/nvrm-accel.cpp'
+s = p.read_text()
+a = 'static int gNvScanout = 0;\nstatic int gNvAperture = 0;'
+b = '''#ifdef NMX_XEGFX
+static int gNvScanout = 1;
+static int gNvAperture = 1;
+#else
+static int gNvScanout = 0;
+static int gNvAperture = 0;
+#endif'''
+assert a in s
+p.write_text(s.replace(a, b, 1))
+
+# Route opt-in performance measurements into the same log as other driver output.
+p = r / 'plugin/nvmtl_vk.c'
+s = p.read_text()
+a = 'fprintf(stderr, "PERFSUB k%d sets %u gap'
+assert a in s
+s = s.replace('void nvlog(const char *fmt, ...);', 'void nvlog(const char *fmt, ...);\nvoid nvlog_raw(const char *fmt, ...);', 1)
+p.write_text(s.replace(a, 'nvlog_raw("PERFSUB k%d sets %u gap', 1))
