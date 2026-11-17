@@ -135,5 +135,18 @@ new_syncin = """static void nvmtl_buffer_sync_in(NVMTLBuffer *b)
 assert old_syncin in m, "NVMTLObjects.m old_syncin anchor missing"
 m = m.replace(old_syncin, new_syncin, 1)
 
+# 3. Disable nvmtl_self_snap / self_tex by default (same effect as xe-live bit 256):
+# On Panther Lake Xe2 WindowServer, replacing self-sampled target with pre-pass _snap
+# turns CABackdropLayer blur (Dock/Launchpad) black and breaks corner-arc compositing.
+old_selfsnap_use = "    if (_target && (nt->_parent ?: nt) == (_target->_parent ?: _target) && !(nvmtl_xe_live_mask_r(1) & 256)) {"
+new_selfsnap_use = "    if (_target && (nt->_parent ?: nt) == (_target->_parent ?: _target) && getenv(\"NVMTL_SELF_SNAP\") && !(nvmtl_xe_live_mask_r(1) & 256)) {"
+assert old_selfsnap_use in m, "NVMTLObjects.m old_selfsnap_use anchor missing"
+m = m.replace(old_selfsnap_use, new_selfsnap_use, 1)
+
+old_selfsnap_copy = "        if (snap && !(nvmtl_xe_live_mask_r(1) & 256) && !nvmtl_vk_cmd_copy_image(&_c, [r nvi], 0, 0, [snap nvi], 0, 0, [r nvi]->w, [r nvi]->h)) {"
+new_selfsnap_copy = "        if (snap && getenv(\"NVMTL_SELF_SNAP\") && !(nvmtl_xe_live_mask_r(1) & 256) && !nvmtl_vk_cmd_copy_image(&_c, [r nvi], 0, 0, [snap nvi], 0, 0, [r nvi]->w, [r nvi]->h)) {"
+assert old_selfsnap_copy in m, "NVMTLObjects.m old_selfsnap_copy anchor missing"
+m = m.replace(old_selfsnap_copy, new_selfsnap_copy, 1)
+
 m_path.write_text(m)
 print("Patched NVMTLObjects.h and NVMTLObjects.m")
