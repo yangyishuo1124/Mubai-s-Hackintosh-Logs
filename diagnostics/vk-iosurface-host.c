@@ -54,6 +54,28 @@ int main(void) {
     VkSubmitInfo sub={.sType=VK_STRUCTURE_TYPE_SUBMIT_INFO,.commandBufferCount=1,.pCommandBuffers=&cmd};CHECK(vkQueueSubmit(queue,1,&sub,fence));CHECK(vkWaitForFences(dev,1,&fence,VK_TRUE,5000000000ULL));
     IOSurfaceLock(surf,kIOSurfaceLockReadOnly,NULL);size_t bad=0;for(size_t i=0;i<size/4;i++)if(base[i]!=0x5a93c741)bad++;IOSurfaceUnlock(surf,kIOSurfaceLockReadOnly,NULL);
     printf("GPU fill -> original IOSurface: %zu / %zu wrong words\n",bad,size/4);
+    /* CPU writes the first half. The GPU reads those same imported pages and
+     * copies to the second half, which the CPU reads through the IOSurface.
+     * Repeated patterns catch stale cache lines and early completion. */
+    for (uint32_t round=1;round<=16 && !bad;round++) {
+        size_t half=size/8;
+        IOSurfaceLock(surf,0,NULL);
+        for(size_t i=0;i<half;i++)base[i]=(uint32_t)i*3u+round*0x10203u;
+        memset(base+half,0,size/2);
+        IOSurfaceUnlock(surf,0,NULL);
+        CHECK(vkResetCommandPool(dev,pool,0));CHECK(vkResetFences(dev,1,&fence));
+        CHECK(vkBeginCommandBuffer(cmd,&begin));
+        vkCmdPipelineBarrier(cmd,VK_PIPELINE_STAGE_HOST_BIT,VK_PIPELINE_STAGE_TRANSFER_BIT,0,1,&pre,0,NULL,0,NULL);
+        VkBufferCopy region={.srcOffset=0,.dstOffset=size/2,.size=size/2};
+        vkCmdCopyBuffer(cmd,buf,buf,1,&region);
+        vkCmdPipelineBarrier(cmd,VK_PIPELINE_STAGE_TRANSFER_BIT,VK_PIPELINE_STAGE_HOST_BIT,0,1,&post,0,NULL,0,NULL);
+        CHECK(vkEndCommandBuffer(cmd));CHECK(vkQueueSubmit(queue,1,&sub,fence));
+        CHECK(vkWaitForFences(dev,1,&fence,VK_TRUE,5000000000ULL));
+        IOSurfaceLock(surf,kIOSurfaceLockReadOnly,NULL);
+        for(size_t i=0;i<half;i++)if(base[half+i]!=(uint32_t)i*3u+round*0x10203u)bad++;
+        IOSurfaceUnlock(surf,kIOSurfaceLockReadOnly,NULL);
+    }
+    printf("CPU -> imported pages -> GPU -> same IOSurface: %s\n",bad?"FAIL":"PASS (16 patterns)");
     vkDestroyFence(dev,fence,NULL);vkDestroyCommandPool(dev,pool,NULL);vkDestroyBuffer(dev,buf,NULL);vkFreeMemory(dev,mem,NULL);CFRelease(surf);vkDestroyDevice(dev,NULL);vkDestroyInstance(inst,NULL);
     return bad?6:0;
 }

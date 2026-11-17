@@ -6,13 +6,13 @@
 #include <linux/mm.h>
 #include <linux/scatterlist.h>
 #include <linux/dma-mapping.h>
-#include <linux/moduleparam.h>
 #include "xe_vm.h"
 #include "xe_device.h"
 #endif
 
-static bool xg_xe_userptr_enabled;
-module_param_named(userptr, xg_xe_userptr_enabled, bool, 0600);
+/* Re-read the existing runtime tunables bridge so testing does not require
+ * enabling host import at boot or adding another native sysctl. */
+extern int getenv_int(const char *name, int *value);
 
 struct xg_xe_userptr_hold {
     struct sg_table sgt;
@@ -70,7 +70,7 @@ int xe_hmm_userptr_populate_range(struct xe_userptr_vma *uvma, bool locked)
     u64 start = xe_vma_userptr(vma), size = xe_vma_size(vma);
     unsigned long seq, npages, i;
     long pinned;
-    int err = 0;
+    int err = 0, enabled = 0;
     bool write = !xe_vma_read_only(vma);
     (void)locked;
     if (vma->gpuva.flags & XE_VMA_DESTROYED) return 0;
@@ -94,7 +94,9 @@ int xe_hmm_userptr_populate_range(struct xe_userptr_vma *uvma, bool locked)
         }
         goto out;
     }
-    if (!xg_xe_userptr_enabled) { err = -EOPNOTSUPP; goto out; }
+    if (!getenv_int("compat.linuxkpi.xe_userptr", &enabled) || enabled != 1) {
+        err = -EOPNOTSUPP; goto out;
+    }
     if (!current->mm || current->mm != up->notifier.mm) { err = -EFAULT; goto out; }
     npages = size / PAGE_SIZE;
     h = kzalloc(sizeof(*h), GFP_KERNEL);

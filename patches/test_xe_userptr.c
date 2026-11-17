@@ -30,6 +30,10 @@ struct xe_vma { struct { unsigned flags; } gpuva; struct xe_vm *vm;
 struct xe_userptr_vma { struct xe_vma vma; struct xe_userptr userptr; };
 struct { void *mm; } task, *current = &task;
 static int dma_live, sg_live, pin_limit = -1, fail_sg, fail_dma;
+static bool xg_xe_userptr_enabled;
+int getenv_int(const char *name,int *value) {
+    (void)name;*value=xg_xe_userptr_enabled;return 1;
+}
 static void mutex_lock(int *p) { assert(!*p); *p=1; }
 static void mutex_unlock(int *p) { assert(*p); *p=0; }
 static void down_read(int *p) { ++*p; }
