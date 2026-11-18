@@ -15,3 +15,9 @@ OC: Prelinked blocker (Disable) result 1 for org.watchthelight.XeGfxAccel (...) 
 The latest configuration disabled EFI injection but its cached XeGfxAccel blocker returned Unsupported. The boot helper also continued to load acceleration components and enable display gates. Recovery now excludes the experimental GPU identifiers, disables initialization and framebuffer adoption, and makes the helper read-only. Backups and configuration validation passed; successful boot and actual exclusion results remain pending hardware verification.
 
 OpenCore strategy definitions: https://github.com/acidanthera/OpenCorePkg/blob/master/Docs/Configuration.tex
+
+## 用户限定：仅禁用 WindowServer / Apps-only follow-up
+
+用户要求保留应用 Metal。恢复 XeGfx 核心 EFI 注入与 bootstage 4，保留加速桥在启动缓存中的 Exclude，以避开早期 framebuffer 崩溃。开机脚本先写入并读回两处 `-WindowServer` / `*` 名单，等待 WindowServer，确认无 NVMTL_ENABLE 绕过且插件支持拒绝名单，再推进 stage 7 并从磁盘延后加载 XeGfxAccel。禁用 AGDC 与新 framebuffer，不写 nvaccelfb，不重启 WindowServer。配置校验与文件读回通过；应用 Metal 实际恢复待下次启动验证。
+
+The updated target keeps GPU acceleration for apps while denying WindowServer. Only the core initializes at boot; the accelerator loads later after process-policy checks. Early cache exclusion remains, with no display-gate writes or WindowServer restart. Runtime activation and app Metal tests are pending.
