@@ -1366,7 +1366,7 @@
 				<key>Comment</key>
 				<string>Experimental PTL xe boot resident; stages remain manual</string>
 				<key>Enabled</key>
-				<true/>
+				<false/>
 				<key>ExecutablePath</key>
 				<string>Contents/MacOS/XeGfx</string>
 				<key>MaxKernel</key>
@@ -1463,7 +1463,71 @@
 				<key>MinKernel</key>
 				<string></string>
 				<key>Strategy</key>
-				<string>Disable</string>
+				<string>Exclude</string>
+			</dict>
+			<dict>
+				<key>Arch</key>
+				<string>Any</string>
+				<key>Comment</key>
+				<string>Recovery: exclude experimental GPU driver from cached collections</string>
+				<key>Enabled</key>
+				<true/>
+				<key>Identifier</key>
+				<string>org.watchthelight.XeGfx</string>
+				<key>MaxKernel</key>
+				<string></string>
+				<key>MinKernel</key>
+				<string></string>
+				<key>Strategy</key>
+				<string>Exclude</string>
+			</dict>
+			<dict>
+				<key>Arch</key>
+				<string>Any</string>
+				<key>Comment</key>
+				<string>Recovery: exclude experimental GPU driver from cached collections</string>
+				<key>Enabled</key>
+				<true/>
+				<key>Identifier</key>
+				<string>org.watchthelight.XeGfxAGDC</string>
+				<key>MaxKernel</key>
+				<string></string>
+				<key>MinKernel</key>
+				<string></string>
+				<key>Strategy</key>
+				<string>Exclude</string>
+			</dict>
+			<dict>
+				<key>Arch</key>
+				<string>Any</string>
+				<key>Comment</key>
+				<string>Recovery: exclude experimental GPU driver from cached collections</string>
+				<key>Enabled</key>
+				<true/>
+				<key>Identifier</key>
+				<string>org.watchthelight.XeGfxIntelFB</string>
+				<key>MaxKernel</key>
+				<string></string>
+				<key>MinKernel</key>
+				<string></string>
+				<key>Strategy</key>
+				<string>Exclude</string>
+			</dict>
+			<dict>
+				<key>Arch</key>
+				<string>Any</string>
+				<key>Comment</key>
+				<string>Recovery: exclude experimental GPU driver from cached collections</string>
+				<key>Enabled</key>
+				<true/>
+				<key>Identifier</key>
+				<string>com.nullmoth.NMIntelFB</string>
+				<key>MaxKernel</key>
+				<string></string>
+				<key>MinKernel</key>
+				<string></string>
+				<key>Strategy</key>
+				<string>Exclude</string>
 			</dict>
 		</array>
 		<key>Emulate</key>
@@ -1749,7 +1813,7 @@
 				AAAAAAAAAAAAAAAAAAA=
 				</data>
 				<key>boot-args</key>
-				<string>-v keepsyms=1 msgbuf=1048576 -no_compat_check -rtw89nowpa3 revpatch=cpuname revcpu=1 -amfipassbeta amfi_get_out_of_my_way=1 ipc_control_port_options=0 alcid=3 xegfx_bootstage=4 -nmintelfboff</string>
+				<string>-v keepsyms=1 msgbuf=1048576 -no_compat_check -rtw89nowpa3 revpatch=cpuname revcpu=1 -amfipassbeta amfi_get_out_of_my_way=1 ipc_control_port_options=0 alcid=3 -nmintelfboff xegfx_bootstage=0 -xeintelfboff</string>
 				<key>csr-active-config</key>
 				<data>
 				AwgAAA==
