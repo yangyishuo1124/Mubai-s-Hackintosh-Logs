@@ -1,0 +1,3754 @@
+尝试 stage 5/6 引擎命令提交与 GGTT 显存写入回读验证（xg_exec_check + xg_store_check）；保持 GOP 显示。
+Stage-5/6 engine execution & GGTT store-dword readback verification (xg_exec_check + xg_store_check); GOP display retained.
+XeGfx.kext/Contents/MacOS/XeGfx: OK
+debug.xegfx_trace: 0 -> 0
+V33 解锁 Stage 6 版本；开机完成 Stage 1-4，本脚本触发 Stage 5+6（xg_exec_check + xg_store_check）。
+V33 Stage-6 unlocked build; boot runs stages 1-4, probe runs Stage 5+6 (xg_exec_check + xg_store_check).
+debug.xegfx_env: compat.linuxkpi.xe_probe_display=0 compat.linuxkpi.xe_probe_skip_pc_start=1 compat.linuxkpi.xe_probe_skip_lrc_ggtt_remove=1 -> compat.linuxkpi.xe_probe_display=0 compat.linuxkpi.xe_probe_skip_pc_start=1 compat.linuxkpi.xe_probe_skip_lrc_ggtt_remove=1
+debug.xegfx_wdog: 60 -> 60
+前台实时显示驱动日志与进度；NVRAM 追踪保持关闭。
+Live driver log and progress below; NVRAM tracing remains disabled.
+XeGfx BOOT: dedicated initializer thread entered
+XeGfx BOOT: waiting up to 60s for enumerated Intel GPU
+XeGfx BOOT: GPU discovered; starting stages
+XeGfx BOOT V33: automatic stages 1-4 (after 3s delay); display=0 PC bypass=1 LRC ggtt_remove bypass=1 sync_drain=1 Stage 6 store unlocked
+XeGfx BOOT stage 1 BEGIN
+xegfx: vm: vmap sparse selftest 0
+xegfx: vm: vmap selftest 0
+XeGfx BOOT stage 1 RETURN rc=1 progress=10
+XeGfx BOOT stage 2 BEGIN
+XeGfx BOOT stage 2 RETURN rc=1 progress=23
+XeGfx BOOT stage 3 BEGIN
+xegfx: iGPU 8086:b0a0 is older than gen11, stolen memory not probed
+xegfx: no IOMMU, DMA addresses are physical
+xegfx: newbus root0 state 30 driver root
+xegfx: newbus   pcib0 state 30 driver pcib
+xegfx: newbus     pci0 state 30 driver pci
+xegfx: newbus       hostb0 state 30 driver hostb pci 8086:b002 class 060000
+xegfx: newbus       vgapci0 state 30 driver vgapci pci 8086:b0a0 class 030000
+xegfx: newbus         drmn0 state 10 driver -
+xegfx: newbus       ? state 10 driver - pci 8086:e302 class 060100
+xegfx: devclass root:
+xegfx: devclass pcib:
+xegfx: devclass pci:
+xegfx: devclass hostb:
+xegfx: devclass vgapci:
+xegfx: devclass drmn:
+XeGfx BOOT stage 3 RETURN rc=1 progress=30
+XeGfx BOOT stage 4 BEGIN
+[checkpoint 10000] SYSINIT enter
+[checkpoint 10001] SYSINIT returned
+[checkpoint 10002] SYSINIT enter
+[checkpoint 10003] SYSINIT returned
+[checkpoint 10004] SYSINIT enter
+[checkpoint 10005] SYSINIT returned
+[checkpoint 10006] SYSINIT enter
+[checkpoint 10007] SYSINIT returned
+[checkpoint 10008] SYSINIT enter
+[checkpoint 10009] SYSINIT returned
+[checkpoint 10010] SYSINIT enter
+[checkpoint 10011] SYSINIT returned
+[checkpoint 10012] SYSINIT enter
+[checkpoint 10013] SYSINIT returned
+[checkpoint 10014] SYSINIT enter
+[checkpoint 10015] SYSINIT returned
+[checkpoint 10016] SYSINIT enter
+[checkpoint 10017] SYSINIT returned
+[checkpoint 10018] SYSINIT enter
+[checkpoint 10019] SYSINIT returned
+[checkpoint 10020] SYSINIT enter
+[checkpoint 10021] SYSINIT returned
+[checkpoint 10022] SYSINIT enter
+[checkpoint 10023] SYSINIT returned
+[checkpoint 10024] SYSINIT enter
+[checkpoint 10025] SYSINIT returned
+[checkpoint 10026] SYSINIT enter
+[checkpoint 10027] SYSINIT returned
+[checkpoint 10028] SYSINIT enter
+[checkpoint 10029] SYSINIT returned
+[checkpoint 10030] SYSINIT enter
+[checkpoint 10031] SYSINIT returned
+[checkpoint 10032] SYSINIT enter
+[checkpoint 10033] SYSINIT returned
+[checkpoint 10034] SYSINIT enter
+[checkpoint 10035] SYSINIT returned
+[checkpoint 10036] SYSINIT enter
+[checkpoint 10037] SYSINIT returned
+[checkpoint 10038] SYSINIT enter
+[checkpoint 10039] SYSINIT returned
+[checkpoint 10040] SYSINIT enter
+[checkpoint 10041] SYSINIT returned
+[checkpoint 10042] SYSINIT enter
+[checkpoint 10043] SYSINIT returned
+[checkpoint 10044] SYSINIT enter
+[checkpoint 10045] SYSINIT returned
+[checkpoint 10046] SYSINIT enter
+[checkpoint 10047] SYSINIT returned
+[checkpoint 10048] SYSINIT enter
+[checkpoint 10049] SYSINIT returned
+[checkpoint 10050] SYSINIT enter
+[checkpoint 10051] SYSINIT returned
+[checkpoint 10052] SYSINIT enter
+[checkpoint 10053] SYSINIT returned
+[checkpoint 10054] SYSINIT enter
+[checkpoint 10055] SYSINIT returned
+[checkpoint 10056] SYSINIT enter
+[checkpoint 10057] SYSINIT returned
+[checkpoint 10058] SYSINIT enter
+[checkpoint 10059] SYSINIT returned
+[checkpoint 10060] SYSINIT enter
+[checkpoint 10061] SYSINIT returned
+[checkpoint 10062] SYSINIT enter
+[checkpoint 10063] SYSINIT returned
+[checkpoint 10064] SYSINIT enter
+[checkpoint 10065] SYSINIT returned
+[checkpoint 10066] SYSINIT enter
+[checkpoint 10067] SYSINIT returned
+[checkpoint 10068] SYSINIT enter
+[checkpoint 10069] SYSINIT returned
+[checkpoint 10070] SYSINIT enter
+[checkpoint 20001] linux_current entered
+[checkpoint 20002] current zone create begin
+[checkpoint 20003] current zone created
+[checkpoint 20004] mm zone create begin
+[checkpoint 20005] mm zone created
+[checkpoint 20006] thread destructor registration begin
+[checkpoint 20007] thread destructor registered
+[checkpoint 20008] current allocator installed
+[checkpoint 10071] SYSINIT returned
+[checkpoint 10072] SYSINIT enter
+[checkpoint 10073] SYSINIT returned
+[checkpoint 10074] SYSINIT enter
+[checkpoint 10075] SYSINIT returned
+[checkpoint 10076] SYSINIT enter
+[checkpoint 10077] SYSINIT returned
+[checkpoint 10078] SYSINIT enter
+[checkpoint 10079] SYSINIT returned
+[checkpoint 10080] SYSINIT enter
+[checkpoint 10081] SYSINIT returned
+[checkpoint 10082] SYSINIT enter
+[checkpoint 10083] SYSINIT returned
+[checkpoint 10084] SYSINIT enter
+[checkpoint 10085] SYSINIT returned
+[checkpoint 10086] SYSINIT enter
+[checkpoint 10087] SYSINIT returned
+[checkpoint 10088] SYSINIT enter
+[checkpoint 10089] SYSINIT returned
+[checkpoint 10090] SYSINIT enter
+[checkpoint 10091] SYSINIT returned
+[checkpoint 10092] SYSINIT enter
+[checkpoint 10093] SYSINIT returned
+[checkpoint 10094] SYSINIT enter
+[checkpoint 10095] SYSINIT returned
+[checkpoint 10096] SYSINIT enter
+[checkpoint 10097] SYSINIT returned
+[checkpoint 10100] SYSINIT enter
+[checkpoint 10101] SYSINIT returned
+[checkpoint 10102] SYSINIT enter
+[checkpoint 10103] SYSINIT returned
+[checkpoint 10104] SYSINIT enter
+[checkpoint 10105] SYSINIT returned
+[checkpoint 10106] SYSINIT enter
+[checkpoint 10107] SYSINIT returned
+[checkpoint 10108] SYSINIT enter
+[checkpoint 10109] SYSINIT returned
+[checkpoint 11098] SYSINIT enter
+drmn0: [drm] GOP GGTT 0xff000000 + 0xfa0000 protected (allocator 0 + 0)
+drmn0: successfully loaded firmware image 'xe/ptl_guc_70.bin'
+drmn0: [drm] Using GuC firmware from xe/ptl_guc_70.bin version 70.72.1
+xegfx: GGTT map bo=0xffffff86f31dd410 start=200000 size=5a000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31ddd10 start=25a000 size=113000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31db010 start=36d000 size=984000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31d8310 start=cf1000 size=22000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 45000] xe_guc_pc_raise_unslice begin
+[checkpoint 45001] xe_guc_pc_raise_unslice returned
+[checkpoint 45002] guc_write_params begin
+[checkpoint 45003] guc_write_params returned
+[checkpoint 45004] guc_prepare_xfer begin
+[checkpoint 45005] guc_prepare_xfer returned
+[checkpoint 45006] guc_xfer_rsa begin
+[checkpoint 45007] guc_xfer_rsa returned
+[checkpoint 45008] xe_uc_fw_upload begin
+[checkpoint 45009] xe_uc_fw_upload returned
+[checkpoint 45010] guc_wait_ucode begin
+xegfx: GuC 0xffffffe0c6408ff8 guc_wait_ucode ret=0
+[checkpoint 45011] guc_wait_ucode returned
+xegfx: GuC 0xffffffe0c6408ff8 marking firmware RUNNING
+[checkpoint 45012] GuC RUNNING status committed
+xegfx: GGTT map bo=0xffffff86f31d8910 start=d13000 size=1000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+drmn0: successfully loaded firmware image 'xe/ptl_guc_70.bin'
+drmn0: [drm] Using GuC firmware from xe/ptl_guc_70.bin version 70.72.1
+xegfx: GGTT map bo=0xffffff86f31d8f10 start=d14000 size=5a000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31da110 start=d6e000 size=113000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31d9e10 start=e81000 size=984000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31da410 start=1805000 size=22000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 45000] xe_guc_pc_raise_unslice begin
+[checkpoint 45001] xe_guc_pc_raise_unslice returned
+[checkpoint 45002] guc_write_params begin
+[checkpoint 45003] guc_write_params returned
+[checkpoint 45004] guc_prepare_xfer begin
+[checkpoint 45005] guc_prepare_xfer returned
+[checkpoint 45006] guc_xfer_rsa begin
+[checkpoint 45007] guc_xfer_rsa returned
+[checkpoint 45008] xe_uc_fw_upload begin
+[checkpoint 45009] xe_uc_fw_upload returned
+[checkpoint 45010] guc_wait_ucode begin
+xegfx: GuC 0xffffffe0c643eff8 guc_wait_ucode ret=0
+[checkpoint 45011] guc_wait_ucode returned
+xegfx: GuC 0xffffffe0c643eff8 marking firmware RUNNING
+[checkpoint 45012] GuC RUNNING status committed
+xegfx: GGTT map bo=0xffffff86f31daa10 start=1827000 size=100000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 40000] device stolen init begin
+drmn0: [drm] GOP DSM 0x7c800000: exclude prefix 0xfa0000 bytes
+[checkpoint 30001] stolen manager init begin
+[checkpoint 31001] vram manager entered
+[checkpoint 31002] vram mutex init begin
+[checkpoint 31003] vram mutex initialized
+[checkpoint 31004] TTM resource init begin
+[checkpoint 31005] TTM resource initialized
+[checkpoint 31006] drm buddy init begin
+[checkpoint 31007] drm buddy init returned
+[checkpoint 31008] driver manager install begin
+[checkpoint 31009] driver manager installed
+[checkpoint 31010] vram cleanup registration begin
+[checkpoint 31011] vram cleanup registration returned
+[checkpoint 30002] stolen manager init returned
+[checkpoint 30003] stolen WC map begin
+[checkpoint 30004] stolen WC map returned
+[checkpoint 30005] stolen init returned
+[checkpoint 40001] device stolen init returned
+[checkpoint 40002] display noaccel begin
+[checkpoint 40003] display noaccel returned
+[checkpoint 40004] GT init begin
+[checkpoint 41000] GT reset work begin
+[checkpoint 41001] GT reset work returned
+[checkpoint 41002] GT pagefault begin
+[checkpoint 41003] GT pagefault returned
+[checkpoint 41004] GT sysfs begin
+[checkpoint 41005] GT sysfs returned
+[checkpoint 41006] GT FW domain begin
+[checkpoint 42000] GT forcewake get begin
+[checkpoint 42001] GT forcewake get returned
+[checkpoint 42002] GGTT init begin
+[checkpoint 42100] GGTT scratch allocation begin
+[checkpoint 42101] GGTT scratch allocation returned
+[checkpoint 42102] GGTT scratch memset begin
+[checkpoint 42103] GGTT scratch memset returned
+[checkpoint 42110] GGTT clear lock begin
+[checkpoint 42111] GGTT clear lock acquired
+xegfx: GGTT hole start=1927000 end=fee00000
+[checkpoint 42112] GGTT hole clear begin
+[checkpoint 42120] GGTT scratch PTE encode begin
+[checkpoint 42121] GGTT scratch PTE encode returned
+xegfx: GGTT fill start=1927000 end=fedfffff pte=200008291a1001
+xegfx: GGTT fill offset=2000000
+xegfx: GGTT fill offset=3000000
+xegfx: GGTT fill offset=4000000
+xegfx: GGTT fill offset=5000000
+xegfx: GGTT fill offset=6000000
+xegfx: GGTT fill offset=7000000
+xegfx: GGTT fill offset=8000000
+xegfx: GGTT fill offset=9000000
+xegfx: GGTT fill offset=a000000
+xegfx: GGTT fill offset=b000000
+xegfx: GGTT fill offset=c000000
+xegfx: GGTT fill offset=d000000
+xegfx: GGTT fill offset=e000000
+xegfx: GGTT fill offset=f000000
+xegfx: GGTT fill offset=10000000
+xegfx: GGTT fill offset=11000000
+xegfx: GGTT fill offset=12000000
+xegfx: GGTT fill offset=13000000
+xegfx: GGTT fill offset=14000000
+xegfx: GGTT fill offset=15000000
+xegfx: GGTT fill offset=16000000
+xegfx: GGTT fill offset=17000000
+xegfx: GGTT fill offset=18000000
+xegfx: GGTT fill offset=19000000
+xegfx: GGTT fill offset=1a000000
+xegfx: GGTT fill offset=1b000000
+xegfx: GGTT fill offset=1c000000
+xegfx: GGTT fill offset=1d000000
+xegfx: GGTT fill offset=1e000000
+xegfx: GGTT fill offset=1f000000
+xegfx: GGTT fill offset=20000000
+xegfx: GGTT fill offset=21000000
+xegfx: GGTT fill offset=22000000
+xegfx: GGTT fill offset=23000000
+xegfx: GGTT fill offset=24000000
+xegfx: GGTT fill offset=25000000
+xegfx: GGTT fill offset=26000000
+xegfx: GGTT fill offset=27000000
+xegfx: GGTT fill offset=28000000
+xegfx: GGTT fill offset=29000000
+xegfx: GGTT fill offset=2a000000
+xegfx: GGTT fill offset=2b000000
+xegfx: GGTT fill offset=2c000000
+xegfx: GGTT fill offset=2d000000
+xegfx: GGTT fill offset=2e000000
+xegfx: GGTT fill offset=2f000000
+xegfx: GGTT fill offset=30000000
+xegfx: GGTT fill offset=31000000
+xegfx: GGTT fill offset=32000000
+xegfx: GGTT fill offset=33000000
+xegfx: GGTT fill offset=34000000
+xegfx: GGTT fill offset=35000000
+xegfx: GGTT fill offset=36000000
+xegfx: GGTT fill offset=37000000
+xegfx: GGTT fill offset=38000000
+xegfx: GGTT fill offset=39000000
+xegfx: GGTT fill offset=3a000000
+xegfx: GGTT fill offset=3b000000
+xegfx: GGTT fill offset=3c000000
+xegfx: GGTT fill offset=3d000000
+xegfx: GGTT fill offset=3e000000
+xegfx: GGTT fill offset=3f000000
+xegfx: GGTT fill offset=40000000
+xegfx: GGTT fill offset=41000000
+xegfx: GGTT fill offset=42000000
+xegfx: GGTT fill offset=43000000
+xegfx: GGTT fill offset=44000000
+xegfx: GGTT fill offset=45000000
+xegfx: GGTT fill offset=46000000
+xegfx: GGTT fill offset=47000000
+xegfx: GGTT fill offset=48000000
+xegfx: GGTT fill offset=49000000
+xegfx: GGTT fill offset=4a000000
+xegfx: GGTT fill offset=4b000000
+xegfx: GGTT fill offset=4c000000
+xegfx: GGTT fill offset=4d000000
+xegfx: GGTT fill offset=4e000000
+xegfx: GGTT fill offset=4f000000
+xegfx: GGTT fill offset=50000000
+xegfx: GGTT fill offset=51000000
+xegfx: GGTT fill offset=52000000
+xegfx: GGTT fill offset=53000000
+xegfx: GGTT fill offset=54000000
+xegfx: GGTT fill offset=55000000
+xegfx: GGTT fill offset=56000000
+xegfx: GGTT fill offset=57000000
+xegfx: GGTT fill offset=58000000
+xegfx: GGTT fill offset=59000000
+xegfx: GGTT fill offset=5a000000
+xegfx: GGTT fill offset=5b000000
+xegfx: GGTT fill offset=5c000000
+xegfx: GGTT fill offset=5d000000
+xegfx: GGTT fill offset=5e000000
+xegfx: GGTT fill offset=5f000000
+xegfx: GGTT fill offset=60000000
+xegfx: GGTT fill offset=61000000
+xegfx: GGTT fill offset=62000000
+xegfx: GGTT fill offset=63000000
+xegfx: GGTT fill offset=64000000
+xegfx: GGTT fill offset=65000000
+xegfx: GGTT fill offset=66000000
+xegfx: GGTT fill offset=67000000
+xegfx: GGTT fill offset=68000000
+xegfx: GGTT fill offset=69000000
+xegfx: GGTT fill offset=6a000000
+xegfx: GGTT fill offset=6b000000
+xegfx: GGTT fill offset=6c000000
+xegfx: GGTT fill offset=6d000000
+xegfx: GGTT fill offset=6e000000
+xegfx: GGTT fill offset=6f000000
+xegfx: GGTT fill offset=70000000
+xegfx: GGTT fill offset=71000000
+xegfx: GGTT fill offset=72000000
+xegfx: GGTT fill offset=73000000
+xegfx: GGTT fill offset=74000000
+xegfx: GGTT fill offset=75000000
+xegfx: GGTT fill offset=76000000
+xegfx: GGTT fill offset=77000000
+xegfx: GGTT fill offset=78000000
+xegfx: GGTT fill offset=79000000
+xegfx: GGTT fill offset=7a000000
+xegfx: GGTT fill offset=7b000000
+xegfx: GGTT fill offset=7c000000
+xegfx: GGTT fill offset=7d000000
+xegfx: GGTT fill offset=7e000000
+xegfx: GGTT fill offset=7f000000
+xegfx: GGTT fill offset=80000000
+xegfx: GGTT fill offset=81000000
+xegfx: GGTT fill offset=82000000
+xegfx: GGTT fill offset=83000000
+xegfx: GGTT fill offset=84000000
+xegfx: GGTT fill offset=85000000
+xegfx: GGTT fill offset=86000000
+xegfx: GGTT fill offset=87000000
+xegfx: GGTT fill offset=88000000
+xegfx: GGTT fill offset=89000000
+xegfx: GGTT fill offset=8a000000
+xegfx: GGTT fill offset=8b000000
+xegfx: GGTT fill offset=8c000000
+xegfx: GGTT fill offset=8d000000
+xegfx: GGTT fill offset=8e000000
+xegfx: GGTT fill offset=8f000000
+xegfx: GGTT fill offset=90000000
+xegfx: GGTT fill offset=91000000
+xegfx: GGTT fill offset=92000000
+xegfx: GGTT fill offset=93000000
+xegfx: GGTT fill offset=94000000
+xegfx: GGTT fill offset=95000000
+xegfx: GGTT fill offset=96000000
+xegfx: GGTT fill offset=97000000
+xegfx: GGTT fill offset=98000000
+xegfx: GGTT fill offset=99000000
+xegfx: GGTT fill offset=9a000000
+xegfx: GGTT fill offset=9b000000
+xegfx: GGTT fill offset=9c000000
+xegfx: GGTT fill offset=9d000000
+xegfx: GGTT fill offset=9e000000
+xegfx: GGTT fill offset=9f000000
+xegfx: GGTT fill offset=a0000000
+xegfx: GGTT fill offset=a1000000
+xegfx: GGTT fill offset=a2000000
+xegfx: GGTT fill offset=a3000000
+xegfx: GGTT fill offset=a4000000
+xegfx: GGTT fill offset=a5000000
+xegfx: GGTT fill offset=a6000000
+xegfx: GGTT fill offset=a7000000
+xegfx: GGTT fill offset=a8000000
+xegfx: GGTT fill offset=a9000000
+xegfx: GGTT fill offset=aa000000
+xegfx: GGTT fill offset=ab000000
+xegfx: GGTT fill offset=ac000000
+xegfx: GGTT fill offset=ad000000
+xegfx: GGTT fill offset=ae000000
+xegfx: GGTT fill offset=af000000
+xegfx: GGTT fill offset=b0000000
+xegfx: GGTT fill offset=b1000000
+xegfx: GGTT fill offset=b2000000
+xegfx: GGTT fill offset=b3000000
+xegfx: GGTT fill offset=b4000000
+xegfx: GGTT fill offset=b5000000
+xegfx: GGTT fill offset=b6000000
+xegfx: GGTT fill offset=b7000000
+xegfx: GGTT fill offset=b8000000
+xegfx: GGTT fill offset=b9000000
+xegfx: GGTT fill offset=ba000000
+xegfx: GGTT fill offset=bb000000
+xegfx: GGTT fill offset=bc000000
+xegfx: GGTT fill offset=bd000000
+xegfx: GGTT fill offset=be000000
+xegfx: GGTT fill offset=bf000000
+xegfx: GGTT fill offset=c0000000
+xegfx: GGTT fill offset=c1000000
+xegfx: GGTT fill offset=c2000000
+xegfx: GGTT fill offset=c3000000
+xegfx: GGTT fill offset=c4000000
+xegfx: GGTT fill offset=c5000000
+xegfx: GGTT fill offset=c6000000
+xegfx: GGTT fill offset=c7000000
+xegfx: GGTT fill offset=c8000000
+xegfx: GGTT fill offset=c9000000
+xegfx: GGTT fill offset=ca000000
+xegfx: GGTT fill offset=cb000000
+xegfx: GGTT fill offset=cc000000
+xegfx: GGTT fill offset=cd000000
+xegfx: GGTT fill offset=ce000000
+xegfx: GGTT fill offset=cf000000
+xegfx: GGTT fill offset=d0000000
+xegfx: GGTT fill offset=d1000000
+xegfx: GGTT fill offset=d2000000
+xegfx: GGTT fill offset=d3000000
+xegfx: GGTT fill offset=d4000000
+xegfx: GGTT fill offset=d5000000
+xegfx: GGTT fill offset=d6000000
+xegfx: GGTT fill offset=d7000000
+xegfx: GGTT fill offset=d8000000
+xegfx: GGTT fill offset=d9000000
+xegfx: GGTT fill offset=da000000
+xegfx: GGTT fill offset=db000000
+xegfx: GGTT fill offset=dc000000
+xegfx: GGTT fill offset=dd000000
+xegfx: GGTT fill offset=de000000
+xegfx: GGTT fill offset=df000000
+xegfx: GGTT fill offset=e0000000
+xegfx: GGTT fill offset=e1000000
+xegfx: GGTT fill offset=e2000000
+xegfx: GGTT fill offset=e3000000
+xegfx: GGTT fill offset=e4000000
+xegfx: GGTT fill offset=e5000000
+xegfx: GGTT fill offset=e6000000
+xegfx: GGTT fill offset=e7000000
+xegfx: GGTT fill offset=e8000000
+xegfx: GGTT fill offset=e9000000
+xegfx: GGTT fill offset=ea000000
+xegfx: GGTT fill offset=eb000000
+xegfx: GGTT fill offset=ec000000
+xegfx: GGTT fill offset=ed000000
+xegfx: GGTT fill offset=ee000000
+xegfx: GGTT fill offset=ef000000
+xegfx: GGTT fill offset=f0000000
+xegfx: GGTT fill offset=f1000000
+xegfx: GGTT fill offset=f2000000
+xegfx: GGTT fill offset=f3000000
+xegfx: GGTT fill offset=f4000000
+xegfx: GGTT fill offset=f5000000
+xegfx: GGTT fill offset=f6000000
+xegfx: GGTT fill offset=f7000000
+xegfx: GGTT fill offset=f8000000
+xegfx: GGTT fill offset=f9000000
+xegfx: GGTT fill offset=fa000000
+xegfx: GGTT fill offset=fb000000
+xegfx: GGTT fill offset=fc000000
+xegfx: GGTT fill offset=fd000000
+xegfx: GGTT fill offset=fe000000
+[checkpoint 42113] GGTT hole clear returned
+[checkpoint 42114] GGTT initial invalidate begin
+xegfx: GGTT invalidate caller line=339 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 42115] GGTT initial invalidate returned
+[checkpoint 42116] GGTT clear lock released
+[checkpoint 42104] GGTT cleanup action registration begin
+xegfx: GGTT cleanup action ret=0
+[checkpoint 42105] GGTT cleanup action registration returned
+[checkpoint 42003] GGTT init returned
+[checkpoint 42004] engine IRQ enable begin
+[checkpoint 42005] engine IRQ enable returned
+[checkpoint 42006] MCR init begin
+[checkpoint 42007] MCR init returned
+[checkpoint 42008] early engines begin
+drmn0: [drm] ccs1 fused off
+drmn0: [drm] ccs2 fused off
+drmn0: [drm] ccs3 fused off
+[checkpoint 42009] early engines returned
+[checkpoint 42010] engine class sysfs begin
+[checkpoint 42011] engine class sysfs returned
+[checkpoint 42012] CCS sysfs begin
+[checkpoint 42013] CCS sysfs returned
+[checkpoint 41007] GT FW domain returned
+[checkpoint 41008] GT idle begin
+[checkpoint 41009] GT idle returned
+[checkpoint 41010] GT frequency begin
+[checkpoint 41011] GT frequency returned
+[checkpoint 41012] engine forcewake init begin
+[checkpoint 41013] engine forcewake init returned
+[checkpoint 41014] all FW domains begin
+[checkpoint 43000] all forcewake get begin
+[checkpoint 43001] all forcewake get returned
+[checkpoint 43002] apply register state begin
+[checkpoint 43003] apply register state returned
+[checkpoint 43004] GT clock begin
+[checkpoint 43005] GT clock returned
+[checkpoint 43006] engines init begin
+xegfx: GGTT map bo=0xffffff86f31d8c10 start=1927000 size=1000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31d9210 start=1928000 size=1000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31d9510 start=1929000 size=1000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31d8010 start=192a000 size=1000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 43007] engines init returned
+[checkpoint 43008] uC post hwconfig begin
+xegfx: GGTT map bo=0xffffff86f31d9b10 start=192b000 size=2000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 43009] uC post hwconfig returned
+xegfx: GGTT map bo=0xffffff86f31e4610 start=192d000 size=80000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 43010] migration init begin
+xegfx: GGTT map bo=0xffffff86f31e5210 start=19ad000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 43011] migration init returned
+[checkpoint 43012] uC hardware init begin
+[checkpoint 44000] xe_huc_upload begin
+[checkpoint 44001] xe_huc_upload returned
+[checkpoint 44002] xe_guc_upload begin
+[checkpoint 45000] xe_guc_pc_raise_unslice begin
+[checkpoint 45001] xe_guc_pc_raise_unslice returned
+[checkpoint 45002] guc_write_params begin
+[checkpoint 45003] guc_write_params returned
+[checkpoint 45004] guc_prepare_xfer begin
+[checkpoint 45005] guc_prepare_xfer returned
+[checkpoint 45006] guc_xfer_rsa begin
+[checkpoint 45007] guc_xfer_rsa returned
+[checkpoint 45008] xe_uc_fw_upload begin
+[checkpoint 45009] xe_uc_fw_upload returned
+[checkpoint 45010] guc_wait_ucode begin
+xegfx: GuC 0xffffffe0c6408ff8 guc_wait_ucode ret=0
+[checkpoint 45011] guc_wait_ucode returned
+xegfx: GuC 0xffffffe0c6408ff8 marking firmware RUNNING
+[checkpoint 45012] GuC RUNNING status committed
+[checkpoint 44003] xe_guc_upload returned
+[checkpoint 44004] xe_guc_enable_communication begin
+[checkpoint 44005] xe_guc_enable_communication returned
+[checkpoint 44006] xe_gt_record_default_lrcs begin
+xegfx: LRC engine=rcs0 class=0 instance=0 begin
+xegfx: LRC q create begin engine=rcs0
+xegfx: GGTT map bo=0xffffff86f31e5810 start=19b3000 size=8000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC q create returned ptr=0xffffff9a25893210
+xegfx: LRC emit_wa_job(gt, q) begin
+xegfx: LRC emit_wa_job(gt, q) returned rc=0
+xegfx: LRC nop_q create begin engine=rcs0
+xegfx: GGTT map bo=0xffffff86f31e4010 start=19bb000 size=8000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC nop_q create returned ptr=0xffffff9a25893e10
+xegfx: LRC emit_nop_job(gt, nop_q) begin
+xegfx: LRC emit_nop_job(gt, nop_q) returned rc=0
+xegfx: LRC emit_nop_job(gt, q) begin
+xegfx: LRC emit_nop_job(gt, q) returned rc=0
+xegfx: LRC snapshot begin
+xegfx: LRC snapshot returned
+xegfx: LRC nop_q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25893e10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25893e10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25893e10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e4010 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC nop_q put returned
+xegfx: LRC q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25893210 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25893210 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25893210 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e5810 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC q put returned
+xegfx: LRC engine=bcs0 class=3 instance=0 begin
+xegfx: LRC q create begin engine=bcs0
+xegfx: GGTT map bo=0xffffff86f31e5e10 start=19c3000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC q create returned ptr=0xffffff9a25893610
+xegfx: LRC emit_wa_job(gt, q) begin
+xegfx: LRC emit_wa_job(gt, q) returned rc=0
+xegfx: LRC nop_q create begin engine=bcs0
+xegfx: GGTT map bo=0xffffff86f31e5b10 start=19c9000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC nop_q create returned ptr=0xffffff9a25893a10
+xegfx: LRC emit_nop_job(gt, nop_q) begin
+xegfx: LRC emit_nop_job(gt, nop_q) returned rc=0
+xegfx: LRC emit_nop_job(gt, q) begin
+xegfx: LRC emit_nop_job(gt, q) returned rc=0
+xegfx: LRC snapshot begin
+xegfx: LRC snapshot returned
+xegfx: LRC nop_q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25893a10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25893a10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25893a10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e5b10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC nop_q put returned
+xegfx: LRC q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25893610 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25893610 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25893610 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e5e10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC q put returned
+xegfx: LRC engine=ccs0 class=5 instance=0 begin
+xegfx: LRC q create begin engine=ccs0
+xegfx: GGTT map bo=0xffffff86f31e5810 start=19cf000 size=7000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC q create returned ptr=0xffffff9a25893610
+xegfx: LRC emit_wa_job(gt, q) begin
+xegfx: LRC emit_wa_job(gt, q) returned rc=0
+xegfx: LRC nop_q create begin engine=ccs0
+xegfx: GGTT map bo=0xffffff86f31e5b10 start=19d6000 size=7000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC nop_q create returned ptr=0xffffff9a25893c10
+xegfx: LRC emit_nop_job(gt, nop_q) begin
+xegfx: LRC emit_nop_job(gt, nop_q) returned rc=0
+xegfx: LRC emit_nop_job(gt, q) begin
+xegfx: LRC emit_nop_job(gt, q) returned rc=0
+xegfx: LRC snapshot begin
+xegfx: LRC snapshot returned
+xegfx: LRC nop_q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25893c10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25893c10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25893c10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e5b10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC nop_q put returned
+xegfx: LRC q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25893610 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25893610 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25893610 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e5810 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC q put returned
+[checkpoint 44007] xe_gt_record_default_lrcs returned
+[checkpoint 44008] xe_guc_post_load_init begin
+[checkpoint 44009] xe_guc_post_load_init returned
+[checkpoint 44010] xe_guc_pc_start begin
+[checkpoint 48000] DIAGNOSTIC PC start bypassed; not a normal stage4 pass
+[checkpoint 44011] xe_guc_pc_start returned
+[checkpoint 44012] xe_huc_auth begin
+[checkpoint 44013] xe_huc_auth returned
+[checkpoint 44014] xe_gsc_load_start begin
+[checkpoint 44015] xe_gsc_load_start returned
+[checkpoint 43013] uC hardware init returned
+[checkpoint 41015] all FW domains returned
+[checkpoint 41016] record user engines begin
+[checkpoint 41017] record user engines returned
+[checkpoint 40005] GT init returned
+[checkpoint 40004] GT init begin
+[checkpoint 41000] GT reset work begin
+[checkpoint 41001] GT reset work returned
+[checkpoint 41002] GT pagefault begin
+[checkpoint 41003] GT pagefault returned
+[checkpoint 41004] GT sysfs begin
+[checkpoint 41005] GT sysfs returned
+[checkpoint 41006] GT FW domain begin
+[checkpoint 42000] GT forcewake get begin
+[checkpoint 42001] GT forcewake get returned
+[checkpoint 42004] engine IRQ enable begin
+[checkpoint 42005] engine IRQ enable returned
+[checkpoint 42006] MCR init begin
+[checkpoint 42007] MCR init returned
+[checkpoint 42008] early engines begin
+drmn0: [drm] vcs1 fused off
+drmn0: [drm] vcs2 fused off
+drmn0: [drm] vcs3 fused off
+drmn0: [drm] vcs4 fused off
+drmn0: [drm] vcs5 fused off
+drmn0: [drm] vcs6 fused off
+drmn0: [drm] vcs7 fused off
+drmn0: [drm] vecs1 fused off
+drmn0: [drm] vecs2 fused off
+drmn0: [drm] vecs3 fused off
+[checkpoint 42009] early engines returned
+[checkpoint 42010] engine class sysfs begin
+[checkpoint 42011] engine class sysfs returned
+[checkpoint 42012] CCS sysfs begin
+[checkpoint 42013] CCS sysfs returned
+[checkpoint 41007] GT FW domain returned
+[checkpoint 41008] GT idle begin
+[checkpoint 41009] GT idle returned
+[checkpoint 41010] GT frequency begin
+[checkpoint 41011] GT frequency returned
+[checkpoint 41012] engine forcewake init begin
+[checkpoint 41013] engine forcewake init returned
+[checkpoint 41014] all FW domains begin
+[checkpoint 43000] all forcewake get begin
+[checkpoint 43001] all forcewake get returned
+[checkpoint 43002] apply register state begin
+[checkpoint 43003] apply register state returned
+[checkpoint 43004] GT clock begin
+[checkpoint 43005] GT clock returned
+[checkpoint 43006] engines init begin
+xegfx: GGTT map bo=0xffffff86f31e5e10 start=19dd000 size=1000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31e5810 start=19de000 size=1000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 43007] engines init returned
+[checkpoint 43008] uC post hwconfig begin
+xegfx: GGTT map bo=0xffffff86f31e6110 start=19df000 size=2000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 43009] uC post hwconfig returned
+[checkpoint 43012] uC hardware init begin
+[checkpoint 44000] xe_huc_upload begin
+[checkpoint 44001] xe_huc_upload returned
+[checkpoint 44002] xe_guc_upload begin
+[checkpoint 45000] xe_guc_pc_raise_unslice begin
+[checkpoint 45001] xe_guc_pc_raise_unslice returned
+[checkpoint 45002] guc_write_params begin
+[checkpoint 45003] guc_write_params returned
+[checkpoint 45004] guc_prepare_xfer begin
+[checkpoint 45005] guc_prepare_xfer returned
+[checkpoint 45006] guc_xfer_rsa begin
+[checkpoint 45007] guc_xfer_rsa returned
+[checkpoint 45008] xe_uc_fw_upload begin
+[checkpoint 45009] xe_uc_fw_upload returned
+[checkpoint 45010] guc_wait_ucode begin
+xegfx: GuC 0xffffffe0c643eff8 guc_wait_ucode ret=0
+[checkpoint 45011] guc_wait_ucode returned
+xegfx: GuC 0xffffffe0c643eff8 marking firmware RUNNING
+[checkpoint 45012] GuC RUNNING status committed
+[checkpoint 44003] xe_guc_upload returned
+[checkpoint 44004] xe_guc_enable_communication begin
+[checkpoint 44005] xe_guc_enable_communication returned
+[checkpoint 44006] xe_gt_record_default_lrcs begin
+xegfx: LRC engine=vcs0 class=1 instance=0 begin
+xegfx: LRC q create begin engine=vcs0
+xegfx: GGTT map bo=0xffffff86f31e5b10 start=19e1000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC q create returned ptr=0xffffff9a25893610
+xegfx: LRC emit_wa_job(gt, q) begin
+xegfx: LRC emit_wa_job(gt, q) returned rc=0
+xegfx: LRC nop_q create begin engine=vcs0
+xegfx: GGTT map bo=0xffffff86f31e6410 start=19e7000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC nop_q create returned ptr=0xffffff9a25891110
+xegfx: LRC emit_nop_job(gt, nop_q) begin
+xegfx: LRC emit_nop_job(gt, nop_q) returned rc=0
+xegfx: LRC emit_nop_job(gt, q) begin
+xegfx: LRC emit_nop_job(gt, q) returned rc=0
+xegfx: LRC snapshot begin
+xegfx: LRC snapshot returned
+xegfx: LRC nop_q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25891110 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25891110 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25891110 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e6410 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC nop_q put returned
+xegfx: LRC q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25893610 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25893610 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25893610 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e5b10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC q put returned
+xegfx: LRC engine=vecs0 class=2 instance=0 begin
+xegfx: LRC q create begin engine=vecs0
+xegfx: GGTT map bo=0xffffff86f31e6710 start=19ed000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC q create returned ptr=0xffffff9a25893610
+xegfx: LRC emit_wa_job(gt, q) begin
+xegfx: LRC emit_wa_job(gt, q) returned rc=0
+xegfx: LRC nop_q create begin engine=vecs0
+xegfx: GGTT map bo=0xffffff86f31e6410 start=19f3000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC nop_q create returned ptr=0xffffff9a25891710
+xegfx: LRC emit_nop_job(gt, nop_q) begin
+xegfx: LRC emit_nop_job(gt, nop_q) returned rc=0
+xegfx: LRC emit_nop_job(gt, q) begin
+xegfx: LRC emit_nop_job(gt, q) returned rc=0
+xegfx: LRC snapshot begin
+xegfx: LRC snapshot returned
+xegfx: LRC nop_q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25891710 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25891710 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25891710 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e6410 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC nop_q put returned
+xegfx: LRC q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25893610 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25893610 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25893610 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e6710 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC q put returned
+[checkpoint 44007] xe_gt_record_default_lrcs returned
+[checkpoint 44008] xe_guc_post_load_init begin
+[checkpoint 44009] xe_guc_post_load_init returned
+[checkpoint 44010] xe_guc_pc_start begin
+[checkpoint 48000] DIAGNOSTIC PC start bypassed; not a normal stage4 pass
+[checkpoint 44011] xe_guc_pc_start returned
+[checkpoint 44012] xe_huc_auth begin
+[checkpoint 44013] xe_huc_auth returned
+[checkpoint 44014] xe_gsc_load_start begin
+[checkpoint 44015] xe_gsc_load_start returned
+[checkpoint 43013] uC hardware init returned
+[checkpoint 41015] all FW domains returned
+[checkpoint 41016] record user engines begin
+[checkpoint 41017] record user engines returned
+[checkpoint 40005] GT init returned
+[checkpoint 40006] HECI GSC begin
+[checkpoint 40007] HECI GSC returned
+[checkpoint 40008] OA init begin
+[checkpoint 40009] OA init returned
+[checkpoint 40010] display init begin
+[checkpoint 40011] display init returned
+[checkpoint 40012] DRM register begin
+<6>[drm] Initialized xe 1.1.0 for drmn0 on minor 0
+[checkpoint 40013] DRM register returned
+[checkpoint 11099] SYSINIT returned
+XeGfx: ran 55 sysinit_set entries
+xegfx: newbus root0 state 30 driver root
+xegfx: newbus   pcib0 state 30 driver pcib
+xegfx: newbus     pci0 state 30 driver pci
+xegfx: newbus       hostb0 state 30 driver hostb pci 8086:b002 class 060000
+xegfx: newbus       vgapci0 state 30 driver vgapci pci 8086:b0a0 class 030000
+xegfx: newbus         drmn0 state 30 driver drmn
+xegfx: newbus           drm128 state 10 driver -
+xegfx: newbus           drm0 state 10 driver -
+xegfx: newbus       ? state 10 driver - pci 8086:e302 class 060100
+xegfx: devclass root:
+xegfx: devclass pcib:
+xegfx: devclass pci: lkpi_pcipciidlist
+xegfx: devclass hostb:
+xegfx: devclass vgapci: drmn
+xegfx: devclass drmn:
+xegfx: devclass misc:
+xegfx: devclass lkpi_pcipciidlist:
+xegfx: devclass drm:
+xegfx: GT0 graphics GMD_ID=0x7804000 arch=30 release=1 revid=0 step=A0 GuC status=10 version=70.72.1 running=1 submission=1 forcewake=1
+xegfx: GT1 media GMD_ID=0x7800004 arch=30 release=0 revid=4 step=B0 GuC status=10 version=70.72.1 running=1 submission=1 forcewake=1
+xegfx: xe platform=PANTHERLAKE(12) devid=b0a0 revid=00 graphics=3001 media=3000 GMD[0d8c]=0x7804000 GMD[380d8c]=0x7800004 MSI vectors=1 irq-enabled=1
+XeGfx BOOT stage 4 RETURN rc=1 progress=11099
+XeGfx BOOT initialization returned; completed stage=4
+XeGfx BOOT: dedicated initializer thread exiting
+[progress=11099] stage 6 request follows
+
+xegfx: GGTT map bo=0xffffff86f31e2810 start=19f9000 size=20000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31e2e10 start=1a19000 size=8000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25588610 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: gt0-rcs0 submitted=1 seqno=4294967169 completed=4294967169 ns=2072284 err=0
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25588610 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: GGTT map bo=0xffffff86f31e3410 start=1a21000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25588610 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e2e10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25588a10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25588a10 begin
+xegfx: gt0-bcs0 submitted=1 seqno=4294967169 completed=4294967169 ns=789155 err=0
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: GGTT map bo=0xffffff86f31e3710 start=1a27000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25588a10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e3410 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: gt0-bcs8 submitted=1 seqno=4294967169 completed=4294967169 ns=800894 err=0
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25588610 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25588610 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: GGTT map bo=0xffffff86f31e1c10 start=1a2d000 size=7000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25588610 begin
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e3710 tile=0
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: GGTT invalidate caller returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25588a10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25588a10 begin
+xegfx: gt0-ccs0 submitted=1 seqno=4294967169 completed=4294967169 ns=736139 err=0
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25588a10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: GGTT map bo=0xffffff86f31e3410 start=1a34000 size=20000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e1c10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31e1c10 start=1a54000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: gt1-vcs0 submitted=1 seqno=4294967169 completed=4294967169 ns=1698105 err=0
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25588610 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25588610 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: GGTT map bo=0xffffff86f31e3710 start=1a5a000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25588610 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e1c10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: gt1-vecs0 submitted=1 seqno=4294967169 completed=4294967169 ns=702474 err=0
+xegfx: xe exec 6/6 completed, IRQ delta=38 (MSI observed)
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25457e10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25457e10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25457e10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e3710 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+[progress=42134]
+
+xegfx: GGTT map bo=0xffffff86f31e3710 start=1a60000 size=8000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: store gt0-rcs0 want=0x58670000 got=0x58670000 ns=996428 err=0
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25588610 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25588610 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: GGTT map bo=0xffffff86f31e1c10 start=1a68000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25588610 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e3710 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25457d10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25457d10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25457d10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e1c10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: store gt0-bcs0 want=0x58670103 got=0x58670103 ns=1832660 err=0
+xegfx: GGTT map bo=0xffffff86f31e3710 start=1a6e000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: store gt0-bcs8 want=0x58670203 got=0x58670203 ns=815995 err=0
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25588a10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25588a10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: GGTT map bo=0xffffff86f31e1c10 start=1a74000 size=7000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25588a10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e3710 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: store gt0-ccs0 want=0x58670305 got=0x58670305 ns=752466 err=0
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25457c10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25457c10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: GGTT map bo=0xffffff86f31e3710 start=1a7b000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25457c10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e1c10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: store gt1-vcs0 want=0x58671401 got=0x58671401 ns=785465 err=0
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25588c10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25588c10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: GGTT map bo=0xffffff86f31e1c10 start=1a81000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25588c10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e3710 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: store gt1-vecs0 want=0x58671502 got=0x58671502 ns=853909 err=0
+xegfx: xe store 6/6 verified, IRQ delta=28
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25457b10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25457b10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25457b10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e1c10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+debug.xegfx_stage: 4 -> 6
+debug.xegfx_stage: 6
+阶段结果数组（索引对应阶段号） / Signed results indexed by stage:
+                        0               1               1               1
+                        1               1               1               0
+
+XeGfx BOOT: dedicated initializer thread entered
+XeGfx BOOT: waiting up to 60s for enumerated Intel GPU
+XeGfx BOOT: GPU discovered; starting stages
+XeGfx BOOT V33: automatic stages 1-4 (after 3s delay); display=0 PC bypass=1 LRC ggtt_remove bypass=1 sync_drain=1 Stage 6 store unlocked
+XeGfx BOOT stage 1 BEGIN
+xegfx: vm: vmap sparse selftest 0
+xegfx: vm: vmap selftest 0
+XeGfx BOOT stage 1 RETURN rc=1 progress=10
+XeGfx BOOT stage 2 BEGIN
+XeGfx BOOT stage 2 RETURN rc=1 progress=23
+XeGfx BOOT stage 3 BEGIN
+xegfx: iGPU 8086:b0a0 is older than gen11, stolen memory not probed
+xegfx: no IOMMU, DMA addresses are physical
+xegfx: newbus root0 state 30 driver root
+xegfx: newbus   pcib0 state 30 driver pcib
+xegfx: newbus     pci0 state 30 driver pci
+xegfx: newbus       hostb0 state 30 driver hostb pci 8086:b002 class 060000
+xegfx: newbus       vgapci0 state 30 driver vgapci pci 8086:b0a0 class 030000
+xegfx: newbus         drmn0 state 10 driver -
+xegfx: newbus       ? state 10 driver - pci 8086:e302 class 060100
+xegfx: devclass root:
+xegfx: devclass pcib:
+xegfx: devclass pci:
+xegfx: devclass hostb:
+xegfx: devclass vgapci:
+xegfx: devclass drmn:
+XeGfx BOOT stage 3 RETURN rc=1 progress=30
+XeGfx BOOT stage 4 BEGIN
+[checkpoint 10000] SYSINIT enter
+[checkpoint 10001] SYSINIT returned
+[checkpoint 10002] SYSINIT enter
+[checkpoint 10003] SYSINIT returned
+[checkpoint 10004] SYSINIT enter
+[checkpoint 10005] SYSINIT returned
+[checkpoint 10006] SYSINIT enter
+[checkpoint 10007] SYSINIT returned
+[checkpoint 10008] SYSINIT enter
+[checkpoint 10009] SYSINIT returned
+[checkpoint 10010] SYSINIT enter
+[checkpoint 10011] SYSINIT returned
+[checkpoint 10012] SYSINIT enter
+[checkpoint 10013] SYSINIT returned
+[checkpoint 10014] SYSINIT enter
+[checkpoint 10015] SYSINIT returned
+[checkpoint 10016] SYSINIT enter
+[checkpoint 10017] SYSINIT returned
+[checkpoint 10018] SYSINIT enter
+[checkpoint 10019] SYSINIT returned
+[checkpoint 10020] SYSINIT enter
+[checkpoint 10021] SYSINIT returned
+[checkpoint 10022] SYSINIT enter
+[checkpoint 10023] SYSINIT returned
+[checkpoint 10024] SYSINIT enter
+[checkpoint 10025] SYSINIT returned
+[checkpoint 10026] SYSINIT enter
+[checkpoint 10027] SYSINIT returned
+[checkpoint 10028] SYSINIT enter
+[checkpoint 10029] SYSINIT returned
+[checkpoint 10030] SYSINIT enter
+[checkpoint 10031] SYSINIT returned
+[checkpoint 10032] SYSINIT enter
+[checkpoint 10033] SYSINIT returned
+[checkpoint 10034] SYSINIT enter
+[checkpoint 10035] SYSINIT returned
+[checkpoint 10036] SYSINIT enter
+[checkpoint 10037] SYSINIT returned
+[checkpoint 10038] SYSINIT enter
+[checkpoint 10039] SYSINIT returned
+[checkpoint 10040] SYSINIT enter
+[checkpoint 10041] SYSINIT returned
+[checkpoint 10042] SYSINIT enter
+[checkpoint 10043] SYSINIT returned
+[checkpoint 10044] SYSINIT enter
+[checkpoint 10045] SYSINIT returned
+[checkpoint 10046] SYSINIT enter
+[checkpoint 10047] SYSINIT returned
+[checkpoint 10048] SYSINIT enter
+[checkpoint 10049] SYSINIT returned
+[checkpoint 10050] SYSINIT enter
+[checkpoint 10051] SYSINIT returned
+[checkpoint 10052] SYSINIT enter
+[checkpoint 10053] SYSINIT returned
+[checkpoint 10054] SYSINIT enter
+[checkpoint 10055] SYSINIT returned
+[checkpoint 10056] SYSINIT enter
+[checkpoint 10057] SYSINIT returned
+[checkpoint 10058] SYSINIT enter
+[checkpoint 10059] SYSINIT returned
+[checkpoint 10060] SYSINIT enter
+[checkpoint 10061] SYSINIT returned
+[checkpoint 10062] SYSINIT enter
+[checkpoint 10063] SYSINIT returned
+[checkpoint 10064] SYSINIT enter
+[checkpoint 10065] SYSINIT returned
+[checkpoint 10066] SYSINIT enter
+[checkpoint 10067] SYSINIT returned
+[checkpoint 10068] SYSINIT enter
+[checkpoint 10069] SYSINIT returned
+[checkpoint 10070] SYSINIT enter
+[checkpoint 20001] linux_current entered
+[checkpoint 20002] current zone create begin
+[checkpoint 20003] current zone created
+[checkpoint 20004] mm zone create begin
+[checkpoint 20005] mm zone created
+[checkpoint 20006] thread destructor registration begin
+[checkpoint 20007] thread destructor registered
+[checkpoint 20008] current allocator installed
+[checkpoint 10071] SYSINIT returned
+[checkpoint 10072] SYSINIT enter
+[checkpoint 10073] SYSINIT returned
+[checkpoint 10074] SYSINIT enter
+[checkpoint 10075] SYSINIT returned
+[checkpoint 10076] SYSINIT enter
+[checkpoint 10077] SYSINIT returned
+[checkpoint 10078] SYSINIT enter
+[checkpoint 10079] SYSINIT returned
+[checkpoint 10080] SYSINIT enter
+[checkpoint 10081] SYSINIT returned
+[checkpoint 10082] SYSINIT enter
+[checkpoint 10083] SYSINIT returned
+[checkpoint 10084] SYSINIT enter
+[checkpoint 10085] SYSINIT returned
+[checkpoint 10086] SYSINIT enter
+[checkpoint 10087] SYSINIT returned
+[checkpoint 10088] SYSINIT enter
+[checkpoint 10089] SYSINIT returned
+[checkpoint 10090] SYSINIT enter
+[checkpoint 10091] SYSINIT returned
+[checkpoint 10092] SYSINIT enter
+[checkpoint 10093] SYSINIT returned
+[checkpoint 10094] SYSINIT enter
+[checkpoint 10095] SYSINIT returned
+[checkpoint 10096] SYSINIT enter
+[checkpoint 10097] SYSINIT returned
+[checkpoint 10100] SYSINIT enter
+[checkpoint 10101] SYSINIT returned
+[checkpoint 10102] SYSINIT enter
+[checkpoint 10103] SYSINIT returned
+[checkpoint 10104] SYSINIT enter
+[checkpoint 10105] SYSINIT returned
+[checkpoint 10106] SYSINIT enter
+[checkpoint 10107] SYSINIT returned
+[checkpoint 10108] SYSINIT enter
+[checkpoint 10109] SYSINIT returned
+[checkpoint 11098] SYSINIT enter
+drmn0: [drm] GOP GGTT 0xff000000 + 0xfa0000 protected (allocator 0 + 0)
+drmn0: successfully loaded firmware image 'xe/ptl_guc_70.bin'
+drmn0: [drm] Using GuC firmware from xe/ptl_guc_70.bin version 70.72.1
+xegfx: GGTT map bo=0xffffff86f31dd410 start=200000 size=5a000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31ddd10 start=25a000 size=113000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31db010 start=36d000 size=984000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31d8310 start=cf1000 size=22000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 45000] xe_guc_pc_raise_unslice begin
+[checkpoint 45001] xe_guc_pc_raise_unslice returned
+[checkpoint 45002] guc_write_params begin
+[checkpoint 45003] guc_write_params returned
+[checkpoint 45004] guc_prepare_xfer begin
+[checkpoint 45005] guc_prepare_xfer returned
+[checkpoint 45006] guc_xfer_rsa begin
+[checkpoint 45007] guc_xfer_rsa returned
+[checkpoint 45008] xe_uc_fw_upload begin
+[checkpoint 45009] xe_uc_fw_upload returned
+[checkpoint 45010] guc_wait_ucode begin
+xegfx: GuC 0xffffffe0c6408ff8 guc_wait_ucode ret=0
+[checkpoint 45011] guc_wait_ucode returned
+xegfx: GuC 0xffffffe0c6408ff8 marking firmware RUNNING
+[checkpoint 45012] GuC RUNNING status committed
+xegfx: GGTT map bo=0xffffff86f31d8910 start=d13000 size=1000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+drmn0: successfully loaded firmware image 'xe/ptl_guc_70.bin'
+drmn0: [drm] Using GuC firmware from xe/ptl_guc_70.bin version 70.72.1
+xegfx: GGTT map bo=0xffffff86f31d8f10 start=d14000 size=5a000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31da110 start=d6e000 size=113000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31d9e10 start=e81000 size=984000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31da410 start=1805000 size=22000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 45000] xe_guc_pc_raise_unslice begin
+[checkpoint 45001] xe_guc_pc_raise_unslice returned
+[checkpoint 45002] guc_write_params begin
+[checkpoint 45003] guc_write_params returned
+[checkpoint 45004] guc_prepare_xfer begin
+[checkpoint 45005] guc_prepare_xfer returned
+[checkpoint 45006] guc_xfer_rsa begin
+[checkpoint 45007] guc_xfer_rsa returned
+[checkpoint 45008] xe_uc_fw_upload begin
+[checkpoint 45009] xe_uc_fw_upload returned
+[checkpoint 45010] guc_wait_ucode begin
+xegfx: GuC 0xffffffe0c643eff8 guc_wait_ucode ret=0
+[checkpoint 45011] guc_wait_ucode returned
+xegfx: GuC 0xffffffe0c643eff8 marking firmware RUNNING
+[checkpoint 45012] GuC RUNNING status committed
+xegfx: GGTT map bo=0xffffff86f31daa10 start=1827000 size=100000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 40000] device stolen init begin
+drmn0: [drm] GOP DSM 0x7c800000: exclude prefix 0xfa0000 bytes
+[checkpoint 30001] stolen manager init begin
+[checkpoint 31001] vram manager entered
+[checkpoint 31002] vram mutex init begin
+[checkpoint 31003] vram mutex initialized
+[checkpoint 31004] TTM resource init begin
+[checkpoint 31005] TTM resource initialized
+[checkpoint 31006] drm buddy init begin
+[checkpoint 31007] drm buddy init returned
+[checkpoint 31008] driver manager install begin
+[checkpoint 31009] driver manager installed
+[checkpoint 31010] vram cleanup registration begin
+[checkpoint 31011] vram cleanup registration returned
+[checkpoint 30002] stolen manager init returned
+[checkpoint 30003] stolen WC map begin
+[checkpoint 30004] stolen WC map returned
+[checkpoint 30005] stolen init returned
+[checkpoint 40001] device stolen init returned
+[checkpoint 40002] display noaccel begin
+[checkpoint 40003] display noaccel returned
+[checkpoint 40004] GT init begin
+[checkpoint 41000] GT reset work begin
+[checkpoint 41001] GT reset work returned
+[checkpoint 41002] GT pagefault begin
+[checkpoint 41003] GT pagefault returned
+[checkpoint 41004] GT sysfs begin
+[checkpoint 41005] GT sysfs returned
+[checkpoint 41006] GT FW domain begin
+[checkpoint 42000] GT forcewake get begin
+[checkpoint 42001] GT forcewake get returned
+[checkpoint 42002] GGTT init begin
+[checkpoint 42100] GGTT scratch allocation begin
+[checkpoint 42101] GGTT scratch allocation returned
+[checkpoint 42102] GGTT scratch memset begin
+[checkpoint 42103] GGTT scratch memset returned
+[checkpoint 42110] GGTT clear lock begin
+[checkpoint 42111] GGTT clear lock acquired
+xegfx: GGTT hole start=1927000 end=fee00000
+[checkpoint 42112] GGTT hole clear begin
+[checkpoint 42120] GGTT scratch PTE encode begin
+[checkpoint 42121] GGTT scratch PTE encode returned
+xegfx: GGTT fill start=1927000 end=fedfffff pte=200008291a1001
+xegfx: GGTT fill offset=2000000
+xegfx: GGTT fill offset=3000000
+xegfx: GGTT fill offset=4000000
+xegfx: GGTT fill offset=5000000
+xegfx: GGTT fill offset=6000000
+xegfx: GGTT fill offset=7000000
+xegfx: GGTT fill offset=8000000
+xegfx: GGTT fill offset=9000000
+xegfx: GGTT fill offset=a000000
+xegfx: GGTT fill offset=b000000
+xegfx: GGTT fill offset=c000000
+xegfx: GGTT fill offset=d000000
+xegfx: GGTT fill offset=e000000
+xegfx: GGTT fill offset=f000000
+xegfx: GGTT fill offset=10000000
+xegfx: GGTT fill offset=11000000
+xegfx: GGTT fill offset=12000000
+xegfx: GGTT fill offset=13000000
+xegfx: GGTT fill offset=14000000
+xegfx: GGTT fill offset=15000000
+xegfx: GGTT fill offset=16000000
+xegfx: GGTT fill offset=17000000
+xegfx: GGTT fill offset=18000000
+xegfx: GGTT fill offset=19000000
+xegfx: GGTT fill offset=1a000000
+xegfx: GGTT fill offset=1b000000
+xegfx: GGTT fill offset=1c000000
+xegfx: GGTT fill offset=1d000000
+xegfx: GGTT fill offset=1e000000
+xegfx: GGTT fill offset=1f000000
+xegfx: GGTT fill offset=20000000
+xegfx: GGTT fill offset=21000000
+xegfx: GGTT fill offset=22000000
+xegfx: GGTT fill offset=23000000
+xegfx: GGTT fill offset=24000000
+xegfx: GGTT fill offset=25000000
+xegfx: GGTT fill offset=26000000
+xegfx: GGTT fill offset=27000000
+xegfx: GGTT fill offset=28000000
+xegfx: GGTT fill offset=29000000
+xegfx: GGTT fill offset=2a000000
+xegfx: GGTT fill offset=2b000000
+xegfx: GGTT fill offset=2c000000
+xegfx: GGTT fill offset=2d000000
+xegfx: GGTT fill offset=2e000000
+xegfx: GGTT fill offset=2f000000
+xegfx: GGTT fill offset=30000000
+xegfx: GGTT fill offset=31000000
+xegfx: GGTT fill offset=32000000
+xegfx: GGTT fill offset=33000000
+xegfx: GGTT fill offset=34000000
+xegfx: GGTT fill offset=35000000
+xegfx: GGTT fill offset=36000000
+xegfx: GGTT fill offset=37000000
+xegfx: GGTT fill offset=38000000
+xegfx: GGTT fill offset=39000000
+xegfx: GGTT fill offset=3a000000
+xegfx: GGTT fill offset=3b000000
+xegfx: GGTT fill offset=3c000000
+xegfx: GGTT fill offset=3d000000
+xegfx: GGTT fill offset=3e000000
+xegfx: GGTT fill offset=3f000000
+xegfx: GGTT fill offset=40000000
+xegfx: GGTT fill offset=41000000
+xegfx: GGTT fill offset=42000000
+xegfx: GGTT fill offset=43000000
+xegfx: GGTT fill offset=44000000
+xegfx: GGTT fill offset=45000000
+xegfx: GGTT fill offset=46000000
+xegfx: GGTT fill offset=47000000
+xegfx: GGTT fill offset=48000000
+xegfx: GGTT fill offset=49000000
+xegfx: GGTT fill offset=4a000000
+xegfx: GGTT fill offset=4b000000
+xegfx: GGTT fill offset=4c000000
+xegfx: GGTT fill offset=4d000000
+xegfx: GGTT fill offset=4e000000
+xegfx: GGTT fill offset=4f000000
+xegfx: GGTT fill offset=50000000
+xegfx: GGTT fill offset=51000000
+xegfx: GGTT fill offset=52000000
+xegfx: GGTT fill offset=53000000
+xegfx: GGTT fill offset=54000000
+xegfx: GGTT fill offset=55000000
+xegfx: GGTT fill offset=56000000
+xegfx: GGTT fill offset=57000000
+xegfx: GGTT fill offset=58000000
+xegfx: GGTT fill offset=59000000
+xegfx: GGTT fill offset=5a000000
+xegfx: GGTT fill offset=5b000000
+xegfx: GGTT fill offset=5c000000
+xegfx: GGTT fill offset=5d000000
+xegfx: GGTT fill offset=5e000000
+xegfx: GGTT fill offset=5f000000
+xegfx: GGTT fill offset=60000000
+xegfx: GGTT fill offset=61000000
+xegfx: GGTT fill offset=62000000
+xegfx: GGTT fill offset=63000000
+xegfx: GGTT fill offset=64000000
+xegfx: GGTT fill offset=65000000
+xegfx: GGTT fill offset=66000000
+xegfx: GGTT fill offset=67000000
+xegfx: GGTT fill offset=68000000
+xegfx: GGTT fill offset=69000000
+xegfx: GGTT fill offset=6a000000
+xegfx: GGTT fill offset=6b000000
+xegfx: GGTT fill offset=6c000000
+xegfx: GGTT fill offset=6d000000
+xegfx: GGTT fill offset=6e000000
+xegfx: GGTT fill offset=6f000000
+xegfx: GGTT fill offset=70000000
+xegfx: GGTT fill offset=71000000
+xegfx: GGTT fill offset=72000000
+xegfx: GGTT fill offset=73000000
+xegfx: GGTT fill offset=74000000
+xegfx: GGTT fill offset=75000000
+xegfx: GGTT fill offset=76000000
+xegfx: GGTT fill offset=77000000
+xegfx: GGTT fill offset=78000000
+xegfx: GGTT fill offset=79000000
+xegfx: GGTT fill offset=7a000000
+xegfx: GGTT fill offset=7b000000
+xegfx: GGTT fill offset=7c000000
+xegfx: GGTT fill offset=7d000000
+xegfx: GGTT fill offset=7e000000
+xegfx: GGTT fill offset=7f000000
+xegfx: GGTT fill offset=80000000
+xegfx: GGTT fill offset=81000000
+xegfx: GGTT fill offset=82000000
+xegfx: GGTT fill offset=83000000
+xegfx: GGTT fill offset=84000000
+xegfx: GGTT fill offset=85000000
+xegfx: GGTT fill offset=86000000
+xegfx: GGTT fill offset=87000000
+xegfx: GGTT fill offset=88000000
+xegfx: GGTT fill offset=89000000
+xegfx: GGTT fill offset=8a000000
+xegfx: GGTT fill offset=8b000000
+xegfx: GGTT fill offset=8c000000
+xegfx: GGTT fill offset=8d000000
+xegfx: GGTT fill offset=8e000000
+xegfx: GGTT fill offset=8f000000
+xegfx: GGTT fill offset=90000000
+xegfx: GGTT fill offset=91000000
+xegfx: GGTT fill offset=92000000
+xegfx: GGTT fill offset=93000000
+xegfx: GGTT fill offset=94000000
+xegfx: GGTT fill offset=95000000
+xegfx: GGTT fill offset=96000000
+xegfx: GGTT fill offset=97000000
+xegfx: GGTT fill offset=98000000
+xegfx: GGTT fill offset=99000000
+xegfx: GGTT fill offset=9a000000
+xegfx: GGTT fill offset=9b000000
+xegfx: GGTT fill offset=9c000000
+xegfx: GGTT fill offset=9d000000
+xegfx: GGTT fill offset=9e000000
+xegfx: GGTT fill offset=9f000000
+xegfx: GGTT fill offset=a0000000
+xegfx: GGTT fill offset=a1000000
+xegfx: GGTT fill offset=a2000000
+xegfx: GGTT fill offset=a3000000
+xegfx: GGTT fill offset=a4000000
+xegfx: GGTT fill offset=a5000000
+xegfx: GGTT fill offset=a6000000
+xegfx: GGTT fill offset=a7000000
+xegfx: GGTT fill offset=a8000000
+xegfx: GGTT fill offset=a9000000
+xegfx: GGTT fill offset=aa000000
+xegfx: GGTT fill offset=ab000000
+xegfx: GGTT fill offset=ac000000
+xegfx: GGTT fill offset=ad000000
+xegfx: GGTT fill offset=ae000000
+xegfx: GGTT fill offset=af000000
+xegfx: GGTT fill offset=b0000000
+xegfx: GGTT fill offset=b1000000
+xegfx: GGTT fill offset=b2000000
+xegfx: GGTT fill offset=b3000000
+xegfx: GGTT fill offset=b4000000
+xegfx: GGTT fill offset=b5000000
+xegfx: GGTT fill offset=b6000000
+xegfx: GGTT fill offset=b7000000
+xegfx: GGTT fill offset=b8000000
+xegfx: GGTT fill offset=b9000000
+xegfx: GGTT fill offset=ba000000
+xegfx: GGTT fill offset=bb000000
+xegfx: GGTT fill offset=bc000000
+xegfx: GGTT fill offset=bd000000
+xegfx: GGTT fill offset=be000000
+xegfx: GGTT fill offset=bf000000
+xegfx: GGTT fill offset=c0000000
+xegfx: GGTT fill offset=c1000000
+xegfx: GGTT fill offset=c2000000
+xegfx: GGTT fill offset=c3000000
+xegfx: GGTT fill offset=c4000000
+xegfx: GGTT fill offset=c5000000
+xegfx: GGTT fill offset=c6000000
+xegfx: GGTT fill offset=c7000000
+xegfx: GGTT fill offset=c8000000
+xegfx: GGTT fill offset=c9000000
+xegfx: GGTT fill offset=ca000000
+xegfx: GGTT fill offset=cb000000
+xegfx: GGTT fill offset=cc000000
+xegfx: GGTT fill offset=cd000000
+xegfx: GGTT fill offset=ce000000
+xegfx: GGTT fill offset=cf000000
+xegfx: GGTT fill offset=d0000000
+xegfx: GGTT fill offset=d1000000
+xegfx: GGTT fill offset=d2000000
+xegfx: GGTT fill offset=d3000000
+xegfx: GGTT fill offset=d4000000
+xegfx: GGTT fill offset=d5000000
+xegfx: GGTT fill offset=d6000000
+xegfx: GGTT fill offset=d7000000
+xegfx: GGTT fill offset=d8000000
+xegfx: GGTT fill offset=d9000000
+xegfx: GGTT fill offset=da000000
+xegfx: GGTT fill offset=db000000
+xegfx: GGTT fill offset=dc000000
+xegfx: GGTT fill offset=dd000000
+xegfx: GGTT fill offset=de000000
+xegfx: GGTT fill offset=df000000
+xegfx: GGTT fill offset=e0000000
+xegfx: GGTT fill offset=e1000000
+xegfx: GGTT fill offset=e2000000
+xegfx: GGTT fill offset=e3000000
+xegfx: GGTT fill offset=e4000000
+xegfx: GGTT fill offset=e5000000
+xegfx: GGTT fill offset=e6000000
+xegfx: GGTT fill offset=e7000000
+xegfx: GGTT fill offset=e8000000
+xegfx: GGTT fill offset=e9000000
+xegfx: GGTT fill offset=ea000000
+xegfx: GGTT fill offset=eb000000
+xegfx: GGTT fill offset=ec000000
+xegfx: GGTT fill offset=ed000000
+xegfx: GGTT fill offset=ee000000
+xegfx: GGTT fill offset=ef000000
+xegfx: GGTT fill offset=f0000000
+xegfx: GGTT fill offset=f1000000
+xegfx: GGTT fill offset=f2000000
+xegfx: GGTT fill offset=f3000000
+xegfx: GGTT fill offset=f4000000
+xegfx: GGTT fill offset=f5000000
+xegfx: GGTT fill offset=f6000000
+xegfx: GGTT fill offset=f7000000
+xegfx: GGTT fill offset=f8000000
+xegfx: GGTT fill offset=f9000000
+xegfx: GGTT fill offset=fa000000
+xegfx: GGTT fill offset=fb000000
+xegfx: GGTT fill offset=fc000000
+xegfx: GGTT fill offset=fd000000
+xegfx: GGTT fill offset=fe000000
+[checkpoint 42113] GGTT hole clear returned
+[checkpoint 42114] GGTT initial invalidate begin
+xegfx: GGTT invalidate caller line=339 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 42115] GGTT initial invalidate returned
+[checkpoint 42116] GGTT clear lock released
+[checkpoint 42104] GGTT cleanup action registration begin
+xegfx: GGTT cleanup action ret=0
+[checkpoint 42105] GGTT cleanup action registration returned
+[checkpoint 42003] GGTT init returned
+[checkpoint 42004] engine IRQ enable begin
+[checkpoint 42005] engine IRQ enable returned
+[checkpoint 42006] MCR init begin
+[checkpoint 42007] MCR init returned
+[checkpoint 42008] early engines begin
+drmn0: [drm] ccs1 fused off
+drmn0: [drm] ccs2 fused off
+drmn0: [drm] ccs3 fused off
+[checkpoint 42009] early engines returned
+[checkpoint 42010] engine class sysfs begin
+[checkpoint 42011] engine class sysfs returned
+[checkpoint 42012] CCS sysfs begin
+[checkpoint 42013] CCS sysfs returned
+[checkpoint 41007] GT FW domain returned
+[checkpoint 41008] GT idle begin
+[checkpoint 41009] GT idle returned
+[checkpoint 41010] GT frequency begin
+[checkpoint 41011] GT frequency returned
+[checkpoint 41012] engine forcewake init begin
+[checkpoint 41013] engine forcewake init returned
+[checkpoint 41014] all FW domains begin
+[checkpoint 43000] all forcewake get begin
+[checkpoint 43001] all forcewake get returned
+[checkpoint 43002] apply register state begin
+[checkpoint 43003] apply register state returned
+[checkpoint 43004] GT clock begin
+[checkpoint 43005] GT clock returned
+[checkpoint 43006] engines init begin
+xegfx: GGTT map bo=0xffffff86f31d8c10 start=1927000 size=1000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31d9210 start=1928000 size=1000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31d9510 start=1929000 size=1000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31d8010 start=192a000 size=1000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 43007] engines init returned
+[checkpoint 43008] uC post hwconfig begin
+xegfx: GGTT map bo=0xffffff86f31d9b10 start=192b000 size=2000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 43009] uC post hwconfig returned
+xegfx: GGTT map bo=0xffffff86f31e4610 start=192d000 size=80000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 43010] migration init begin
+xegfx: GGTT map bo=0xffffff86f31e5210 start=19ad000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 43011] migration init returned
+[checkpoint 43012] uC hardware init begin
+[checkpoint 44000] xe_huc_upload begin
+[checkpoint 44001] xe_huc_upload returned
+[checkpoint 44002] xe_guc_upload begin
+[checkpoint 45000] xe_guc_pc_raise_unslice begin
+[checkpoint 45001] xe_guc_pc_raise_unslice returned
+[checkpoint 45002] guc_write_params begin
+[checkpoint 45003] guc_write_params returned
+[checkpoint 45004] guc_prepare_xfer begin
+[checkpoint 45005] guc_prepare_xfer returned
+[checkpoint 45006] guc_xfer_rsa begin
+[checkpoint 45007] guc_xfer_rsa returned
+[checkpoint 45008] xe_uc_fw_upload begin
+[checkpoint 45009] xe_uc_fw_upload returned
+[checkpoint 45010] guc_wait_ucode begin
+xegfx: GuC 0xffffffe0c6408ff8 guc_wait_ucode ret=0
+[checkpoint 45011] guc_wait_ucode returned
+xegfx: GuC 0xffffffe0c6408ff8 marking firmware RUNNING
+[checkpoint 45012] GuC RUNNING status committed
+[checkpoint 44003] xe_guc_upload returned
+[checkpoint 44004] xe_guc_enable_communication begin
+[checkpoint 44005] xe_guc_enable_communication returned
+[checkpoint 44006] xe_gt_record_default_lrcs begin
+xegfx: LRC engine=rcs0 class=0 instance=0 begin
+xegfx: LRC q create begin engine=rcs0
+xegfx: GGTT map bo=0xffffff86f31e5810 start=19b3000 size=8000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC q create returned ptr=0xffffff9a25893210
+xegfx: LRC emit_wa_job(gt, q) begin
+xegfx: LRC emit_wa_job(gt, q) returned rc=0
+xegfx: LRC nop_q create begin engine=rcs0
+xegfx: GGTT map bo=0xffffff86f31e4010 start=19bb000 size=8000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC nop_q create returned ptr=0xffffff9a25893e10
+xegfx: LRC emit_nop_job(gt, nop_q) begin
+xegfx: LRC emit_nop_job(gt, nop_q) returned rc=0
+xegfx: LRC emit_nop_job(gt, q) begin
+xegfx: LRC emit_nop_job(gt, q) returned rc=0
+xegfx: LRC snapshot begin
+xegfx: LRC snapshot returned
+xegfx: LRC nop_q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25893e10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25893e10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25893e10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e4010 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC nop_q put returned
+xegfx: LRC q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25893210 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25893210 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25893210 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e5810 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC q put returned
+xegfx: LRC engine=bcs0 class=3 instance=0 begin
+xegfx: LRC q create begin engine=bcs0
+xegfx: GGTT map bo=0xffffff86f31e5e10 start=19c3000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC q create returned ptr=0xffffff9a25893610
+xegfx: LRC emit_wa_job(gt, q) begin
+xegfx: LRC emit_wa_job(gt, q) returned rc=0
+xegfx: LRC nop_q create begin engine=bcs0
+xegfx: GGTT map bo=0xffffff86f31e5b10 start=19c9000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC nop_q create returned ptr=0xffffff9a25893a10
+xegfx: LRC emit_nop_job(gt, nop_q) begin
+xegfx: LRC emit_nop_job(gt, nop_q) returned rc=0
+xegfx: LRC emit_nop_job(gt, q) begin
+xegfx: LRC emit_nop_job(gt, q) returned rc=0
+xegfx: LRC snapshot begin
+xegfx: LRC snapshot returned
+xegfx: LRC nop_q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25893a10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25893a10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25893a10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e5b10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC nop_q put returned
+xegfx: LRC q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25893610 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25893610 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25893610 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e5e10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC q put returned
+xegfx: LRC engine=ccs0 class=5 instance=0 begin
+xegfx: LRC q create begin engine=ccs0
+xegfx: GGTT map bo=0xffffff86f31e5810 start=19cf000 size=7000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC q create returned ptr=0xffffff9a25893610
+xegfx: LRC emit_wa_job(gt, q) begin
+xegfx: LRC emit_wa_job(gt, q) returned rc=0
+xegfx: LRC nop_q create begin engine=ccs0
+xegfx: GGTT map bo=0xffffff86f31e5b10 start=19d6000 size=7000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC nop_q create returned ptr=0xffffff9a25893c10
+xegfx: LRC emit_nop_job(gt, nop_q) begin
+xegfx: LRC emit_nop_job(gt, nop_q) returned rc=0
+xegfx: LRC emit_nop_job(gt, q) begin
+xegfx: LRC emit_nop_job(gt, q) returned rc=0
+xegfx: LRC snapshot begin
+xegfx: LRC snapshot returned
+xegfx: LRC nop_q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25893c10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25893c10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25893c10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e5b10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC nop_q put returned
+xegfx: LRC q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25893610 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25893610 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25893610 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e5810 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC q put returned
+[checkpoint 44007] xe_gt_record_default_lrcs returned
+[checkpoint 44008] xe_guc_post_load_init begin
+[checkpoint 44009] xe_guc_post_load_init returned
+[checkpoint 44010] xe_guc_pc_start begin
+[checkpoint 48000] DIAGNOSTIC PC start bypassed; not a normal stage4 pass
+[checkpoint 44011] xe_guc_pc_start returned
+[checkpoint 44012] xe_huc_auth begin
+[checkpoint 44013] xe_huc_auth returned
+[checkpoint 44014] xe_gsc_load_start begin
+[checkpoint 44015] xe_gsc_load_start returned
+[checkpoint 43013] uC hardware init returned
+[checkpoint 41015] all FW domains returned
+[checkpoint 41016] record user engines begin
+[checkpoint 41017] record user engines returned
+[checkpoint 40005] GT init returned
+[checkpoint 40004] GT init begin
+[checkpoint 41000] GT reset work begin
+[checkpoint 41001] GT reset work returned
+[checkpoint 41002] GT pagefault begin
+[checkpoint 41003] GT pagefault returned
+[checkpoint 41004] GT sysfs begin
+[checkpoint 41005] GT sysfs returned
+[checkpoint 41006] GT FW domain begin
+[checkpoint 42000] GT forcewake get begin
+[checkpoint 42001] GT forcewake get returned
+[checkpoint 42004] engine IRQ enable begin
+[checkpoint 42005] engine IRQ enable returned
+[checkpoint 42006] MCR init begin
+[checkpoint 42007] MCR init returned
+[checkpoint 42008] early engines begin
+drmn0: [drm] vcs1 fused off
+drmn0: [drm] vcs2 fused off
+drmn0: [drm] vcs3 fused off
+drmn0: [drm] vcs4 fused off
+drmn0: [drm] vcs5 fused off
+drmn0: [drm] vcs6 fused off
+drmn0: [drm] vcs7 fused off
+drmn0: [drm] vecs1 fused off
+drmn0: [drm] vecs2 fused off
+drmn0: [drm] vecs3 fused off
+[checkpoint 42009] early engines returned
+[checkpoint 42010] engine class sysfs begin
+[checkpoint 42011] engine class sysfs returned
+[checkpoint 42012] CCS sysfs begin
+[checkpoint 42013] CCS sysfs returned
+[checkpoint 41007] GT FW domain returned
+[checkpoint 41008] GT idle begin
+[checkpoint 41009] GT idle returned
+[checkpoint 41010] GT frequency begin
+[checkpoint 41011] GT frequency returned
+[checkpoint 41012] engine forcewake init begin
+[checkpoint 41013] engine forcewake init returned
+[checkpoint 41014] all FW domains begin
+[checkpoint 43000] all forcewake get begin
+[checkpoint 43001] all forcewake get returned
+[checkpoint 43002] apply register state begin
+[checkpoint 43003] apply register state returned
+[checkpoint 43004] GT clock begin
+[checkpoint 43005] GT clock returned
+[checkpoint 43006] engines init begin
+xegfx: GGTT map bo=0xffffff86f31e5e10 start=19dd000 size=1000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31e5810 start=19de000 size=1000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 43007] engines init returned
+[checkpoint 43008] uC post hwconfig begin
+xegfx: GGTT map bo=0xffffff86f31e6110 start=19df000 size=2000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+[checkpoint 43009] uC post hwconfig returned
+[checkpoint 43012] uC hardware init begin
+[checkpoint 44000] xe_huc_upload begin
+[checkpoint 44001] xe_huc_upload returned
+[checkpoint 44002] xe_guc_upload begin
+[checkpoint 45000] xe_guc_pc_raise_unslice begin
+[checkpoint 45001] xe_guc_pc_raise_unslice returned
+[checkpoint 45002] guc_write_params begin
+[checkpoint 45003] guc_write_params returned
+[checkpoint 45004] guc_prepare_xfer begin
+[checkpoint 45005] guc_prepare_xfer returned
+[checkpoint 45006] guc_xfer_rsa begin
+[checkpoint 45007] guc_xfer_rsa returned
+[checkpoint 45008] xe_uc_fw_upload begin
+[checkpoint 45009] xe_uc_fw_upload returned
+[checkpoint 45010] guc_wait_ucode begin
+xegfx: GuC 0xffffffe0c643eff8 guc_wait_ucode ret=0
+[checkpoint 45011] guc_wait_ucode returned
+xegfx: GuC 0xffffffe0c643eff8 marking firmware RUNNING
+[checkpoint 45012] GuC RUNNING status committed
+[checkpoint 44003] xe_guc_upload returned
+[checkpoint 44004] xe_guc_enable_communication begin
+[checkpoint 44005] xe_guc_enable_communication returned
+[checkpoint 44006] xe_gt_record_default_lrcs begin
+xegfx: LRC engine=vcs0 class=1 instance=0 begin
+xegfx: LRC q create begin engine=vcs0
+xegfx: GGTT map bo=0xffffff86f31e5b10 start=19e1000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC q create returned ptr=0xffffff9a25893610
+xegfx: LRC emit_wa_job(gt, q) begin
+xegfx: LRC emit_wa_job(gt, q) returned rc=0
+xegfx: LRC nop_q create begin engine=vcs0
+xegfx: GGTT map bo=0xffffff86f31e6410 start=19e7000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC nop_q create returned ptr=0xffffff9a25891110
+xegfx: LRC emit_nop_job(gt, nop_q) begin
+xegfx: LRC emit_nop_job(gt, nop_q) returned rc=0
+xegfx: LRC emit_nop_job(gt, q) begin
+xegfx: LRC emit_nop_job(gt, q) returned rc=0
+xegfx: LRC snapshot begin
+xegfx: LRC snapshot returned
+xegfx: LRC nop_q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25891110 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25891110 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25891110 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e6410 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC nop_q put returned
+xegfx: LRC q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25893610 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25893610 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25893610 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e5b10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC q put returned
+xegfx: LRC engine=vecs0 class=2 instance=0 begin
+xegfx: LRC q create begin engine=vecs0
+xegfx: GGTT map bo=0xffffff86f31e6710 start=19ed000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC q create returned ptr=0xffffff9a25893610
+xegfx: LRC emit_wa_job(gt, q) begin
+xegfx: LRC emit_wa_job(gt, q) returned rc=0
+xegfx: LRC nop_q create begin engine=vecs0
+xegfx: GGTT map bo=0xffffff86f31e6410 start=19f3000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: LRC nop_q create returned ptr=0xffffff9a25891710
+xegfx: LRC emit_nop_job(gt, nop_q) begin
+xegfx: LRC emit_nop_job(gt, nop_q) returned rc=0
+xegfx: LRC emit_nop_job(gt, q) begin
+xegfx: LRC emit_nop_job(gt, q) returned rc=0
+xegfx: LRC snapshot begin
+xegfx: LRC snapshot returned
+xegfx: LRC nop_q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25891710 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25891710 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25891710 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e6410 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC nop_q put returned
+xegfx: LRC q put begin
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25893610 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25893610 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25893610 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e6710 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: LRC q put returned
+[checkpoint 44007] xe_gt_record_default_lrcs returned
+[checkpoint 44008] xe_guc_post_load_init begin
+[checkpoint 44009] xe_guc_post_load_init returned
+[checkpoint 44010] xe_guc_pc_start begin
+[checkpoint 48000] DIAGNOSTIC PC start bypassed; not a normal stage4 pass
+[checkpoint 44011] xe_guc_pc_start returned
+[checkpoint 44012] xe_huc_auth begin
+[checkpoint 44013] xe_huc_auth returned
+[checkpoint 44014] xe_gsc_load_start begin
+[checkpoint 44015] xe_gsc_load_start returned
+[checkpoint 43013] uC hardware init returned
+[checkpoint 41015] all FW domains returned
+[checkpoint 41016] record user engines begin
+[checkpoint 41017] record user engines returned
+[checkpoint 40005] GT init returned
+[checkpoint 40006] HECI GSC begin
+[checkpoint 40007] HECI GSC returned
+[checkpoint 40008] OA init begin
+[checkpoint 40009] OA init returned
+[checkpoint 40010] display init begin
+[checkpoint 40011] display init returned
+[checkpoint 40012] DRM register begin
+<6>[drm] Initialized xe 1.1.0 for drmn0 on minor 0
+[checkpoint 40013] DRM register returned
+[checkpoint 11099] SYSINIT returned
+XeGfx: ran 55 sysinit_set entries
+xegfx: newbus root0 state 30 driver root
+xegfx: newbus   pcib0 state 30 driver pcib
+xegfx: newbus     pci0 state 30 driver pci
+xegfx: newbus       hostb0 state 30 driver hostb pci 8086:b002 class 060000
+xegfx: newbus       vgapci0 state 30 driver vgapci pci 8086:b0a0 class 030000
+xegfx: newbus         drmn0 state 30 driver drmn
+xegfx: newbus           drm128 state 10 driver -
+xegfx: newbus           drm0 state 10 driver -
+xegfx: newbus       ? state 10 driver - pci 8086:e302 class 060100
+xegfx: devclass root:
+xegfx: devclass pcib:
+xegfx: devclass pci: lkpi_pcipciidlist
+xegfx: devclass hostb:
+xegfx: devclass vgapci: drmn
+xegfx: devclass drmn:
+xegfx: devclass misc:
+xegfx: devclass lkpi_pcipciidlist:
+xegfx: devclass drm:
+xegfx: GT0 graphics GMD_ID=0x7804000 arch=30 release=1 revid=0 step=A0 GuC status=10 version=70.72.1 running=1 submission=1 forcewake=1
+xegfx: GT1 media GMD_ID=0x7800004 arch=30 release=0 revid=4 step=B0 GuC status=10 version=70.72.1 running=1 submission=1 forcewake=1
+xegfx: xe platform=PANTHERLAKE(12) devid=b0a0 revid=00 graphics=3001 media=3000 GMD[0d8c]=0x7804000 GMD[380d8c]=0x7800004 MSI vectors=1 irq-enabled=1
+XeGfx BOOT stage 4 RETURN rc=1 progress=11099
+XeGfx BOOT initialization returned; completed stage=4
+XeGfx BOOT: dedicated initializer thread exiting
+xegfx: GGTT map bo=0xffffff86f31e2810 start=19f9000 size=20000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31e2e10 start=1a19000 size=8000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25588610 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: gt0-rcs0 submitted=1 seqno=4294967169 completed=4294967169 ns=2072284 err=0
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25588610 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: GGTT map bo=0xffffff86f31e3410 start=1a21000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25588610 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e2e10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25588a10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25588a10 begin
+xegfx: gt0-bcs0 submitted=1 seqno=4294967169 completed=4294967169 ns=789155 err=0
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: GGTT map bo=0xffffff86f31e3710 start=1a27000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25588a10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e3410 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: gt0-bcs8 submitted=1 seqno=4294967169 completed=4294967169 ns=800894 err=0
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25588610 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25588610 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: GGTT map bo=0xffffff86f31e1c10 start=1a2d000 size=7000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25588610 begin
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e3710 tile=0
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: GGTT invalidate caller returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25588a10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25588a10 begin
+xegfx: gt0-ccs0 submitted=1 seqno=4294967169 completed=4294967169 ns=736139 err=0
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25588a10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: GGTT map bo=0xffffff86f31e3410 start=1a34000 size=20000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e1c10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: GGTT map bo=0xffffff86f31e1c10 start=1a54000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: gt1-vcs0 submitted=1 seqno=4294967169 completed=4294967169 ns=1698105 err=0
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25588610 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25588610 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: GGTT map bo=0xffffff86f31e3710 start=1a5a000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25588610 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e1c10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: gt1-vecs0 submitted=1 seqno=4294967169 completed=4294967169 ns=702474 err=0
+xegfx: xe exec 6/6 completed, IRQ delta=38 (MSI observed)
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25457e10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25457e10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25457e10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e3710 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: GGTT map bo=0xffffff86f31e3710 start=1a60000 size=8000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: store gt0-rcs0 want=0x58670000 got=0x58670000 ns=996428 err=0
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25588610 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25588610 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: GGTT map bo=0xffffff86f31e1c10 start=1a68000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25588610 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e3710 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25457d10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25457d10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25457d10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e1c10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: store gt0-bcs0 want=0x58670103 got=0x58670103 ns=1832660 err=0
+xegfx: GGTT map bo=0xffffff86f31e3710 start=1a6e000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: store gt0-bcs8 want=0x58670203 got=0x58670203 ns=815995 err=0
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25588a10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25588a10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: GGTT map bo=0xffffff86f31e1c10 start=1a74000 size=7000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25588a10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e3710 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: store gt0-ccs0 want=0x58670305 got=0x58670305 ns=752466 err=0
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25457c10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25457c10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: GGTT map bo=0xffffff86f31e3710 start=1a7b000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25457c10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e1c10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: store gt1-vcs0 want=0x58671401 got=0x58671401 ns=785465 err=0
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25588c10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25588c10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: GGTT map bo=0xffffff86f31e1c10 start=1a81000 size=6000 flags=22022 begin
+xegfx: GGTT map returned
+xegfx: GGTT invalidate caller line=744 ggtt=0xffffff86f31dd110 begin
+[checkpoint 42130] GGTT barrier MMIO read begin
+[checkpoint 42131] GGTT barrier MMIO read returned
+[checkpoint 42132] GGTT primary GT invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate begin
+xegfx: GGTT GT 0xffffffe0c6408000 TLB invalidate ret=0
+[checkpoint 42133] GGTT primary GT invalidate returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25588c10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e3710 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+xegfx: GGTT GT 0xffffffe0c643e000 TLB invalidate ret=0
+[checkpoint 42134] GGTT media GT invalidate returned
+xegfx: GGTT invalidate caller returned
+xegfx: store gt1-vecs0 want=0x58671502 got=0x58671502 ns=853909 err=0
+xegfx: xe store 6/6 verified, IRQ delta=28
+xegfx: CLEAN guc_exec_queue_fini q=0xffffff9a25457b10 begin
+xegfx: CLEAN guc_exec_queue_fini returned
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup q=0xffffff9a25457b10 begin
+xegfx: CLEAN __guc_exec_queue_process_msg_cleanup returned
+xegfx: CLEAN __guc_exec_queue_fini_async q=0xffffff9a25457b10 begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_get(guc_to_xe(guc)) returned
+xegfx: CLEAN release_guc_id(guc, q) begin
+xegfx: CLEAN release_guc_id(guc, q) returned
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) begin
+xegfx: CLEAN cancel_delayed_work_sync(&ge->sched.base.work_tdr) returned
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) begin
+xegfx: CLEAN xe_sched_entity_fini(&ge->entity) returned
+xegfx: CLEAN xe_sched_fini(&ge->sched) begin
+xegfx: CLEAN xe_sched_fini(&ge->sched) returned
+xegfx: CLEAN kfree(ge) begin
+xegfx: CLEAN kfree(ge) returned
+xegfx: CLEAN xe_exec_queue_fini(q) begin
+xegfx: CLEAN xe_ttm_bo_destroy ggtt_remove SKIPPED bo=0xffffff86f31e1c10 tile=0
+xegfx: CLEAN xe_exec_queue_fini(q) returned
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) begin
+xegfx: CLEAN xe_pm_runtime_put(guc_to_xe(guc)) returned
+xegfx: CLEAN __guc_exec_queue_fini_async returned
+检查阶段返回值、XeGfxExec/XeGfxStore 引擎结果和 GOP/GT 状态；stage 7+ 已阻断。
+Boundary: stage 6 (xg_store_check) with GOP/GT checks. Stage 7+ is blocked.
+Saved diagnostics to: /Volumes/SYSTEM/EFI/Diagnostics/reports/s5650aa-20261115-063202.zip
+This report can contain network names and hardware identifiers. Review it before sharing.
+Before rebooting, run: sudo diskutil unmount /Volumes/SYSTEM
+探测结束。驱动由 EFI 配置开机加载。 / Probe finished; EFI controls boot loading.
