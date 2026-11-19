@@ -94,18 +94,28 @@ sudo /bin/bash /Volumes/<ESP>/EFI/Tools/prepare-metal-stack.command
 ### 第 2 步（macOS）：安装系统卷组件
 
 ```
-sudo /bin/bash /Volumes/<ESP>/EFI/Tools/full-install.command
+sudo /bin/bash /Volumes/<ESP>/EFI/Tools/full-install.command --stage display
 ```
 
-按 11-15 ~ 11-17 实机验证过的顺序执行：
+**分两步做，不要一次到位。** 2026-11-18 的早期 boot panic 发生在 `XeGfxIntelFB` 接管 framebuffer
+（`displayModeDidChange` 路径）**且** `XeGfxAccel` 同时被加载时——这两者的组合没有实机验证过。
 
-1. 备份 `/Library/Extensions`、`/Library/GPUBundles`、`nvrm610.conf`、`nvmtl-allow.txt` 到
+| 阶段 | 装什么 | 验证什么 |
+| :--- | :--- | :--- |
+| `--stage display` | 只装 `XeGfxIntelFB`，重建一次 AuxKC | 屏幕由 `XeGfxIntelFramebuffer` 接管、背光可调、亮度 NVRAM 记忆、合盖息屏/开盖恢复、`1280×800` HiDPI 可切 |
+| `--stage accel` | 只装 `XeGfxAccel` / `XeGfxAGDC`，重建一次 AuxKC | `kextstat` 出现 `NMXAccel`、`debug.xegfx_stage = 7`、呈现事务计数增长、桌面无毛玻璃变黑/缺圆角/头像菱形 |
+
+`--stage all` 一次装完（默认），**不推荐用于首次验证**。
+
+每阶段的实际安装顺序：
+
+1. 备份系统卷现状（扩展、GPUBundles、nvrm610.conf、nvmtl-allow.txt）到
    `/Users/Shared/Mubai-FullEFI-backups/<时间戳>/`
 2. 移除已弃用的 `NMIntelFB.kext`
 3. 安装 `XeGfxIntelFB.kext`（含 `OSBundleRequired=Root`），校验 `OSBundleRequired` 后读回
-4. `kmutil install --volume-root / --update-all` 重建 AuxKC（第一轮）
+4. `kmutil install --volume-root / --update-all` 重建 AuxKC
 5. 安装 `XeGfxAccel.kext`、`XeGfxAGDC.kext`
-6. 再次重建 AuxKC（第二轮）
+6. 再次重建 AuxKC
 7. 校验安装结果并打印验收要点
 
 ### 第 3 步：正常重启并验证

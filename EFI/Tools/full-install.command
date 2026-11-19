@@ -12,8 +12,34 @@
 #   7. 校验并输出验证要点
 #
 # 用法 / Usage (在 macOS 上):
-#   sudo /bin/bash /Volumes/<EFI>/EFI/Tools/full-install.command
+#   sudo /bin/bash /Volumes/<EFI>/EFI/Tools/full-install.command            # = --stage all
+#   sudo /bin/bash .../full-install.command --stage display                # 只装 XeGfxIntelFB
+#   sudo /bin/bash .../full-install.command --stage accel                 # 只装 Accel/AGDC
+#
+# 分阶段的意义：2026-11-18 的早期 boot panic 发生在 XeGfxIntelFB 接管 framebuffer
+# （displayModeDidChange 路径）且 XeGfxAccel 同时被加载时。两者的组合没在实机验证过，
+# 所以默认推荐分两步：先只装显示接管并验证开机，再装 Metal 加速桥。
 set -euo pipefail
+
+STAGE="all"
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --stage=*) STAGE="${1#--stage=}" ;;
+        --stage)
+            shift
+            [[ $# -gt 0 ]] || { echo "--stage 需要一个值"; exit 2; }
+            STAGE="$1" ;;
+        -h|--help)
+            echo "用法: full-install.command [--stage display|accel|all]"
+            echo "  display : 只安装 XeGfxIntelFB（显示接管/背光/HiDPI/合盖），重建一次 AuxKC"
+            echo "  accel   : 只安装 XeGfxAccel / XeGfxAGDC（Metal 加速桥），重建一次 AuxKC"
+            echo "  all     : 两步一起做（默认，不推荐用于首次验证）"
+            exit 0 ;;
+        *) echo "未知参数：$1"; exit 2 ;;
+    esac
+    shift
+done
+case "$STAGE" in display|accel|all) ;; *) echo "非法 stage：$STAGE"; exit 2 ;; esac
 
 EFI_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GPU="$EFI_ROOT/Diagnostics/GPU"
@@ -38,11 +64,13 @@ log "  macOS：$(sw_vers -productVersion) ($(uname -r))"
 if [[ ! "$(sw_vers -productVersion)" == 15.6* ]]; then
     log "  提示：本 EFI 目标系统是 macOS Sequoia 15.6，当前为 $(sw_vers -productVersion)"
 fi
-for f in "$GPU/vulkan/libvulkan_intel.dylib" "$GPU/metal/NVMTLDriver"; do
-    [[ -f "$f" ]] || die "缺少 Metal 组件：$f（是否忘了先跑 prepare-metal-stack.command？）"
-done
-if ! otool -L "$GPU/vulkan/libvulkan_intel.dylib" 2>/dev/null | grep -q '@loader_path'; then
-    die 'libvulkan_intel.dylib 仍未修复 RPATH —— 请先运行 prepare-metal-stack.command'
+if [[ "$STAGE" == "accel" || "$STAGE" == "all" ]]; then
+    for f in "$GPU/vulkan/libvulkan_intel.dylib" "$GPU/metal/NVMTLDriver"; do
+        [[ -f "$f" ]] || die "缺少 Metal 组件：$f（是否忘了先跑 prepare-metal-stack.command？）"
+    done
+    if ! otool -L "$GPU/vulkan/libvulkan_intel.dylib" 2>/dev/null | grep -q '@loader_path'; then
+        die 'libvulkan_intel.dylib 仍未修复 RPATH —— 请先运行 prepare-metal-stack.command'
+    fi
 fi
 
 # ---------------------------------------------------------------- 1. 备份
@@ -71,6 +99,7 @@ for p in /Library/Extensions/XeGfxIntelFB.kext /Library/Extensions/XeGfxAccel.ke
 done
 
 # ---------------------------------------------------------------- 3. 安装 XeGfxIntelFB
+if [[ "$STAGE" == "display" || "$STAGE" == "all" ]]; then
 log ""
 log "=== 3. 安装 XeGfxIntelFB（显示接管 / 背光 / HiDPI / 合盖恢复）==="
 src="$EFI_ROOT/OC/Kexts/XeGfxIntelFB.kext"
@@ -95,8 +124,10 @@ if ! /usr/bin/kmutil install --volume-root / --update-all 2>&1 | tee "$BACKUP/km
     /usr/bin/kmutil create -n aux --volume-root / 2>&1 | tee -a "$BACKUP/kmutil-pass1.log" || die 'AuxKC 构建失败，已保留备份，未做进一步改动。'
 fi
 log "  第一轮完成"
+fi
 
 # ---------------------------------------------------------------- 5. 安装加速桥
+if [[ "$STAGE" == "accel" || "$STAGE" == "all" ]]; then
 log ""
 log "=== 5. 安装 XeGfxAccel / XeGfxAGDC（Metal 加速桥）==="
 for name in XeGfxAccel XeGfxAGDC; do
@@ -117,6 +148,7 @@ if ! /usr/bin/kmutil install --volume-root / --update-all 2>&1 | tee "$BACKUP/km
     /usr/bin/kmutil create -n aux --volume-root / 2>&1 | tee -a "$BACKUP/kmutil-pass2.log" || log '  第二轮失败，保留第一轮 AuxKC'
 fi
 log "  第二轮完成"
+fi
 
 # ---------------------------------------------------------------- 7. 校验
 log ""
@@ -137,16 +169,33 @@ ls -1 /System/Volumes/Preboot/*/boot/*.kc 2>/dev/null | sed 's/^/    /' || log "
 
 log ""
 log "=== 下一步 ==="
-log "  1. 确认 EFI 分区里的 config.plist 已是 FULL profile（XeGfxAGDC / XeGfxAccel 启用，"
-log "     Kernel/Block 无实验性驱动的 Exclude，boot-args 含 xegfx_bootstage=4）"
-log "  2. 正常重启 macOS，等待约 3 分钟让开机脚本采集完成"
-log "  3. 回到 Windows 读取："
-log "     <EFI>/Diagnostics/reports/gpu-display-<时间戳>/"
-log "       - kextstat.txt        确认 XeGfx / XeGfxIntelFramebuffer / NMXAccel 已加载"
-log "       - status-first.txt    确认 debug.xegfx_stage = 7"
-log "       - accel-30s.txt       看呈现事务计数是否增长"
-log "       - crashes/            有无 panic 或 WindowServer 崩溃报告"
-log "  4. 若停在苹果标志或 panic：立即在 Windows 用 efi_profile.py 切回 SAFE profile"
-log "     并用 full-rollback.command 回退系统卷"
+if [[ "$STAGE" == "display" ]]; then
+    log "  本轮只装了显示接管。重启后验证："
+    log "    - 屏幕由 XeGfxIntelFramebuffer 接管（非固件显示）"
+    log "    - 背光可调、亮度 NVRAM 记忆生效、合盖息屏 / 开盖恢复"
+    log "    - 系统设置可切 1280x800 HiDPI 与 2560x1600 1x @165Hz"
+    log "  确认这些都正常后，再执行："
+    log "    sudo bash <EFI>/EFI/Tools/full-install.command --stage accel"
+    log "  装 Metal 加速桥并重建 AuxKC，然后再重启。"
+    log "  **这一步存在 2026-11-18 记录过的早期 boot panic 风险**"
+    log "  （framebuffer displayModeDidChange 路径），务必先确认显示接管稳定。"
+elif [[ "$STAGE" == "accel" ]]; then
+    log "  本轮装了 Metal 加速桥。重启后验证："
+    log "    - kextstat 中出现 NMXAccel"
+    log "    - debug.xegfx_stage = 7，呈现事务计数持续增长"
+    log "    - 桌面合成走 Metal，窗口无毛玻璃变黑 / 缺圆角 / 头像菱形"
+else
+    log "  1. 确认 EFI 分区里的 config.plist 已是 FULL profile（XeGfxAGDC / XeGfxAccel 启用，"
+    log "     Kernel/Block 无实验性驱动的 Exclude，boot-args 含 xegfx_bootstage=4）"
+    log "  2. 正常重启 macOS，等待约 3 分钟让开机脚本采集完成"
+    log "  3. 回到 Windows 读取："
+    log "     <EFI>/Diagnostics/reports/gpu-display-<时间戳>/"
+    log "       - kextstat.txt        确认 XeGfx / XeGfxIntelFramebuffer / NMXAccel 已加载"
+    log "       - status-first.txt    确认 debug.xegfx_stage = 7"
+    log "       - accel-30s.txt       看呈现事务计数是否增长"
+    log "       - crashes/            有无 panic 或 WindowServer 崩溃报告"
+    log "  4. 若停在苹果标志或 panic：立即在 Windows 用 efi_profile.py 切回 SAFE profile"
+    log "     并用 full-rollback.command 回退系统卷"
+fi
 log ""
 log "备份目录：$BACKUP"
