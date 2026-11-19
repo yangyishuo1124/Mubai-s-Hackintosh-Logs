@@ -25,9 +25,18 @@ set -euo pipefail
 EFI_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GPU="$EFI_ROOT/Diagnostics/GPU"
 LOG="/tmp/prepare-metal-stack.log"
+# 日志同时写到 EFI 分区，这样在 Windows 侧可以直接读到失败点，不用靠口述
+REPORT_DIR="$EFI_ROOT/Diagnostics/reports"
+mkdir -p "$REPORT_DIR" 2>/dev/null || true
+LOG2="$REPORT_DIR/prepare-metal-stack-$(date +%Y%m%d-%H%M%S).log"
 : > "$LOG"
+: > "$LOG2" 2>/dev/null || true
 
-log() { echo "$*" | tee -a "$LOG"; }
+log() {
+    echo "$*"
+    echo "$*" >> "$LOG" 2>/dev/null || true
+    echo "$*" >> "$LOG2" 2>/dev/null || true
+}
 die() { log "停止：$*"; exit 1; }
 
 [[ "$(uname -s)" == Darwin ]] || die '只能在 macOS 上运行。'
@@ -35,6 +44,9 @@ die() { log "停止：$*"; exit 1; }
 
 command -v install_name_tool >/dev/null || die '缺少 install_name_tool'
 command -v codesign >/dev/null || die '缺少 codesign'
+if [[ ! -x /usr/bin/python3 ]]; then
+    die '缺少 /usr/bin/python3（空环境加载测试需要它）。装 Xcode Command Line Tools：xcode-select --install'
+fi
 
 log "EFI 根目录：$EFI_ROOT"
 log "=== 修复前状态 ==="
@@ -42,8 +54,8 @@ for f in "$GPU/vulkan/libvulkan_intel.dylib" "$GPU/vulkan/libvulkan.1.dylib" \
          "$GPU/vulkan/libdrm.2.dylib" "$GPU/metal/libnvmtl_translate.dylib" "$GPU/metal/NVMTLDriver"; do
     [[ -f "$f" ]] || continue
     log "--- $(basename "$f") ---"
-    otool -l "$f" 2>/dev/null | grep -A2 LC_RPATH | sed 's/^/    /' | tee -a "$LOG" || true
-    otool -L "$f" 2>/dev/null | grep -E '@rpath|@loader_path' | sed 's/^/    /' | tee -a "$LOG" || true
+    otool -l "$f" 2>/dev/null | grep -A2 LC_RPATH | sed 's/^/    /' | tee -a "$LOG" -a "$LOG2" || true
+    otool -L "$f" 2>/dev/null | grep -E '@rpath|@loader_path' | sed 's/^/    /' | tee -a "$LOG" -a "$LOG2" || true
 done
 
 # ---------------------------------------------------------------- RPATH 修复
@@ -127,7 +139,7 @@ try:
 except OSError as e:
     print('    ctypes 加载失败:', e)
     sys.exit(1)
-" "$GPU/vulkan/libvulkan_intel.dylib" 2>&1 | tee -a "$LOG"; then
+" "$GPU/vulkan/libvulkan_intel.dylib" 2>&1 | tee -a "$LOG" -a "$LOG2"; then
         log "  空环境加载通过"
     else
         log "  空环境加载失败 —— 不要继续部署，回退到 SAFE profile"
@@ -160,3 +172,4 @@ log "已写入修复标记：$MARKER"
 
 log "==> Metal 栈 RPATH 修复完成，可以继续执行 full-install.command。"
 log "    日志：$LOG"
+log "    日志（EFI 分区副本）：$LOG2"
