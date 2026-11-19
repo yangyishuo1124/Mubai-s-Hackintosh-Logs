@@ -72,6 +72,19 @@ OC: Prelinked blocker (Exclude) result 5 for com.nullmoth.NMIntelFB - Unsupporte
 
 用你惯用的方式把 `EFI/` 目录内容拷到 EFI 分区的 `EFI/` 下。**先备份现有 EFI 分区。**
 
+推荐用仓库里带校验的部署脚本（自动备份 → 写入 → 逐文件读回校验 → 失败自动回滚，
+并且**绝不触碰** `EFI/Microsoft`）：
+
+```
+python tools\deploy_efi.py <仓库>\EFI "Z:\EFI" <备份目录>
+```
+
+> **已修复载荷保护**：如果目标 EFI 上存在 `EFI/Diagnostics/GPU/.rpath-fixed` 标记
+> （由第 1 步的 `prepare-metal-stack.command` 成功后写入），部署脚本会**保留磁盘上已修复的**
+> `GPU/metal` 与 `GPU/vulkan`，只用源 EFI 的其余部分覆盖。否则一次重新部署就会把修好的
+> `@rpath` 覆盖回未修复版本，重演 2026-11-17 19:26 的 WindowServer SIGABRT 循环。
+> 该行为有对照测试覆盖：`python tools\test_deploy_guard.py <临时目录> tools\deploy_efi.py <仓库>\EFI`
+
 校验（可选但推荐）：
 
 ```
@@ -166,7 +179,7 @@ SAFE profile 会：关闭 `XeGfxAccel`/`XeGfxAGDC` 注入、恢复 5 条实验�
 | 实验性驱动 Exclude | 无 | 5 条全开 |
 | 桌面合成 | 走 Metal（`nvaccelfb=1/3/4`） | 软件路径 |
 | 开机脚本 | `Diagnostics/profiles/gpu-display-capture.full.command` | `...safe.command` |
-| 启动引导 | 静默直通（ShowPicker=False） | 调试引导（ShowPicker=True, `-v`） |
+| 启动引导 | 调试引导（ShowPicker=True, Timeout=5, ScanPolicy=0, `-v`） | 同左（SAFE 不改引导展示） |
 | 已知风险 | 早期 boot panic 路径（11-18） | 桌面无 Metal 加速 |
 
 切换：
@@ -220,3 +233,67 @@ python tools\efi_profile.py --efi <EFI 路径> --profile safe
    `ANV_XE_USERPTR=1`）验证。
 5. **低帧率 / 输入卡顿**——已定位到 IOSurface 纹理创建与 ANV GEM 分配等待，未解决。
 6. **Pipe Scaler**（>半屏缩放分辨率）——未实现。
+
+---
+
+## 7. 引导展示：跑码 + 启动项选择器
+
+FULL profile 现在采用 `08ab2ba` 那套调试引导组合（与 2026-11-18 04:45 实机跑过的那组**逐项一致**），
+但 **GPU 部分的 FULL 状态保持不变**——只改了引导展示，不动 kext / Exclude / OSBundleRequired。
+
+| 键 | 值 | 作用 |
+| :--- | :--- | :--- |
+| `Misc/Boot/ShowPicker` | `true` | 关掉静默直通，**每次开机都显示 OpenCore 启动项选择器** |
+| `Misc/Boot/HideAuxiliary` | `false` | 辅助条目（OpenShell 等）在选择器里可见可进 |
+| `Misc/Boot/Timeout` | `5` | 选择器停留 5 秒自动进默认项（不是 0 秒直进） |
+| `Misc/Boot/PickerMode` | `Builtin` | 用 OpenCore 自带图形选择器 |
+| `Misc/Security/ScanPolicy` | `0` | 放开扫描限制，第三方/未签名镜像与恢复镜像都能选 |
+| `Misc/Debug/AppleDebug` | `true` | 打开内核调试日志 |
+| `Misc/Debug/Target` | `67` | 日志输出到屏幕 + syslog + 变量 |
+| `Misc/Debug/DisplayLevel` | `2147483650` | 全部消息都显示 |
+| `Misc/Debug/LogModules` | `*` | 所有模块都记 |
+| `NVRAM boot-args` | 前置 `-v` | **开机跑码**，不再只有苹果标志 |
+
+> `ScanPolicy` 在 `Misc/Security` 下，**不是** `Misc/Boot`——这是最常见的踩坑点。
+
+想回到静默直通，把上面 5 项改回：`ShowPicker=false`、`HideAuxiliary=true`、`Timeout=0`、
+`ScanPolicy=257`、`AppleDebug=false` + `Target=0`，并去掉 `boot-args` 开头的 `-v`。
+
+---
+
+## 8. macOS 版本适配
+
+| 版本 | 构建号 | Darwin | `XeGfx`/`AGDC`/`Accel`（`24.0.0`–`25.99.99`） | `SimpleHDA`（`25.0.0`–`25.99.99`） |
+| :--- | :--- | :--- | :--- | :--- |
+| 15.6（已验证基线） | 24G84 | 24.6 | 启用 | 不加载 |
+| 15.7 | 24G222 | 24.7 | 启用 | 不加载 |
+| 15.8 | 24H23 | 24.8 | 启用 | 不加载 |
+| 15.8.1 | 24H32 | 24.8 | 启用 | 不加载 |
+| 15.8.2 | 24H208 | 24.8 | 启用 | 不加载 |
+
+15.x 全部落在 Darwin 24.x，落在 `Kernel/Add` 的 `MinKernel=24.0.0` / `MaxKernel=25.99.99` 区间内，
+**配置层面不需要为 15.8 改任何东西**。
+
+需要注意的差别：
+
+1. **已验证基线是 15.6（24G84）**。整套调试链（NVMTL、completion bridge、`pmset` 持久化、
+   背光、合盖息屏）在 15.6 上跑通。15.8 是同一 Darwin 分支上的安全更新，内核 ABI 与
+   `csr-active-config`（`0x03080000`）的标志位集合不变，但 **XeGfx 是自研 kext，
+   15.8 的实际表现未经实机验证**。
+2. `SimpleHDA.kext` 的 `MinKernel=25.0.0`，Darwin 24.8 不加载——音频只走 AppleALC。
+   这是预期行为，不是故障。
+3. **重装会清空系统卷，但 EFI 分区不受影响**。所以建议顺序是：
+   先用当前 EFI 验证能开机、能进安装器，再执行重装；EFI 出问题可以随时在 Windows 侧回退。
+4. **重装会一并清掉 `/Library/LaunchDaemons/org.mubai.gpu-capture.plist`**（开机采集服务）。
+   重装后的第一次开机**不会**自动采集，因此也不会把未修复的 dylib 拷进系统卷——
+   第一次开机是安全的。
+5. 重装进系统后要恢复加速，顺序必须是**先修 Metal、再装自动采集**：
+   ```
+   sudo /bin/bash /Volumes/<ESP>/EFI/Tools/prepare-metal-stack.command   # 先修 @rpath
+   sudo /bin/bash /Volumes/<ESP>/EFI/Tools/full-install.command --stage display
+   sudo /bin/bash /Volumes/<ESP>/EFI/Tools/full-install.command --stage accel
+   sudo /bin/bash /Volumes/<ESP>/EFI/Diagnostics/install-gpu-autocapture.command  # 最后装采集
+   ```
+   反过来做就会重现 2026-11-17 19:26 的 WindowServer SIGABRT 循环。
+   `prepare-metal-stack.command` 成功后会在 `EFI/Diagnostics/GPU/.rpath-fixed` 写下标记，
+   之后用 `tools/deploy_efi.py` 重新部署也不会把修复覆盖掉。

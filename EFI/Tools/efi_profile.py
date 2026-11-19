@@ -27,19 +27,21 @@ from pathlib import Path
 
 GUID = "7C436110-AB2A-4BBB-A880-FE41995C9F82"
 
-# 11-17 实机验证过的全功能状态（commit 5a2bbd1）
+# 11-17 实机验证过的全功能状态（commit 5a2bbd1），
+# 引导展示部分套用 08ab2ba 那套调试组合（跑码 + 启动项选择器），
+# GPU 相关部分（Accel/AGDC/Exclude）保持 5a2bbd1 的实装状态不变。
 FULL = {
     "boot_args": (
-        "keepsyms=1 msgbuf=1048576 -no_compat_check -rtw89nowpa3 revpatch=cpuname "
+        "-v keepsyms=1 msgbuf=1048576 -no_compat_check -rtw89nowpa3 revpatch=cpuname "
         "revcpu=1 -amfipassbeta amfi_get_out_of_my_way=1 ipc_control_port_options=0 "
         "alcid=3 xegfx_bootstage=4 nvaccelfb=1 -nmintelfboff"
     ),
     "accel_enabled": True,
     "agdc_enabled": True,
     "exclude_block": [],                      # 不排除任何实验性驱动
-    "boot": {"ShowPicker": False, "HideAuxiliary": True, "Timeout": 0},
-    "security": {"ScanPolicy": 257},
-    "debug": {"AppleDebug": False, "Target": 0},
+    "boot": {"ShowPicker": True, "HideAuxiliary": False, "Timeout": 5},
+    "security": {"ScanPolicy": 0},
+    "debug": {"AppleDebug": True, "Target": 67},
 }
 
 # 11-18 回退后的 apps-only 状态（commit 5f0de92）

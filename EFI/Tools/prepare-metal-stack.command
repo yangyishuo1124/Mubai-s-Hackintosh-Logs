@@ -124,5 +124,21 @@ if [[ "$fail" -ne 0 ]]; then
     exit 1
 fi
 
+# ---------------------------------------------------------------- 修复标记
+# 写下标记文件，让 Windows 侧的部署脚本知道这个 EFI 分区上的 Metal 栈已经被修过，
+# 避免下次重新部署 EFI 时把修好的 dylib 覆盖回未修复的版本（即 2026-11-17 19:26
+# 那个 WindowServer SIGABRT 循环的元凶）。
+MARKER="$GPU/.rpath-fixed"
+{
+    echo "fixed-at: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    echo "host: $(hostname)"
+    for f in "$GPU/vulkan"/*.dylib "$GPU/metal"/*.dylib; do
+        [[ -f "$f" ]] || continue
+        echo "$(basename "$f"): $(shasum -a 256 "$f" | awk '{print $1}')"
+    done
+} > "$MARKER"
+chmod 644 "$MARKER"
+log "已写入修复标记：$MARKER"
+
 log "==> Metal 栈 RPATH 修复完成，可以继续执行 full-install.command。"
 log "    日志：$LOG"
