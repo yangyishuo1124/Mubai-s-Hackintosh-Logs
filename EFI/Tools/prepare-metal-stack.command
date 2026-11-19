@@ -42,13 +42,14 @@ log "=== 添加 @loader_path RPATH ==="
 for f in "$GPU/vulkan/libvulkan_intel.dylib" "$GPU/vulkan/libvulkan.1.dylib" \
          "$GPU/vulkan/libdrm.2.dylib" "$GPU/metal/libnvmtl_translate.dylib"; do
     [[ -f "$f" ]] || continue
-    if otool -l "$f" 2>/dev/null | grep -q 'LC_RPATH'; then
-        log "  已有 RPATH，补充 @loader_path：$(basename "$f")"
-        install_name_tool -add_rpath @loader_path "$f"
-    else
-        log "  新增 @loader_path：$(basename "$f")"
-        install_name_tool -add_rpath @loader_path "$f"
+    # 幂等：已经有 @loader_path 就不要再加，否则重复运行会堆叠多条 RPATH
+    rpath_text="$(otool -l "$f" 2>/dev/null | grep -A3 'LC_RPATH' || true)"
+    if [[ "$rpath_text" == *@loader_path* ]]; then
+        log "  已有 @loader_path RPATH，跳过：$(basename "$f")"
+        continue
     fi
+    log "  新增 @loader_path：$(basename "$f")"
+    install_name_tool -add_rpath @loader_path "$f"
 done
 
 # libvulkan.1.dylib 以 libvulkan.dylib 名称部署到 /Library/GPUBundles/nvmtl/，

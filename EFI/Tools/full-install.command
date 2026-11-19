@@ -62,15 +62,25 @@ log ""
 log "=== 0. 前置检查 ==="
 log "  macOS：$(sw_vers -productVersion) ($(uname -r))"
 if [[ ! "$(sw_vers -productVersion)" == 15.6* ]]; then
-    log "  提示：本 EFI 目标系统是 macOS Sequoia 15.6，当前为 $(sw_vers -productVersion)"
+    log "  提示：本 EFI 的实机验证基线是 macOS Sequoia 15.6 (24G84)，当前为 $(sw_vers -productVersion)"
+    log "        15.x 同属 Darwin 24 分支，配置层面无需改动；但 15.7+ 尚未实机验证"
 fi
 if [[ "$STAGE" == "accel" || "$STAGE" == "all" ]]; then
     for f in "$GPU/vulkan/libvulkan_intel.dylib" "$GPU/metal/NVMTLDriver"; do
         [[ -f "$f" ]] || die "缺少 Metal 组件：$f（是否忘了先跑 prepare-metal-stack.command？）"
     done
-    if ! otool -L "$GPU/vulkan/libvulkan_intel.dylib" 2>/dev/null | grep -q '@loader_path'; then
-        die 'libvulkan_intel.dylib 仍未修复 RPATH —— 请先运行 prepare-metal-stack.command'
-    fi
+    # RPATH 必须查 LC_RPATH（otool -l），不能查 otool -L 的依赖列表：
+    # prepare-metal-stack.command 是用 install_name_tool -add_rpath @loader_path 加的
+    # LC_RPATH，它不会出现在 otool -L 的输出里 —— 用 otool -L 检查会**永远**判失败。
+    for f in "$GPU/vulkan/libvulkan_intel.dylib" "$GPU/vulkan/libvulkan.1.dylib" \
+             "$GPU/vulkan/libdrm.2.dylib" "$GPU/metal/libnvmtl_translate.dylib"; do
+        [[ -f "$f" ]] || continue
+        rpath_text="$(otool -l "$f" 2>/dev/null | grep -A3 'LC_RPATH' || true)"
+        if [[ "$rpath_text" != *@loader_path* ]]; then
+            die "$(basename "$f") 缺少 @loader_path RPATH —— 请先运行 prepare-metal-stack.command"
+        fi
+        log "  RPATH OK：$(basename "$f")"
+    done
 fi
 
 # ---------------------------------------------------------------- 1. 备份
@@ -97,6 +107,10 @@ fi
 for p in /Library/Extensions/XeGfxIntelFB.kext /Library/Extensions/XeGfxAccel.kext /Library/Extensions/XeGfxAGDC.kext; do
     [[ -e "$p" ]] && log "  已存在：$p（将在下一步覆盖）"
 done
+if [[ "$STAGE" == "accel" ]] && [[ ! -d /Library/Extensions/XeGfxIntelFB.kext ]]; then
+    log "  **警告**：/Library/Extensions/XeGfxIntelFB.kext 不存在。"
+    log "     加速桥依赖显示接管提供 framebuffer，建议先跑一次 --stage display 再重启验证。"
+fi
 
 # ---------------------------------------------------------------- 3. 安装 XeGfxIntelFB
 if [[ "$STAGE" == "display" || "$STAGE" == "all" ]]; then

@@ -1,2 +1,34 @@
+# EFI/Diagnostics/GPU 载荷清单 / payload manifest
+#
+# 格式: <sha256>  <相对 GPU/ 的路径>
+#
+# 注意 / NOTE:
+#  - prepare-metal-stack.command 会用 install_name_tool 修改 metal/ 与 vulkan/ 下
+#    的 dylib（补 @loader_path RPATH、重设 install name）并重新 codesign，
+#    因此**修复后这几个文件的哈希会变**。修复后的哈希记录在同目录的
+#    .rpath-fixed 标记文件里。
+#  - 其余文件（kexts/、XeGfx.kext/）不会被该脚本改动，哈希固定。
+#  - XeGfxIntelFB.kext 即背光 NVRAM 记忆 + 合盖息屏/开盖亮度恢复的实现载体
+#    （f72976a 改补丁脚本 -> 5a2bbd1 重建二进制入库）。
+
+6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b  kexts/NMIntelFB.kext/Contents/_CodeSignature/CodeResources
+dea1b2c7a4eb0af06a477cd3db22fe033945a7a84b02eae8604d7ff35462a7cd  kexts/NMIntelFB.kext/Contents/Info.plist
+4cb854bc202e94609739c549fbd6aa9268c25d497ca38117de1f3633f64c4bbe  kexts/NMIntelFB.kext/Contents/MacOS/NMIntelFB
+03911ec187416a01e74fb8c7f61721fbd961ed0bf5e331ea83da258e06355ada  kexts/XeGfxAccel.kext/Contents/Info.plist
+91ee43dcfcf21ca83d97e2d6d2aa5bdb75e4b406f4a625a5ae3b77af19d6fa77  kexts/XeGfxAccel.kext/Contents/MacOS/XeGfxAccel
+3595bca8a6f447e113f76401149c7c79cc90ef8d1bbbdb7eeb222de9a9504a04  kexts/XeGfxAGDC.kext/Contents/Info.plist
+545e24f5f8a3e8bf2217fbff4febabd5778b21f406fe1c88d44293d941a92078  kexts/XeGfxAGDC.kext/Contents/MacOS/XeGfxAGDC
+6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b  kexts/XeGfxIntelFB.kext/Contents/_CodeSignature/CodeResources
+d8d4a8e172be543f5657649dee64ec69bcfb795eb72af17d23d734af391d7dd3  kexts/XeGfxIntelFB.kext/Contents/Info.plist
+eb73a55739fcfe5096c2eabb027517ecfd425fdd8cb191013051f4bcd14da0ad  kexts/XeGfxIntelFB.kext/Contents/MacOS/XeGfxIntelFB
+daaa3798e37bace484d0bc438d13d06fe3fdbb2ee1b46562d1a8e0dc217c86c8  metal/libnvmtl_translate.dylib
+f86bddff9075f30922726d7cba28c00ec25b55562b6423dfa4e0856d535881ff  metal/NVMTLDriver
+a024c838bf52da7a43f225c5943c3237e53030b8c571fc58045fa28dc48046c0  vulkan/intel_icd.json
+2399fa23253a95cf520c20592d91174e414e6d48d67f6b6b4b20500edb575175  vulkan/libdrm.2.dylib
+2e87f8b1e0a812b8e76638dea382c7176b7b948d57d8eb883bf439a02fb4d7f6  vulkan/libvulkan.1.dylib
+8e39490668f58be9887bace3018a635ab82be0a3224435be956d6f22eb465e9b  vulkan/libvulkan_intel.dylib
+05a9dc2e847c4def174824a2ad8b6e0392845aeae456968929c5b1355314f0f2  XeGfx.kext/Contents/_CodeSignature/CodeResources
+dc20a3eb2585650a4990ac72f464bc23aa1d1a92af480df0da33a76d2fde6436  XeGfx.kext/Contents/Info.plist
 b406d40736e44910d8dbd1698bb8505f7ef2aeaef0a1626fa749f54d78c6385f  XeGfx.kext/Contents/MacOS/XeGfx
-08730ec014da56f3113fb3763a3d0eee231b43361a236e9c128c1ed08eb077ab  xe-uapi-probe
+26b3c946f1f378ff25bb3bb7c365d108a2bc0bf08619e5e08bc0e4f9aaa6ee1e  XeGfx.kext/Contents/Resources/LICENSE.xe
+ac42861c62b69f19923d9a69d971fb849921585a01924e14c0e8ac679d7cde81  XeGfx.kext/Contents/Resources/ptl_guc_70.bin
