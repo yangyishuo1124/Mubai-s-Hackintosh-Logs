@@ -164,3 +164,65 @@ fi
 - 15.8 = 24H23，Darwin 24.8，落在 `Kernel/Add` 的 `MinKernel=24.0.0` / `MaxKernel=25.99.99`
   区间内，**配置层面不需要为 15.8 改任何东西**。
 - 但 `XeGfx` 是自研 kext，**15.8 的实际表现没有实机证据**。这一点不因为配置能过就改变。
+---
+
+## 5. 实机日志新发现：AGDC / Accel 的 AuxKC 注入返回 Invalid Parameter
+
+2026-11-20 磁盘上新增了 10 份 OpenCore 日志（此前只有 11-18 的 15 份），说明当天实机开过多次机。
+逐份对比 11-18 与 11-20 的日志：
+
+### 11-18（5 条实验性驱动 Exclude 生效时）
+
+```
+OC: Prelinked blocker (Exclude) result 1 for org.watchthelight.XeGfxAccel  - Unsupported
+OC: Prelinked blocker (Exclude) result 3 for org.watchthelight.XeGfxAGDC   - Unsupported
+OC: Prelinked blocker (Exclude) result 4 for org.watchthelight.XeGfxIntelFB - Unsupported
+OC: Prelinked blocker (Exclude) result 5 for com.nullmoth.NMIntelFB        - Unsupported
+```
+
+### 11-20（解除 Exclude 后，10 份日志里 9 份稳定复现）
+
+```
+OC: Prelinked injection XeGfxAGDC.kext  (Intel Xe2 AGDC display pipe bridge) - Invalid Parameter
+OC: Prelinked injection XeGfxAccel.kext (Intel Xe2 IOAcceleratorFamily2 Metal bridge) - Invalid Parameter
+```
+
+`XeGfx.kext` 与 `XeGfxIntelFB.kext` **完全没有出现在日志里**——它们既不报错也不被提及。
+
+### 判别规律
+
+| kext | `OSBundleRequired` | `OSBundleLibraries` 是否引用**系统自带 prelinked kext** | 注入结果 |
+| :--- | :--- | :--- | :--- |
+| `XeGfx.kext` | 无 | 否（只有 kpi 族 + AppleACPIPlatform + IOPCIFamily） | 无错误 |
+| `XeGfxIntelFB.kext` | `Root` | 否（kpi 族 + IOGraphicsFamily + IONDRVSupport + IOPCIFamily） | 无错误 |
+| `XeGfxAGDC.kext` | `Root` | **是**：`com.apple.AppleGraphicsDeviceControl` | **Invalid Parameter** |
+| `XeGfxAccel.kext` | `Root` | **是**：`com.apple.iokit.IOAcceleratorFamily2` | **Invalid Parameter** |
+
+规律完全吻合：**带 `OSBundleRequired=Root` 且依赖系统自带 prelinked kext 的第三方 kext，
+无法通过 OpenCore 的 prelinked injection 路径注入 AuxKC**，返回 `EFI_INVALID_PARAMETER`。
+原因是把它们合并进 AuxKC 的 prelinked 集合时，解析依赖需要改动系统自带 kext 的集合结构，
+注入器拒绝这样做。
+
+这与 `2bd94d1`（11-18 05:16）移除三个实验性 kext 的 `OSBundleRequired=Root` 是同一件事的两面：
+
+- 去掉 `OSBundleRequired=Root` → 注入可能通过，但**失去早期 framebuffer 接管**（XeGfxIntelFB 的核心价值）
+- 保留 `OSBundleRequired=Root` → 注入报 `Invalid Parameter`，但这类 kext 本来就该走
+  **系统卷 `/Library/Extensions` + `kmutil` 构建 BootKernelExtensions.kc`** 的路径
+
+也就是说：`full-install.command` 把 AGDC / Accel / IntelFB 装到 `/Library/Extensions` 再跑
+`kmutil install --volume-root / --update-all`，走的正是**不依赖 OpenCore 注入**的那条路，
+与上面这条日志错误并不冲突。桌面加速桥能否生效，取决于系统卷那条路，不是 EFI 的 `Kernel/Add`。
+
+> **未验证**：本次没有 macOS 环境，无法确认 `kmutil` 那条路在 15.8 上是否真的把三个 kext
+> 收进了 BootKernelExtensions.kc。需要在实机用 `kextstat` / `kmutil showloaded` 核对。
+
+### 附带确认：11-20 的引导改动已在实机生效
+
+最新一份日志（`opencore-2026-11-20-124648.txt`）里：
+
+```
+AAPL: #[EB|MBA:OUT] <"-v keepsyms=1 msgbuf=1048576 -no_compat_check ...">
+AAPL: #[EB|LOG:VERBOSE] 2026-11-20T12:46:50
+```
+
+`boot-args` 以 `-v` 开头，且内核进入 **VERBOSE** 模式——开机跑码在实机上确实生效了。
