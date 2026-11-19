@@ -1,5 +1,9 @@
 # ASUS Vivobook S16 S5650AA · Panther Lake Hackintosh
 
+> **`feature/full-efi` 分支**：提供一套包含全部已实现功能的 EFI（恢复 2026-11-17 16:05 实机验证过的
+> 全功能状态，并补齐 Metal 栈与部署/回退工具）。**该套 EFI 未经真机验证**，部署前请先读
+> [`docs/full-efi-deployment.md`](docs/full-efi-deployment.md)。`main` 分支保持 apps-only 状态。
+
 **简体中文 / English** · 更新 / Updated: **2026-11-18**
 
 这是我的 ASUS Vivobook S16 S5650AA 黑苹果适配记录与 OpenCore EFI。当前实机运行 **macOS Sequoia 15.6 (24G84)**（OpenCore `REL-108-2026-09-27`，SMBIOS `MacBookPro16,2`），已实现静默直通启动、`XeGfxIntelFramebuffer` 接管显示与背光（`1280×800` HiDPI 与 `2560×1600` 1x @ 165 Hz / Metal 3）、**开机亮度 NVRAM 记忆**、**合盖息屏与开盖亮度恢复**、**防 S3 睡死（`pmset` 持久化）**、触摸板 GPIO 中断、Wi-Fi/蓝牙/摄像头与 `en0` Apple ID 注入；**WindowServer 桌面低帧率与输入卡顿**（视觉类渲染异常已于 11-17 修复）与**大于半屏的缩放分辨率（Pipe Scaler）**仍待进一步适配。
