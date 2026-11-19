@@ -31,6 +31,33 @@
 `/Library/Extensions` 上的系统卷 kext 也不会加载。`XeGfxIntelFB` 正是靠系统卷 + AuxKC 生效的，
 一旦被 Exclude，**显示接管、背光、HiDPI、合盖恢复会全部失效**（这正是 `5f0de92` 的实际状态）。
 
+### ⚠️ Exclude 对第三方 kext 其实无效
+
+2026-11-18 10:12 的 OpenCore 日志（`Z:\opencore-2026-11-18-101243.txt`）实测：
+
+```
+OC: Prelinked blocker (Exclude) result 1 for org.watchthelight.XeGfxAccel - Unsupported
+OC: Prelinked blocker (Exclude) result 3 for org.watchthelight.XeGfxAGDC - Unsupported
+OC: Prelinked blocker (Exclude) result 4 for org.watchthelight.XeGfxIntelFB - Unsupported
+OC: Prelinked blocker (Exclude) result 5 for com.nullmoth.NMIntelFB - Unsupported
+```
+
+`Exclude` 只作用于 Apple 自带的 **prelinked kext**（如 `com.apple.iokit.IOSkywalkFamily`）。
+`org.watchthelight.*` 是第三方 kext，走 AuxKC 路径，这条机制**根本拦不住**，全部返回
+`Unsupported`。因此 2026-11-18 那轮「改成 Exclude 就好了」的判断并不成立。
+
+**唯一有效的控制手段是 `Kernel/Add` 里启不启用**：
+
+| profile | Kernel/Add | 效果 |
+| :--- | :--- | :--- |
+| FULL | XeGfx / AGDC / Accel 全启用 | 引导期注入，桌面加速可用，但早期 panic 风险真实存在 |
+| SAFE | 仅 XeGfx | 引导期不注入加速桥，规避 11-18 的早期 boot panic |
+
+本套 FULL EFI 之所以能成立，前提是**系统卷被 clean 重建**（`full-install.command` 的作用）：
+2026-11-18 那次崩溃发生在「系统卷已被换成新版 Mesa + 新插件、AuxKC 被 kextd 自动刷新」的
+状态之下，而 EFI 注入的仍是 11-14 构建的旧 kext，两者版本不一致。先把系统卷对齐，才能谈
+引导期注入。
+
 ### 为什么 `OSBundleRequired=Root` 必须保留
 
 `2bd94d1`（11-18 05:16）为了躲早期 panic 移除了这个字段。代价是 `XeGfxIntelFB` 无法在早期引导

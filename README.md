@@ -56,7 +56,7 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. The machi
 | WindowServer Metal 合成：毛玻璃变黑、缺圆角、锁屏头像菱形 | ✅ 11-17 17:51 `nvmtl_self_snap` 修复后确认「显示正常」 | `4ab0980`、`532caff` |
 | **IOSurface 共享内存（`xe_userptr`）** | ✅ **已实装并在硬件上验证通过**：补丁实装进内核源码，构建出新 UUID `81DDE75D-CD72-326D-8A7F-8D6F5A697A12` 的内核并装入 EFI（旧内核保留为 `XeGfx-pre-userptr.kext`），19:11 重启后确认新内核加载、Stage 7 成功；GPU 填充原生 4 MiB IOSurface 0/1,048,576 错误字、16 种 CPU/GPU 往返模式全过、20 次独立导入/提交/释放全过、全程无 staging buffer。⚠️ 但开关为 opt-in，仅对隔离测试进程开启并随即恢复关闭，**桌面从未启用**；实现源码在 `experimental/xe-iosurface-userptr` 分支（已合入 `feature/full-efi`），但 **userptr 内核二进制从未入库**——仓库 EFI 的 `XeGfx.kext` 仍是 11-15 的 V35 基线，11-18 回退也把磁盘 EFI 换回了该基线 | `520e4c6`、`docs/xe-iosurface-shared-memory.md` |
 | 桌面接入：WindowServer 实际使用共享内存与加速桥 | ❌ 19:26 连续 SIGABRT（Mesa 产物缺 LC_RPATH）；修正后仍存在 completion timeout | `048d6e2`、`60564d9` |
-| apps-only 回退后的实机启动 | ❌ 停在苹果标志，未通过验证；且**该修复只进了仓库、未部署到磁盘**——磁盘 EFI 仍是 `048d6e2` 基线（`Kernel/Add` 里 `XeGfxAccel`/`XeGfxAGDC` 仍为启用，即 11-18 早期 boot panic 的根因；`gpu-windowserver-policy.command` 也不在磁盘上） | `5f0de92`、`docs/boot-recovery-2026-11-18.md` |
+| apps-only 回退后的实机启动 | ❌ 停在苹果标志，未通过验证；且**该修复只进了仓库、未部署到磁盘**——磁盘 EFI 仍是 `048d6e2` 基线（`Kernel/Add` 里 `XeGfxAccel`/`XeGfxAGDC` 仍为启用，即 11-18 早期 boot panic 的根因；`gpu-windowserver-policy.command` 也不在磁盘上）。**已于 2026-11-20 03:06 部署 `feature/full-efi` 分支的全功能 EFI 到磁盘**（备份见 `backups/disk-efi-backup-20261120-030623`），macOS 侧仍需执行 `prepare-metal-stack.command` 与 `full-install.command` | `5f0de92`、`docs/boot-recovery-2026-11-18.md` |
 | 低帧率与快速输入卡顿 | ❌ 未解决（采样热点在 IOSurface 纹理创建与 ANV GEM 分配等待） | `ade4f6e` |
 
 ---
@@ -64,7 +64,7 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. The machi
 ## 近期关键改动 / Key changes (2026-11-15 ~ 2026-11-18)
 
 - **仅应用加速策略 / Apps-only GPU Policy**：新增 `EFI/Diagnostics/gpu-windowserver-policy.command`，向 `/Library/GPUBundles/nvmtl-allow.txt` 与 `/Library/Extensions/nvmtl-allow.txt` 写入并读回 `-WindowServer` / `*` 拒绝名单；`gpu-display-capture.command` 改为先等待 WindowServer 就绪、确认未继承 `NVMTL_ENABLE` 绕过、确认 Metal 插件支持拒绝名单后，再推进 `debug.xegfx_stage=7` 并从 `EFI/OC/Kexts/XeGfxAccel.kext` 延后加载加速桥，不再写 `nvaccelfb`、不再启用 AGDC、不重启 WindowServer。
-- **启动缓存拦截改为 Exclude / Cache Blocker Switched to Exclude**：`Kernel/Add` 中实验性 GPU 驱动的 `Disable` 拦截对已进入系统辅助驱动缓存的驱动返回 `Unsupported`，改为 `Exclude`；`xegfx_bootstage` 由 0 恢复为 4，保留 XeGfx 核心注入以避开早期 framebuffer 崩溃。
+- **启动缓存拦截改为 Exclude / Cache Blocker Switched to Exclude**：`Kernel/Add` 中实验性 GPU 驱动的 `Disable` 拦截对已进入系统辅助驱动缓存的驱动返回 `Unsupported`，改为 `Exclude`；`xegfx_bootstage` 由 0 恢复为 4，保留 XeGfx 核心注入以避开早期 framebuffer 崩溃。**⚠️ 后补更正（依据 11-18 10:12 的 OpenCore 日志 `opencore-2026-11-18-101243.txt`）：`Exclude` 只作用于 Apple 自带的 prelinked kext，对 `org.watchthelight.*` 这类第三方 kext 全部返回 `Unsupported`，根本拦不住走 AuxKC 的驱动——唯一有效的开关是 `Kernel/Add` 里启不启用。**
 - **系统层恢复审计 / System-layer Recovery Audit**：新增 `docs/system-layer-boot-audit-2026-11-18.md`，明确「回退 GitHub EFI ≠ 恢复当时的系统运行环境」——旧 EFI 仍会加载系统盘中的新版加速驱动，开机服务仍会执行显示接管设置，因此需要先读取系统侧状态再针对性恢复。
 - **驱动启动日志 / Driver Boot Trace**：新增 `docs/xegfx-boot-trace-2026-11-15.log`（V33 stage 5/6 引擎执行与 GGTT 写回读回验证记录）。
 - **Sequoia 安装与回退工具 / Sequoia Installer & Rollback**：新增 `tools/sequoia-install.command` 与 `tools/sequoia-uninstall.command`（按 UUID 挂载 EFI 分区、备份并逐文件校验 OC/Diagnostics/Boot 三段，失败自动回滚；**需配套 `EFI/` 与 `SHA256SUMS.txt`，目前尚未打包完成**），以及 Windows 侧 `tools/restore_github_efi.py`（按提交号回退 EFI，含 ocvalidate 校验与逐文件 SHA-256 读回验证）。
