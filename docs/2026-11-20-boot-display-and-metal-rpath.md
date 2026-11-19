@@ -226,3 +226,71 @@ AAPL: #[EB|LOG:VERBOSE] 2026-11-20T12:46:50
 ```
 
 `boot-args` 以 `-v` 开头，且内核进入 **VERBOSE** 模式——开机跑码在实机上确实生效了。
+
+
+---
+
+## 6. Metal 栈的 RPATH 修复：改到 Windows 侧完成
+
+上一节确认了磁盘上的 Metal 栈**完全没有修复**（四个 dylib 都没有 `LC_RPATH`，
+`.rpath-fixed` 标记也不存在），说明 `prepare-metal-stack.command` 那次没跑成功。
+
+原本的修复路径是「在 macOS 上跑 `prepare-metal-stack.command`」，但该脚本依赖
+`install_name_tool` 与 `codesign`，只能在 macOS 上执行。本次改为**把结构修复搬到 Windows 侧**：
+
+### 新增 `tools/patch_macho_rpath.py`
+
+纯 Python 的 Mach-O 改写器，做两件事：
+
+1. 在 load command 区末尾与首个 section 之间的**空闲区**插入一条
+   `LC_RPATH @loader_path`（32 字节），并更新 header 的 `ncmds` / `sizeofcmds`；
+2. 改写 `LC_ID_DYLIB`（`libvulkan.1.dylib` → `@rpath/libvulkan.dylib`，
+   `libdrm.2.dylib` → `@rpath/libdrm.2.dylib`）。
+
+关键约束是**不改变文件大小**：
+
+| 文件 | 插入位置 | 头部余量 | 文件大小 | 段布局 | `LC_CODE_SIGNATURE` 偏移 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `libvulkan_intel.dylib` | 2264 | 6312 B | 不变 | 不变 | 不变 |
+| `libvulkan.1.dylib` | 1576 | 3112 B | 不变 | 不变 | 不变 |
+| `libdrm.2.dylib` | 1504 | 3072 B | 不变 | 不变 | 不变 |
+| `libnvmtl_translate.dylib` | 2032 | 160 B | 不变 | 不变 | 不变 |
+
+插入点全部落在首个 4096 字节页内，因此 `__LINKEDIT` 不移动、段偏移不变、
+签名 blob 的 `codeLimit` 不变。逐字节比对确认：**每个文件的改动字节全部 < 4K**
+（libvulkan_intel 18 B / libvulkan.1 25 B / libdrm 72 B / libnvmtl_translate 18 B）。
+
+改写后由工具自身**重新解析并逐项校验**（文件大小、段布局、签名偏移、依赖列表、
+load command 是否越界、LC_RPATH 是否存在、install name 是否符合预期），
+任何一项不符就拒绝写盘。
+
+> 开发过程中这个校验层抓到一个真 bug：改写 `LC_ID_DYLIB` 时切片终点算错，
+> 导致字节数组被截短、后续内容整体位移。**是校验层先发现的，没有写坏文件。**
+> 修好后补丁里又加了两处长度断言。
+
+### 签名怎么办
+
+`libvulkan_intel.dylib` 与 `libnvmtl_translate.dylib` 原本带 `LC_CODE_SIGNATURE`，
+改头页后签名失效（这两个会被加载进 WindowServer，库校验要求签名有效）。
+另两个原本就没签名。
+
+因此 **macOS 侧仍必须跑一次 `prepare-metal-stack.command`**——但它的职责从
+「修结构」变成「重签名 + 实载验证」。脚本现在会：
+
+1. 幂等跳过已有的 `@loader_path`（不再重复添加）；
+2. 幂等跳过已正确的 install name；
+3. `codesign -f -s -` 重签名；
+4. 逐个验证 `@rpath` 依赖在同目录可解析；
+5. 做一次**空环境 `ctypes.CDLL` 加载测试**（不使用 `DYLD_LIBRARY_PATH`）；
+6. 全部通过后写 `Diagnostics/GPU/.rpath-fixed` 标记。
+
+第 4、5 步是**真正的 dyld 实载验证**——Windows 侧只能验证结构，验证不了实际加载。
+
+### 校验器同步修正
+
+`tools/validate_efi.py` 原来按 EFI 里的源目录判断 `@rpath` 能否解析，
+对 `libvulkan.1.dylib`（部署时改名为 `libvulkan.dylib`）会误报
+「同目录没有 libvulkan.dylib」。已改为按**部署后的真实布局**判断：
+所有 dylib 平铺到 `/Library/GPUBundles/nvmtl/`，并套用改名映射。
+
+结果：**0 错误 0 警告**（改前是 0 错误 3 警告）。

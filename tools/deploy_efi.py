@@ -88,11 +88,44 @@ for name in PROTECTED:
         protected_before[name] = manifest(p)
         print(f"  受保护目录 {name}：{len(protected_before[name])} 个文件")
 
+def source_has_loader_rpath() -> bool:
+    """源 EFI 里的 metal/vulkan dylib 是否已带 @loader_path 的 LC_RPATH。"""
+    import struct as _struct
+    for rel in ("Diagnostics/GPU/vulkan/libvulkan_intel.dylib",
+                "Diagnostics/GPU/vulkan/libvulkan.1.dylib",
+                "Diagnostics/GPU/vulkan/libdrm.2.dylib",
+                "Diagnostics/GPU/metal/libnvmtl_translate.dylib"):
+        p = SRC / rel
+        if not p.is_file():
+            continue
+        data = p.read_bytes()
+        if len(data) < 32:
+            continue
+        try:
+            ncmds, sizeofcmds = _struct.unpack_from("<II", data, 16)
+            pos = 32
+            for _ in range(ncmds):
+                cmd, cmdsize = _struct.unpack_from("<II", data, pos)
+                if cmd == 0x8000001C:            # LC_RPATH
+                    off = _struct.unpack_from("<I", data, pos + 8)[0]
+                    s = data[pos + off:data.index(b"\x00", pos + off)].decode("utf-8", "replace")
+                    if "@loader_path" in s:
+                        return True
+                pos += cmdsize
+        except (ValueError, struct.error):
+            continue
+    return False
+
+
 marker = DST / "Diagnostics" / METAL_MARKER
 if marker.is_file():
-    print(f"  ★ 检测到 Metal 修复标记 {METAL_MARKER} —— 部署时将保留已修复的 metal/vulkan 载荷")
+    print(f"  ★ 检测到 Metal 修复标记 {METAL_MARKER} —— 部署时保留磁盘上已重签名的 metal/vulkan 载荷")
 else:
-    print(f"  · 未检测到 Metal 修复标记 —— 将写入源 EFI 中的（未修复）metal/vulkan 载荷")
+    print("  · 未检测到 Metal 修复标记 —— 将写入源 EFI 中的 metal/vulkan 载荷")
+if source_has_loader_rpath():
+    print("  ★ 源载荷已含 @loader_path 的 LC_RPATH（只需在 macOS 上跑 prepare-metal-stack.command 重签名）")
+else:
+    print("  ! 源载荷缺少 @loader_path 的 LC_RPATH —— 必须先在 macOS 上跑 prepare-metal-stack.command")
 
 print()
 print("=== 1. 备份现有 EFI ===")
@@ -188,8 +221,8 @@ print(f"  ShowPicker={now['Misc']['Boot'].get('ShowPicker')} "
       f"Target={now['Misc']['Debug'].get('Target')}")
 print(f"  Tools/ 已部署: {(DST / 'Tools').is_dir()}")
 if (DST / 'Diagnostics' / METAL_MARKER).is_file():
-    print("  ★ Metal 修复标记仍在（载荷为已修复版本）")
+    print("  ★ Metal 修复标记仍在（磁盘载荷为已重签名版本）")
 else:
-    print("  · 无 Metal 修复标记（载荷为源 EFI 中的未修复版本，需在 macOS 上跑 prepare-metal-stack.command）")
+    print("  · 无 Metal 修复标记（磁盘载荷尚未在 macOS 上重签名，需跑 prepare-metal-stack.command）")
 print()
 print(f"完成。备份目录：{backup}")

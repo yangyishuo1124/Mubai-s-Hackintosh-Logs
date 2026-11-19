@@ -91,18 +91,28 @@ python tools\deploy_efi.py <仓库>\EFI "Z:\EFI" <备份目录>
 python tools\validate_efi.py --efi Z:\EFI
 ```
 
-> 此时应该出现 3 条 RPATH 警告——这是**预期的**，下一步会修复。
+> 期望结果：**0 错误 0 警告**。Metal 栈的 `@loader_path` RPATH 已由
+> `tools/patch_macho_rpath.py` 在出厂时补好（2026-11-20 起），不再有 RPATH 警告。
 
-### 第 1 步（macOS）：修复 Metal 栈的 @rpath
+### 第 1 步（macOS）：重签名并验证 Metal 栈
 
 ```
 sudo /bin/bash /Volumes/<ESP>/EFI/Tools/prepare-metal-stack.command
 ```
 
-这一步必须做。`libvulkan_intel.dylib` 来自 CI 构建，**没有 LC_RPATH**，靠 `@rpath/libdrm.2.dylib`
-引用依赖——2026-11-17 19:26 的桌面接入失败（WindowServer 连续 SIGABRT 至 watchdog）就是这个原因。
-脚本用 `install_name_tool` 补 `@loader_path` RPATH、重新签名，然后**逐个验证依赖可解析**并做空环境
-加载测试。**验证不通过就不要继续部署。**
+这一步必须做，但它的职责已经变了：
+
+- **结构修复在出厂时已完成**。`libvulkan_intel.dylib` 来自 CI 构建，原本**没有 LC_RPATH**，
+  却靠 `@rpath/libdrm.2.dylib` 引用依赖——2026-11-17 19:26 的桌面接入失败
+  （WindowServer 连续 SIGABRT 至 watchdog）就是这个原因。
+  2026-11-20 起，`tools/patch_macho_rpath.py` 已在 Windows 侧把 `@loader_path` 的
+  `LC_RPATH` 补进这四个 dylib（不改变文件大小与段偏移，只改 Mach-O 头页），
+  `validate_efi.py` 因此变成 0 警告。
+- **本步骤负责重签名与实载验证**。改过头页后原有签名失效，必须在 macOS 上重新
+  `codesign`；脚本随后**逐个验证** `@rpath` 依赖可解析，并做一次**空环境 dlopen 测试**。
+  这是唯一的实机验证——**验证不通过就不要继续部署**。
+
+脚本同时保留了对 `LC_RPATH` 与 install name 的幂等补写，所以可以反复运行。
 
 ### 第 2 步（macOS）：安装系统卷组件
 

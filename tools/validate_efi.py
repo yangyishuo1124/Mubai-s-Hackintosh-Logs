@@ -192,6 +192,15 @@ def validate(efi: Path) -> None:
     if not vulkan.is_dir() or not metal.is_dir():
         warn("缺少 Diagnostics/GPU/vulkan 或 metal —— Metal 栈未随 EFI 提供")
     else:
+        # 运行时这些 dylib 全部平铺到 /Library/GPUBundles/nvmtl/，
+        # 且 libvulkan.1.dylib 部署时改名为 libvulkan.dylib。
+        # 按「部署后的名字集合」判断能否解析，而不是按 EFI 里的源目录。
+        deploy_rename = {"libvulkan.1.dylib": "libvulkan.dylib"}
+        deployed = set()
+        for d in (vulkan, metal):
+            for f in d.iterdir():
+                if f.is_file():
+                    deployed.add(deploy_rename.get(f.name, f.name))
         for target_dir in (vulkan, metal):
             for binary in sorted(target_dir.iterdir()):
                 if not binary.is_file():
@@ -209,8 +218,8 @@ def validate(efi: Path) -> None:
                     continue
                 for dep in rdeps:
                     target = dep.split("/", 1)[1]
-                    if not (target_dir / target).is_file():
-                        warn(f"{binary.name} 依赖 {dep}，但同目录没有 {target}")
+                    if target not in deployed:
+                        warn(f"{binary.name} 依赖 {dep}，但部署目录里没有 {target}")
         if not (vulkan / "libvulkan_intel.dylib").is_file():
             err("缺少 libvulkan_intel.dylib")
         if not (metal / "NVMTLDriver").is_file():

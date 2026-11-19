@@ -1,11 +1,21 @@
 #!/bin/bash
-# Metal 栈 RPATH 修复 / Fix @rpath in the Metal stack
+# Metal 栈签名与依赖校验 / Sign & verify the Metal stack
 #
-# 为什么必须先跑这一步：
+# 背景：
 #   EFI/Diagnostics/GPU/vulkan/libvulkan_intel.dylib 等产物来自 CI 构建，**没有 LC_RPATH**，
 #   且通过 @rpath/libdrm.2.dylib 等 @rpath 引用依赖。2026-11-17 19:26 的桌面接入失败就是这个
 #   原因：@rpath 无法解析 -> Vulkan 初始化失败 -> CoreDisplay 断言 -> WindowServer SIGABRT 循环。
-#   本脚本用 install_name_tool 补 @loader_path RPATH 并重新签名，然后**逐个验证**依赖可解析。
+#
+# 现在这一步分成两半：
+#   1) **结构修复已在出厂时完成** —— tools/patch_macho_rpath.py 在 Windows 上就把
+#      @loader_path 的 LC_RPATH 补进了这四个 dylib（不改变文件大小与段偏移，只改头页）。
+#      校验：python tools/validate_efi.py --efi <EFI> 应当 0 错误 0 警告。
+#   2) **本脚本负责签名与实载验证** —— 改过头页后原有签名失效，必须在 macOS 上重新
+#      codesign；随后逐个验证 @rpath 依赖可解析，并做一次空环境 dlopen 测试。
+#      这一步是唯一的实机验证，做不过就不该继续部署。
+#
+# 本脚本同时保留了对 LC_RPATH / install name 的幂等补写（万一 EFI 被换回未修复的原件，
+# 它仍能把结构修好），所以可以反复运行。
 #
 # 用法 / Usage:
 #   sudo /bin/bash /Volumes/<EFI>/EFI/Tools/prepare-metal-stack.command
@@ -52,18 +62,25 @@ for f in "$GPU/vulkan/libvulkan_intel.dylib" "$GPU/vulkan/libvulkan.1.dylib" \
     install_name_tool -add_rpath @loader_path "$f"
 done
 
+# install name 幂等改写：已经是目标值就跳过，避免 install_name_tool 无谓地重排文件。
+set_install_name() {
+    local f="$1" want="$2" cur
+    [[ -f "$f" ]] || return 0
+    cur="$(otool -D "$f" 2>/dev/null | tail -n +2 | head -1)"
+    if [[ "$cur" == "$want" ]]; then
+        log "  install name 已是 $want，跳过：$(basename "$f")"
+        return 0
+    fi
+    log "  重设 $(basename "$f") 的 install name：$cur -> $want"
+    install_name_tool -id "$want" "$f"
+}
+
 # libvulkan.1.dylib 以 libvulkan.dylib 名称部署到 /Library/GPUBundles/nvmtl/，
-# 其 install name 仍是 @rpath/libvulkan.1.dylib，会解析不到自己 —— 改成部署后的实际名称。
-if [[ -f "$GPU/vulkan/libvulkan.1.dylib" ]]; then
-    log "  重设 libvulkan.1.dylib 的 install name 为 @rpath/libvulkan.dylib"
-    install_name_tool -id @rpath/libvulkan.dylib "$GPU/vulkan/libvulkan.1.dylib"
-fi
+# 其 install name 必须改成部署后的实际名称，否则自引用解析不到自己。
+set_install_name "$GPU/vulkan/libvulkan.1.dylib" "@rpath/libvulkan.dylib"
 
 # libdrm.2.dylib 在 CI 里被 build 成绝对路径依赖，部署到 nvmtl/ 后必须改成相对名。
-if [[ -f "$GPU/vulkan/libdrm.2.dylib" ]]; then
-    log "  重设 libdrm.2.dylib 的 install name 为 @rpath/libdrm.2.dylib"
-    install_name_tool -id @rpath/libdrm.2.dylib "$GPU/vulkan/libdrm.2.dylib"
-fi
+set_install_name "$GPU/vulkan/libdrm.2.dylib" "@rpath/libdrm.2.dylib"
 
 log ""
 log "=== 重新签名 ==="
