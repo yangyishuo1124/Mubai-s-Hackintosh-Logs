@@ -1,0 +1,235 @@
+diff --git a/kexts/XeGfxAccel/accel/nvrm-accel.cpp b/kexts/XeGfxAccel/accel/nvrm-accel.cpp
+index 53f52af..6ccadfc 100644
+--- a/kexts/XeGfxAccel/accel/nvrm-accel.cpp
++++ b/kexts/XeGfxAccel/accel/nvrm-accel.cpp
+@@ -146,8 +146,17 @@ public:
+ };
+ OSDefineMetaClassAndStructors(NVEventMachine, IOAccelEventMachineFast2)
+ static void (*gEnableAccel)(const char *why) = nullptr;
++#ifdef NMX_XEGFX
++// The built-in Intel panel must have backing on the family's first resource
++// request. Opening these gates after registration leaves an empty first pipe.
++static int gNvIop = 1;
++static int gNvScanout = 1;
++static int gNvAperture = 1;
++#else
++static int gNvIop = 0;
+ static int gNvScanout = 0;
+ static int gNvAperture = 0;
++#endif
+ class NVDisplayMachine : public IOAccelLegacyDisplayMachine {
+     OSDeclareDefaultStructors(NVDisplayMachine)
+     NM_TAHOE_FWD(NVDisplayMachine)
+@@ -224,6 +233,7 @@ OSDefineMetaClassAndStructors(IOAccelNVRMCarrier, IOService)
+ #ifdef NMX_XEGFX
+ // WindowServer's sandbox lets it open /dev/dri read-only but never ioctl(2) a device node; it may open IOAccel*
+ // user clients. libdrm sends its ioctls here with the minor of its read-only fd, XeGfx checks the caller opened it.
++static unsigned nvIntelCompletionMark(unsigned id, unsigned pending);
+ class IOAccelXeGfxDRMClient : public IOUserClient {
+     OSDeclareDefaultStructors(IOAccelXeGfxDRMClient)
+ public:
+@@ -231,6 +241,12 @@ public:
+     IOReturn externalMethod(uint32_t sel, IOExternalMethodArguments *a, IOExternalMethodDispatch *,
+                             OSObject *, void *) APPLE_KEXT_OVERRIDE {
+         static IOService *res;
++        if (sel == 1) {
++            if (a->scalarInputCount != 2 || a->scalarOutputCount != 1 ||
++                a->scalarInput[0] > 0xffffffffULL || a->scalarInput[1] > 1) return kIOReturnBadArgument;
++            a->scalarOutput[0] = nvIntelCompletionMark((unsigned)a->scalarInput[0], (unsigned)a->scalarInput[1]);
++            return kIOReturnSuccess;
++        }
+         if (sel != 0 || a->scalarInputCount != 3 || a->scalarOutputCount != 1) return kIOReturnBadArgument;
+         if (!res) { OSDictionary *m = serviceMatching("XeGfxResident"); if (m) res = waitForMatchingService(m, 1000ULL * 1000 * 1000); }
+         if (!res) return kIOReturnNotAttached;
+@@ -549,6 +565,26 @@ public:
+             fFBRegistered |= 1u << i;
+             gNvHeadsRegistered = fFBRegistered;
+             if (c != b + 1) {
++#ifdef NMX_XEGFX
++                // The family's initial sweep can already have created this pipe.
++                // Verify its framebuffer identity before recording it as usable.
++                bool existing = false;
++                if (c <= kNvMaxFB) {
++                    uint8_t *knownDM = (uint8_t *)fDM;
++                    for (unsigned j = 0; j < c; j++) {
++                        void *knownPipe = *(void *const volatile *)(knownDM + 0x88 + 8 * j);
++                        if (knownPipe && *(IOService *const volatile *)((uint8_t *)knownPipe + 0x98) == fb) {
++                            existing = true;
++                            break;
++                        }
++                    }
++                }
++                if (existing) {
++                    gNvHeadsPiped |= 1u << i;
++                    added++;
++                    continue;
++                }
++#endif
+                 ALOG("  %s: index %u -- count went %u -> %u; the family did not add it (already known, or the cap "
+                      "accel+0xcb0 = %u refused it). Stopping here so no later head takes this one's pipe number.",
+                      why, i, b, c, *(const volatile uint32_t *)((const uint8_t *)this + 0xcb0));
+@@ -598,17 +634,18 @@ public:
+     bool registerFramebufferLocked(int how) {
+         if (!fDM) { ALOG("registerFramebuffer(%d): no display machine", how); return false; }
+         if (!fFB) { ALOG("registerFramebuffer(%d): no framebuffer has published yet", how); return false; }
++        unsigned added = 0;
+         unsigned before = fDM->getFramebufferCount();
+         ALOG("registerFramebuffer(%d): framebuffer count before = %u", how, before);
+         if (how == 2) {
+             if (before != 0) ALOG("  already %u -- refusing to re-run the family's sweep", before);
+             else { ALOG("  re-running IOAccelDisplayMachine::start(pci) -- the family's own sweep"); fDM->start(fPCI); }
+         } else {
+-            registerPendingLocked("sysctl");
++            added = registerPendingLocked("sysctl");
+         }
+         unsigned after = fDM->getFramebufferCount();
+         ALOG("  framebuffer count after = %u", after);
+-        if (after > before) { onCountGrewLocked(); return true; }
++        if (after > before || added) { onCountGrewLocked(); return true; }
+         return false;
+     }
+     const OSSymbol *fSymAlloc = nullptr, *fSymFree = nullptr;
+@@ -840,6 +877,16 @@ public:
+             }
+             ALOG("NVRM owns %04x:%04x (waited %u ms) - starting", pci->configRead16(0x00), pci->configRead16(0x02), waited * 100);
+         }
++#endif
++#ifdef NMX_XEGFX
++        // CoreDisplay queries capabilities during the family's initial bring-up.
++        // Publish before that query, while first pipe resources are created.
++        OSDictionary *earlyCaps = OSDictionary::withCapacity(2);
++        if (!earlyCaps) return false;
++        earlyCaps->setObject("DisplayPipeSupported", kOSBooleanTrue);
++        earlyCaps->setObject("TransactionsSupported", kOSBooleanTrue);
++        setProperty("IOAccelDisplayPipeCapabilities", earlyCaps);
++        earlyCaps->release();
+ #endif
+         ALOG("start(%s): calling IOGraphicsAccelerator2::start — the family's own bring-up", provider ? provider->getName() : "?");
+         bool r = IOGraphicsAccelerator2::start(provider);
+@@ -850,7 +897,9 @@ public:
+             // accelerator that does not wait, that mark would let a CPU lock or a copied present read a surface before
+             // its pixels landed, so the plugin keeps marking them after the GPU finishes.
+             setProperty("NVAccelSurfaceWait", 1ULL, 32);
++#ifndef NMX_XEGFX
+             registerService(); ALOG("registerService() called — Metal can now find MetalPluginName=%s", "NVMTLDriver");
++#endif
+             gAccel = this; gEnableAccel = &NVAccel::enableFromHook;
+             for (unsigned i = 0; i < NV_CARRIERS; i++) {
+                 IOAccelNVRMCarrier *c = OSTypeAlloc(IOAccelNVRMCarrier);
+@@ -918,6 +967,13 @@ public:
+                 }
+             } else ALOG("serviceMatching(NVRMFramebuffer) returned NULL -- cannot watch for the framebuffer");
+         }
++#ifdef NMX_XEGFX
++        if (r) {
++            registerFramebuffer(1);
++            registerService();
++            ALOG("Intel accelerator published after display and client initialization");
++        }
++#endif
+         return r;
+     }
+     // ---- GPU core temperature ------------------------------------------------
+@@ -1258,7 +1314,7 @@ public:
+     OSObject  *getPlaneResource(unsigned int, unsigned int) const;
+ };
+ 
+-static int    gNvIop = 0;
++
+ static SInt64 gCntIopOk, gCntIopFail, gCntIopEmpty, gCntIopSrcRes, gCntIopSrcSurf, gCntIopBlank;
+ static SInt64 gCntIopOkHead[kNvMaxFB];
+ #define NVIOP_LOG_MAX 40
+@@ -1573,7 +1629,9 @@ IOReturn NVDisplayPipe::performTransaction(IOAccelDisplayPipeTransaction2 *txn)
+         // stale, one-colour buffer on the panel every other frame: full-screen flicker, 5 of 40 flicker recordings
+         // (1.13-1.14.1), nvaccel_iop_blank about half of every copied frame, never on machines whose frames all flip.
+         // Such a frame now keeps the previous picture on the panel instead.
+-        nvSurfWaitReady(s->getSurfaceID());   // a copied frame is read here, so its GPU work must be done first
++        // A timed-out composite still owns these pages. Keep the previous
++        // frame until completion rather than copying partially rendered pixels.
++        if (!nvSurfWaitReady(s->getSurfaceID())) return kIOReturnSuccess;
+         if (!nvAccelSurfCopyReady(s, head)) return kIOReturnSuccess;
+         const unsigned fmt = s->getPixelFormat();
+         if (fmt != 0x42475241u) NVIOP_FAIL(kIOReturnUnsupported, "surface 0x%x format 0x%08x is not BGRA", s->getSurfaceID(), fmt);
+@@ -1799,7 +1857,15 @@ static bool nvSurfWaitReady(unsigned int id)
+         unsigned i = 0;
+         while (i < 32 && gSurfPend[i].id != id) i++;
+         if (i == 32) break;
+-        if (mach_absolute_time() >= deadline) { gSurfPend[i].id = 0; ready = false; break; }
++        if (mach_absolute_time() >= deadline) {
++#ifdef NMX_XEGFX
++            // The completion callback releases this mark when the GPU lands.
++            ready = false;
++#else
++            gSurfPend[i].id = 0; ready = false;
++#endif
++            break;
++        }
+         waited = true;
+         IOLockSleepDeadline(l, gSurfPend, deadline, THREAD_UNINT);
+     }
+@@ -2095,6 +2161,11 @@ static unsigned nvSurfGpuEscape(const struct NVRMSurfShareEsc *p)
+     if (p->surfaceID) nvSurfMark(p->surfaceID, (p->plane & 1u) != 0);
+     return 0;
+ }
++static unsigned nvIntelCompletionMark(unsigned id, unsigned pending) {
++    struct NVRMSurfShareEsc p = {};
++    p.surfaceID = id; p.plane = pending;
++    return nvSurfGpuEscape(&p);
++}
+ static IOReturn nvAccelSurfVram(struct NVRMSurfShareEsc *p, task_t task, unsigned cmd)
+ {
+     if (p->version == NVRM_SURFSHARE_VERSION && cmd == NVRM_ESC_SURF_DIRTY && (p->plane & NVRM_SS_PLANE_GPU_MARK)) {
+diff --git a/plugin/nvmtl_vk.c b/plugin/nvmtl_vk.c
+index 8a7accc..27bd96d 100644
+--- a/plugin/nvmtl_vk.c
++++ b/plugin/nvmtl_vk.c
+@@ -27,6 +27,7 @@ static int g_sampler_anisotropy, g_sampler_mirror_clamp;
+ static int g_scalar_layout;
+ 
+ void nvlog(const char *fmt, ...);
++void nvlog_raw(const char *fmt, ...);
+ 
+ static __thread uint32_t g_copy_aspect_override, g_copy_bpp_override;
+ void nvmtl_vk_copy_aspect_override(uint32_t aspect, uint32_t bpp) { g_copy_aspect_override = aspect; g_copy_bpp_override = bpp; }
+@@ -2037,13 +2038,31 @@ int nvmtl_vk_surface_dirty_try(uint32_t surfaceID, uint32_t plane) { return nvmt
+ // WindowServer completion mark (NVAccel nvSurfGpuEscape), on NVK's surface escape: 0 = the kernel took it
+ uint32_t nvmtl_vk_surface_gpu_mark(uint32_t surfaceID, int pending)
+ {
++    if (nvmtl_vk_vendor() == 0x8086) {
++        static io_connect_t conn;
++        static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
++        pthread_mutex_lock(&lock);
++        if (!conn) {
++            io_service_t svc = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("NMXAccel"));
++            if (!svc) { pthread_mutex_unlock(&lock); return 0x80000002u; }
++            kern_return_t kr = IOServiceOpen(svc, mach_task_self(), 0x58474452u, &conn);
++            IOObjectRelease(svc);
++            if (kr != KERN_SUCCESS) { pthread_mutex_unlock(&lock); return 0x80000002u; }
++        }
++        pthread_mutex_unlock(&lock);
++        uint64_t in[2] = { surfaceID, pending ? 1u : 0u }, out = 0;
++        uint32_t count = 1;
++        kern_return_t kr = IOConnectCallScalarMethod(conn, 1, in, 2, &out, &count);
++        return kr == KERN_SUCCESS && count == 1 ? (uint32_t)out : 0x80000002u;
++    }
+     if (!pnvk_surface_dirty || !g_dev) return 0x80000002u;
+     return pnvk_surface_dirty(g_dev, surfaceID, 0x80000000u | (pending ? 1u : 0u));
+ }
+ /* 1 when NVAccel publishes NVAccelSurfaceWait: its page-off waits for a surface WindowServer's GPU is still writing */
+ int nvmtl_vk_accel_surface_wait(void)
+ {
+-    io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("NVAccel"));
++    io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
++        IOServiceMatching(nvmtl_vk_vendor() == 0x8086 ? "NMXAccel" : "NVAccel"));
+     if (!s) return 0;
+     CFTypeRef v = IORegistryEntryCreateCFProperty(s, CFSTR("NVAccelSurfaceWait"), kCFAllocatorDefault, 0);
+     int on = 0;
+@@ -2855,7 +2874,7 @@ static void nvmtl_perf_submit(unsigned sets, const uint64_t *pt)
+     memset(g_perf, 0, sizeof g_perf);
+     if (!g_perf_kind) g_perf_last = pt[7];
+     pthread_mutex_unlock(&g_perf_lock);
+-    fprintf(stderr, "PERFSUB k%d sets %u gap %.1f hook %.1f end %.1f fence %.1f submit %.1f wait %.1f retire %.1f wit %llu:%llu:%llu:%llu ctl %llu/%llu |%s\n",
++    nvlog_raw("PERFSUB k%d sets %u gap %.1f hook %.1f end %.1f fence %.1f submit %.1f wait %.1f retire %.1f wit %llu:%llu:%llu:%llu ctl %llu/%llu |%s\n",
+             g_perf_kind, sets, gap, (double)(pt[1] - pt[0]) / 1e3, (double)(pt[2] - pt[1]) / 1e3, (double)(pt[3] - pt[2]) / 1e3,
+             (double)(pt[4] - pt[3]) / 1e3, (double)(pt[5] - pt[4]) / 1e3, (double)(pt[7] - pt[6]) / 1e3,
+             (unsigned long long)g_wit_ok, (unsigned long long)g_wit_waited, (unsigned long long)g_wit_leak,

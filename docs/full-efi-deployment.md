@@ -172,7 +172,14 @@ python tools\efi_profile.py --efi <EFI 路径> --profile safe
    修复 RPATH 后才可用。
 3. **`air-runtime/libLLVM.dylib` 缺失**——本机不存在该文件。若 macOS 系统卷的
    `/Library/GPUBundles/air-runtime/` 下也没有，NVMTLDriver 的 AIR 翻译可能不完整。
-4. **共享内存实现未入库**——`patches/xg_xe_userptr.inc` 等文件不在仓库，userptr 内核二进制
-   也没保留，本套 EFI 里的 `XeGfx.kext` 是 11-15 的 V35 基线，**不含** `xe_userptr` 功能。
+4. **共享内存需要重建内核**——实现源码已合入本分支（`patches/xg_xe_userptr.inc`、`apply_xe_userptr.py`、
+   `apply_mesa_userptr.py`、`apply_plugin_userptr.py`、`patches/intel-completion.patch`、
+   `diagnostics/vk-iosurface-host.c`），CI 流水线也已接上（`xe-build.yml` 跑 ASan/UBSan 测试并打
+   userptr 补丁，`xe-userland.yml` 构建 completion bridge 与 userptr 版 Mesa）。
+   但**构建产物从未入库**——三个分支的 `XeGfx.kext` 哈希一致（`cc6dbfb1…`，11-15 的 V35 基线），
+   所以本套 EFI 里的内核**不含** `xe_userptr` 功能。要启用共享内存，需在 GitHub Actions 跑一次
+   userptr 构建，取回产物替换 `EFI/OC/Kexts/XeGfx.kext` 与 `EFI/Diagnostics/GPU/XeGfx.kext`，
+   再按 `docs/xe-iosurface-shared-memory.md` 的运行时开关（`compat.linuxkpi.xe_userptr=1` +
+   `ANV_XE_USERPTR=1`）验证。
 5. **低帧率 / 输入卡顿**——已定位到 IOSurface 纹理创建与 ANV GEM 分配等待，未解决。
 6. **Pipe Scaler**（>半屏缩放分辨率）——未实现。
