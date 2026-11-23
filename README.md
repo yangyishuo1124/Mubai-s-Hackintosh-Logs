@@ -93,3 +93,7 @@ My OpenCore EFI and adaptation logs for the ASUS Vivobook S16 S5650AA. The machi
 这是本机实测 EFI，不保证其他机器直接可用。替换前请务必备份当前 EFI 并保留可启动恢复介质；配置包含本机 SMBIOS 与 `ROM` 字段，其他使用者请自行生成新的 SMBIOS 标识。
 
 This EFI is tuned for this specific machine. Always back up your EFI and keep bootable recovery media before making changes, and generate your own SMBIOS identifiers if reusing this configuration.
+
+## 致谢 / Credits
+
+[Acidanthera](https://github.com/acidanthera)、[Dortania](https://dortania.github.io/)、[FranciumOS](https://github.com/FranciumOS-org/Airport_RTW89)、[SimpleHDA](https://github.com/laobamac/SimpleHDA)、[RealtekBluetoothFirmware](https://github.com/thegwchr/RealtekBluetoothFirmware)、[Lem's Hardware Lab](https://github.com/lems-hardware/lhl-hackintosh-docs)、[WTLIntelGfx](https://github.com/InSnh-Gd/WTLIntelGfx)，以及老吴黑苹果工作室的初始参考环境。
